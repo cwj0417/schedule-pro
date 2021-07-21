@@ -1,0 +1,29 @@
+{
+  "name": "schedule-pro",
+  "version": "0.0.1",
+  "description": "manage schedule for daily production",
+  "main": "main/index.js",
+  "scripts": {
+    "test": "echo none && exit 0",
+    "dev": "node scripts/run-dev.js",
+    "build": "node scripts/run-build.js"
+  },
+  "author": "chenwj",
+  "license": "MIT",
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.2.2",
+    "@vue/compiler-sfc": "^3.0.11",
+    "detect-port": "^1.3.0",
+    "electron": "^12.0.6",
+    "electron-builder": "^22.10.5",
+    "esbuild": "^0.11.19",
+    "less": "^4.1.1",
+    "typescript": "^4.2.4",
+    "vite": "^2.2.3",
+    "vue-tsc": "^0.0.26"
+  },
+  "dependencies": {
+    "vue": "^3.0.11",
+    "vue-router": "^4.0.8"
+  }
+}

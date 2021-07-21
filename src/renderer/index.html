@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>schedule pro</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+    <style>
+        html, body {
+            height: 100%;
+            width: 100;
+        }
+        body {
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+        #app {
+            height: 100%;
+            width: 100%;
+        }
+        .dragable {
+            -webkit-app-region: drag;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html>
