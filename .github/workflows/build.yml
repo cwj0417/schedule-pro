@@ -19,7 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [macos-latest]
+        # os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js 14
@@ -38,13 +39,13 @@ jobs:
       #       ${{ runner.os }}-node-
       - name: Install
         run: |
-          npm ci --no-optional
+          yarn
       # - name: Get Build Number
       #   id: vars
       #   uses: ./.github/actions/get-build-number
       - name: Build
         run: |
-          npm run build:production
+          yarn build
         # env:
         #   BUILD_NUMBER: ${{ steps.vars.outputs.build_number }}
         #   FULL_RELEASE: ${{ startsWith(github.event.commits[0].message, 'chore(release)') }}
