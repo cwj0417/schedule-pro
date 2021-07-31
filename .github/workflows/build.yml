@@ -44,7 +44,7 @@ jobs:
       #   id: vars
       #   uses: ./.github/actions/get-build-number
       - name: Build
-        run: export GH_TOKEN=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 && yarn build
+        run: export GH_TOKEN=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 && yarn build
         # env:
         #   BUILD_NUMBER: ${{ steps.vars.outputs.build_number }}
         #   FULL_RELEASE: ${{ startsWith(github.event.commits[0].message, 'chore(release)') }}
