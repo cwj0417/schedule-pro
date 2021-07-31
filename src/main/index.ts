@@ -10,6 +10,7 @@ import { BrowserWindowConstructorOptions } from 'electron/main'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
 import { readdirSync, unlinkSync } from 'fs'
 import { join } from 'path'
+import { autoUpdater } from "electron-updater"
 
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
 
@@ -210,6 +211,12 @@ const template: MenuItemConstructorOptions[] = [
     {
       role: 'close'
     },
+    {
+      label: 'check for updates',
+      click: () => {
+        autoUpdater.checkForUpdatesAndNotify()
+      }
+    }
     ]
   }
 ]
@@ -245,6 +252,8 @@ ipcMain.on('addCountDown', (event, args) => {
     content,
   })
 })
+
+autoUpdater.checkForUpdatesAndNotify()
 
 type notification = {
   id: number,
