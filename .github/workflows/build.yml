@@ -44,6 +44,7 @@ jobs:
       #   id: vars
       #   uses: ./.github/actions/get-build-number
       - name: Build
+        run: GH_TOKEN=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
         run: |
           yarn build
         # env:
