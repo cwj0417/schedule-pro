@@ -60,14 +60,17 @@ jobs:
       #   with:
       #     name: build
       #     path: build/built/*.dmg
+      - name: Get Version
+        id: get_version
+        run: cat package.json |grep version|sed s/\"version\"\:[[:space:]]\"//g|sed s/\",//g
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: v${{ steps.get_version.outputs }}
+          release_name: Release v${{ steps.get_version.outputs }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
@@ -77,8 +80,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: build/built/schedule-pro-0.0.1.dmg
-          asset_name: schedule-pro${{ github.ref }}.dmg
+          asset_path: build/built/schedule-pro-${{ steps.get_version.outputs }}.dmg
+          asset_name: schedule-pro${{ steps.get_version.outputs }}.dmg
           asset_content_type: application/dmg
     # - name: Upload Windows Asar
     #   if: ${{ runner.os == 'Windows' && startsWith(github.event.commits[0].message, 'chore(release)') }}
