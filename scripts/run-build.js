@@ -28,7 +28,7 @@ const runBuild = async () => {
     builder.build({
         targets: Platform.MAC.createTarget(),
         config: require(join(projRoot, 'build', 'config.js')),
-        publish: 'never',
+        // publish: 'never',
         // dir: true,
     })
         .then(() => {
