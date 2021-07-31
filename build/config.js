@@ -47,18 +47,18 @@ const config = {
     ]
   },
   mac: {
-    icon: 'build/icons/icon.icns',
-    target: [
-      {
-        target: 'dir',
-      },
-      {
-        target: 'zip'
-      },
-      {
-        target: 'dmg'
-      }
-    ]
+    icon: 'build/icons/icon.icns', // 默认是dmg+zip, 不然autoUpdater会失败
+    // target: [
+    //   {
+    //     target: 'dir',
+    //   },
+    //   {
+    //     target: 'zip'
+    //   },
+    //   {
+    //     target: 'dmg'
+    //   }
+    // ]
   },
   win: {
     icon: 'build/icons/icon.ico',
