@@ -16,7 +16,8 @@ const config = {
   publish: [{
     provider: 'github',
     owner: 'cwj0417',
-    repo: 'schedule-pro'
+    repo: 'schedule-pro',
+    releaseType: 'release'
   }],
   files: [
     // don't include node_modules as all js modules are bundled into production js by rollup
