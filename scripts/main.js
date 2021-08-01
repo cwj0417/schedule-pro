@@ -26,7 +26,7 @@ let prodPlugin = () => ({
             path: args.path,
             namespace: 'dev-html',
         }))
-        build.onResolve({ filter: /url|path/ }, args => {
+        build.onResolve({ filter: /^url$|^path$/ }, args => {
             return {
                 external: true
             }

@@ -52,12 +52,6 @@ const config = {
     //   {
     //     target: 'dir',
     //   },
-    //   {
-    //     target: 'zip'
-    //   },
-    //   {
-    //     target: 'dmg'
-    //   }
     // ]
   },
   win: {
