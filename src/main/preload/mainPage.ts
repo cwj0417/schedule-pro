@@ -9,4 +9,9 @@ electron.contextBridge.exposeInMainWorld('apis', {
     fs,
     path,
     electron,
+    onMessage: (fn: any) => {
+        electron.ipcRenderer.on('message', (event, text) => {
+            fn?.(text)
+        })
+    }
 })

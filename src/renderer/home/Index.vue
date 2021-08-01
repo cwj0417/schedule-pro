@@ -1,5 +1,6 @@
 <template>
   请设置快捷键
+  <div id="messages"></div>
   <div class="wrapper">
     <div class="setting">
       <div class="up">计时器</div>
@@ -34,7 +35,7 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, toRaw, reactive } from "vue";
+import { defineComponent, toRaw, reactive, onMounted } from "vue";
 import { useUserData } from "../composition";
 import keyboard from "./keyboards.vue";
 
@@ -46,7 +47,7 @@ export default defineComponent({
   setup() {
     const data = reactive({
       editing: "",
-    })
+    });
     const config = useUserData("shortcuts", {});
     const edit = (type: string) => {
       data.editing = type;
@@ -54,7 +55,7 @@ export default defineComponent({
         key: toRaw(config.value[type]) ?? [],
       });
       document.addEventListener("keydown", keydown);
-    }
+    };
     const keydown = (event: any) => {
       const { key } = event;
       if (["Meta", "Shift", "Alt", "Control"].indexOf(key) > -1) return;
@@ -68,7 +69,16 @@ export default defineComponent({
       });
       document.removeEventListener("keydown", keydown);
       data.editing = "";
-    }
+    };
+    onMounted(() => {
+      window.apis.onMessage((text: any) => {
+        const container = document.getElementById("messages");
+        const message = document.createElement("div");
+        console.log(message)
+        message.innerHTML = text;
+        container!.appendChild(message);
+      });
+    });
     return {
       data,
       config,

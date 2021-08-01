@@ -1,6 +1,6 @@
 {
   "name": "schedule-pro",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "manage schedule for daily production",
   "main": "main/index.js",
   "scripts": {
@@ -15,7 +15,8 @@
     "@vue/compiler-sfc": "^3.0.11",
     "detect-port": "^1.3.0",
     "electron": "^12.0.6",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^22.11.7",
+    "electron-log": "^4.4.1",
     "electron-updater": "^4.3.9",
     "esbuild": "^0.11.19",
     "less": "^4.1.1",

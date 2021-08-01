@@ -12,6 +12,38 @@ import { readdirSync, unlinkSync } from 'fs'
 import { join } from 'path'
 import { autoUpdater } from "electron-updater"
 
+import log from 'electron-log';
+log.transports.file.level = 'debug'
+autoUpdater.logger = log;
+log.info('App starting...');
+
+function sendStatusToWindow(text: any) {
+  log.info(text);
+  windowConf.main.window!.webContents.send('message', text);
+}
+
+autoUpdater.on('checking-for-update', () => {
+  sendStatusToWindow('Checking for update...');
+})
+autoUpdater.on('update-available', (info) => {
+  sendStatusToWindow('Update available.' + JSON.stringify(info));
+})
+autoUpdater.on('update-not-available', (info) => {
+  sendStatusToWindow('Update not available.' + JSON.stringify(info));
+})
+autoUpdater.on('error', (err) => {
+  sendStatusToWindow('Error in auto-updater. ' + err);
+})
+autoUpdater.on('download-progress', (progressObj) => {
+  let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+  sendStatusToWindow(log_message);
+})
+autoUpdater.on('update-downloaded', (info) => {
+  sendStatusToWindow('Update downloaded' + JSON.stringify(info));
+});
+
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
 
 let isQuiting = false // quit的时候也会调用每个窗口的close事件, 所以要区别判断是否要进行便签的删除.
@@ -93,6 +125,7 @@ function createWindow(type: keyof typeof windowConf = 'main') {
       windowConf[type].window = null;
     })
   }
+  sendStatusToWindow('test...')
 }
 
 function createStickies(id = Date.now()) {
