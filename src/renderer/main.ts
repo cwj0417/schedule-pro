@@ -5,6 +5,7 @@ import Timer from './timer/Index.vue'
 import Schedule from './schedule/Index.vue'
 import Inspiration from './inspiration/Index.vue'
 import Stickies from './stickies/Index.vue'
+import './index.css'
 
 const App = defineComponent({
     render () {
