@@ -60,16 +60,15 @@ const ensureIdInStickiesConfig = (id: number) => {
     }
   }
 }
+let mainWindow: BrowserWindow | null = null
 
 const windowConf: {
   [prop in 'main' | 'timer' | 'schedule' | 'inspiration']: {
-    window: BrowserWindow | null,
     url: string,
     conf: BrowserWindowConstructorOptions
   }
 } = {
   main: {
-    window: null,
     url: mainPage,
     conf: {
       width: 800,
@@ -80,7 +79,6 @@ const windowConf: {
     },
   },
   timer: {
-    window: null,
     url: timerPage,
     conf: {
       width: 800,
@@ -91,7 +89,6 @@ const windowConf: {
     },
   },
   schedule: {
-    window: null,
     url: schedulePage,
     conf: {
       width: 800,
@@ -102,7 +99,6 @@ const windowConf: {
     },
   },
   inspiration: {
-    window: null,
     url: inspirationPage,
     conf: {
       width: 800,
@@ -116,16 +112,17 @@ const windowConf: {
 
 function createWindow(type: keyof typeof windowConf = 'main') {
 
-  if (windowConf[type].window) {
-    windowConf[type].window!.show()
+  if (mainWindow) {
+    if (mainWindow!.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
+    mainWindow!.show()
   } else {
-    windowConf[type].window = new BrowserWindow(windowConf[type].conf)
-    windowConf[type].window!.loadURL(windowConf[type].url)
-    windowConf[type].window?.on('close', () => {
-      windowConf[type].window = null;
+    mainWindow = new BrowserWindow(windowConf[type].conf)
+    mainWindow!.loadURL(windowConf[type].url)
+    mainWindow?.on('close', () => {
+      mainWindow = null;
     })
   }
-  sendStatusToWindow('test...')
+  // sendStatusToWindow('test...')
 }
 
 function createStickies(id = Date.now()) {
