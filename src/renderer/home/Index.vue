@@ -1,43 +1,112 @@
 <template>
-  请设置快捷键
-  <div id="messages"></div>
-  <div class="wrapper">
-    <div class="setting">
-      <div class="up">计时器</div>
-      <div
-        class="down"
-        :class="data.editing === 'timer' ? 'active' : ''"
-        @click="edit('timer')"
-      >
-        <keyboard :value="config.timer" />
-      </div>
+  <div class="w-full h-full flex flex-col select-none">
+    <div class="w-full h-16 py-4 dragable">
+      <img class="h-6 m-auto" src="../assets/logo.png" alt="" />
     </div>
-    <div class="setting">
-      <div class="up">计划</div>
-      <div
-        class="down"
-        :class="data.editing === 'schedule' ? 'active' : ''"
-        @click="edit('schedule')"
-      >
-        <keyboard :value="config.schedule" />
+    <div class="flex-grow w-full flex p-5 space-x-5 bg-gray-100">
+      <div class="w-9/12 flex flex-col">
+        <div class="h-auto">
+          <div class="text-2xl font-bold">
+            timer
+            <keyboard
+              :active="data.editing === 'timer' && !editingAccelerator.length"
+              @setShortcut="edit('timer')"
+              :value="
+                data.editing === 'timer' ? editingAccelerator : config.timer
+              "
+            />
+          </div>
+          <div class="h-auto flex-grow flex overflow-x-scroll space-x-5 mt-2">
+            <div
+              class="w-44 flex-none h-20 rounded-lg overflow-hidden bg-white"
+              v-for="timer of timers"
+              :key="timer.id"
+            >
+              <div class="w-44 h-2">
+                <div
+                  class="bg-blue-500 h-full"
+                  :style="{ width: timer.percent * 100 + '%' }"
+                ></div>
+              </div>
+              <div class="my-1 h-4 text-center text-xs text-gray-500">
+                <span v-if="timer.remain >= 60"
+                  >{{ Math.floor(timer.remain / 60) }} min
+                </span>
+                <span>{{ timer.remain % 60 }} sec</span>
+              </div>
+              <div
+                class="
+                  text-md text-black text-center
+                  p-2
+                  h-11
+                  overflow-hidden
+                  whitespace-nowrap
+                  overflow-ellipsis
+                "
+              >
+                {{ timer.content }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex-grow flex space-x-5 mt-5">
+          <div class="h-full flex-grow">
+            <div class="text-2xl font-bold">
+              schedule
+              <keyboard
+                :active="
+                  data.editing === 'schedule' && !editingAccelerator.length
+                "
+                @setShortcut="edit('schedule')"
+                :value="
+                  data.editing === 'schedule'
+                    ? editingAccelerator
+                    : config.schedule
+                "
+              />
+            </div>
+          </div>
+          <div class="h-full flex-grow">
+            <div class="text-2xl font-bold">
+              inspiration
+              <keyboard
+                :active="
+                  data.editing === 'inspiration' && !editingAccelerator.length
+                "
+                @setShortcut="edit('inspiration')"
+                :value="
+                  data.editing === 'inspiration'
+                    ? editingAccelerator
+                    : config.inspiration
+                "
+              />
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="setting">
-      <div class="up">灵感</div>
-      <div
-        class="down"
-        :class="data.editing === 'inspiration' ? 'active' : ''"
-        @click="edit('inspiration')"
-      >
-        <keyboard :value="config.inspiration" />
+      <div class="w-3/12">
+        <div class="text-2xl font-bold">
+          stickies
+          <keyboard :disabled="true" :value="['metaKey', 'n']" />
+        </div>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, toRaw, reactive, onMounted } from "vue";
+import {
+  defineComponent,
+  toRaw,
+  reactive,
+  onMounted,
+  onUnmounted,
+  ref,
+} from "vue";
 import { useUserData } from "../composition";
 import keyboard from "./keyboards.vue";
+import { notification } from "../../type";
+import { keyCodes } from "../utils/keyboard";
+import { log } from "util";
 
 export default defineComponent({
   name: "home",
@@ -48,62 +117,106 @@ export default defineComponent({
     const data = reactive({
       editing: "",
     });
+    let editingAccelerator = ref<any>([]);
+
     const config = useUserData("shortcuts", {});
+    const { electron, onMessage, platform } = window.apis;
+
     const edit = (type: string) => {
       data.editing = type;
-      window.apis.electron.ipcRenderer.send("removeShortCut", {
+      electron.ipcRenderer.send("removeShortCut", {
         key: toRaw(config.value[type]) ?? [],
       });
       document.addEventListener("keydown", keydown);
+      document.addEventListener("keyup", keyup);
     };
+
+    const getAccelerator = (keyEvent: any) =>
+      ["altKey", "ctrlKey", "metaKey", "shiftKey"].filter((i) => keyEvent[i]);
+
     const keydown = (event: any) => {
-      const { key } = event;
-      if (["Meta", "Shift", "Alt", "Control"].indexOf(key) > -1) return;
-      const shortcutContent = ["altKey", "ctrlKey", "metaKey", "shiftKey"]
-        .filter((i) => event[i])
-        .concat(event.key);
+      const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
+
+      if (
+        !key ||
+        !["normal", "accelerator", "esc"].includes(key.type) ||
+        !key.value
+      )
+        return;
+
+      if (key.type === "accelerator") {
+        editingAccelerator.value = getAccelerator(event);
+        return;
+      }
+
+      const shortcutContent =
+        key.value === "esc"
+          ? toRaw(config.value[data.editing])
+          : getAccelerator(event).concat(key.value);
       config.value[data.editing] = shortcutContent;
-      window.apis.electron.ipcRenderer.send("setShortCut", {
+      electron.ipcRenderer.send("setShortCut", {
         window: data.editing,
         key: shortcutContent,
       });
+      editingAccelerator.value = [];
       document.removeEventListener("keydown", keydown);
+      document.removeEventListener("keyup", keyup);
       data.editing = "";
     };
+
+    const keyup = (event: any) => {
+      const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
+
+      if (!key || !["normal", "accelerator"].includes(key.type) || !key.value)
+        return;
+
+      if (key.type === "accelerator") {
+        editingAccelerator.value = getAccelerator(event);
+        return;
+      }
+    };
+
+    // onMessage example
     onMounted(() => {
-      window.apis.onMessage((text: any) => {
+      onMessage((text: any) => {
         const container = document.getElementById("messages");
         const message = document.createElement("div");
-        console.log(message)
+        console.log(message);
         message.innerHTML = text;
         container!.appendChild(message);
       });
     });
+
+    // timer
+    let timers: any = ref([]);
+    let timerHandler: NodeJS.Timeout | null = null;
+    electron.ipcRenderer
+      .invoke("getNotificationQ")
+      .then((messageQ: notification[]) => {
+        const render = () => {
+          timers.value = messageQ
+            .map((item) => ({
+              id: item.id,
+              content: item.content,
+              percent: (item.end - Date.now()) / (item.end - item.createTime),
+              remain: Math.round((item.end - Date.now()) / 1000),
+            }))
+            .filter((i) => i.remain > 0);
+        };
+        timerHandler = setInterval(render, 1000);
+        render();
+      });
+    onUnmounted(() => {
+      clearInterval(timerHandler!);
+    });
     return {
       data,
+      editingAccelerator,
       config,
       edit,
       keydown,
+      timers,
     };
   },
 });
 </script>
-<style lang="less" scoped>
-.wrapper {
-  display: flex;
-  .setting {
-    width: 250px;
-    .up {
-      font-size: 16px;
-    }
-    .down {
-      border: 1px solid black;
-      height: 25px;
-      padding: 10px;
-      &.active {
-        background: #ccc;
-      }
-    }
-  }
-}
-</style>

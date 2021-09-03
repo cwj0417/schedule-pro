@@ -11,6 +11,7 @@ import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
 import { readdirSync, unlinkSync } from 'fs'
 import { join } from 'path'
 import { autoUpdater } from "electron-updater"
+import { notification } from "../type"
 
 import log from 'electron-log';
 log.transports.file.level = 'debug'
@@ -47,6 +48,7 @@ autoUpdater.on('update-downloaded', (info) => {
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
 
 let isQuiting = false // quit的时候也会调用每个窗口的close事件, 所以要区别判断是否要进行便签的删除.
+const countdownInterval = 60000 // 倒计时间隔
 
 let stickiesConfig = useUserData('stickiesConfig')
 const ensureIdInStickiesConfig = (id: number) => {
@@ -71,8 +73,11 @@ const windowConf: {
   main: {
     url: mainPage,
     conf: {
-      width: 800,
-      height: 600,
+      width: 960,
+      minWidth: 960,
+      height: 552,
+      minHeight: 552,
+      frame: false,
       webPreferences: {
         preload: mainPreload,
       }
@@ -83,6 +88,7 @@ const windowConf: {
     conf: {
       width: 800,
       height: 600,
+      frame: false,
       webPreferences: {
         preload: mainPreload,
       }
@@ -93,6 +99,7 @@ const windowConf: {
     conf: {
       width: 800,
       height: 600,
+      frame: false,
       webPreferences: {
         preload: mainPreload,
       }
@@ -103,6 +110,7 @@ const windowConf: {
     conf: {
       width: 800,
       height: 600,
+      frame: false,
       webPreferences: {
         preload: mainPreload,
       }
@@ -253,9 +261,7 @@ const template: MenuItemConstructorOptions[] = [
 
 Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 
-ipcMain.handle('getUserPath', () => {
-  return userPath
-})
+ipcMain.handle('getUserPath', () => userPath)
 
 ipcMain.on('setShortCut', (event, args: {
   window: keyof typeof windowConf,
@@ -278,18 +284,16 @@ ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
   notificationQ.push({
     id: Date.now(),
+    createTime: Date.now(),
     cd,
     content,
+    end: countdownInterval * cd + Date.now(),
   })
 })
 
-autoUpdater.checkForUpdatesAndNotify()
+ipcMain.handle('getNotificationQ', () => notificationQ)
 
-type notification = {
-  id: number,
-  cd: number,
-  content: string,
-}
+autoUpdater.checkForUpdatesAndNotify()
 
 let notificationQ: notification[] = []
 
@@ -307,4 +311,4 @@ setInterval(() => {
       notificationQ[index].cd--
     }
   }
-}, 60000)
+}, countdownInterval)

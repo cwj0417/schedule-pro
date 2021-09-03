@@ -9,6 +9,7 @@ electron.contextBridge.exposeInMainWorld('apis', {
     fs,
     path,
     electron,
+    platform: process.platform,
     onMessage: (fn: any) => {
         electron.ipcRenderer.on('message', (event, text) => {
             fn?.(text)

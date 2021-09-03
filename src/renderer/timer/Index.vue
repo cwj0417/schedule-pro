@@ -23,13 +23,13 @@ export default defineComponent({
 
     const handleEnter = () => {
       const content = contentinput.value.value;
-      const cd = countdown.value.value;
+      const cd = +countdown.value.value;
       if (content && cd) {
         window.apis.electron.ipcRenderer.send("addCountDown", {
           cd,
           content,
         });
-        window.close();
+        // window.close(); // 这里考虑搞成最小化, 要和主进程通信, 待开发
       }
     };
     return {
