@@ -21,7 +21,6 @@ log.info('App starting...');
 
 
 autoUpdater.on('checking-for-update', () => {
-  console.log('send')
   mainWindow!.webContents.send('message', {
     type: 'checking-for-update',
   });

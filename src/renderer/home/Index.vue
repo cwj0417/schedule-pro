@@ -12,7 +12,7 @@
           src="../assets/checkforupdate.png"
           alt=""
         />
-        <span class="cursor-pointer" v-if="versionInfo.version" @click="gotoLatestVertion"
+        <span class="cursor-pointer" v-if="versionInfo.latestVersion" @click="gotoLatestVertion"
           >点击下载最新版本: v{{ versionInfo.latestVersion }} (更新于{{
             versionInfo.releaseDate
           }})
