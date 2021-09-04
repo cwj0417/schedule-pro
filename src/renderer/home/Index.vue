@@ -6,12 +6,17 @@
         v{{ versionInfo.curVersion }}
       </div>
       <div class="w-1/2 flex leading-9 ml-5">
-        <img class="h-6" :class="{'animate-spin': versionInfo.checkingForUpdate}" src="../assets/checkforupdate.png" alt="" />
-        <span v-if="versionInfo.version"
-          >最新版本: v{{ versionInfo.version }} (更新于{{
+        <img
+          class="h-6"
+          :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
+          src="../assets/checkforupdate.png"
+          alt=""
+        />
+        <span class="cursor-pointer" v-if="!versionInfo.version" @click="gotoLatestVertion"
+          >点击下载最新版本: v{{ versionInfo.version }} (更新于{{
             versionInfo.releaseDate
-          }})</span
-        >
+          }})
+        </span>
       </div>
     </div>
     <div class="flex-grow w-full flex p-5 space-x-5 bg-gray-100">
@@ -130,7 +135,7 @@ export default defineComponent({
     let editingAccelerator = ref<any>([]);
 
     const config = useUserData("shortcuts", {});
-    const { electron, onMessage, platform } = window.apis;
+    const { electron, onMessage, platform, openUrl } = window.apis;
 
     const edit = (type: string) => {
       data.editing = type;
@@ -217,6 +222,10 @@ export default defineComponent({
       });
     });
 
+    const gotoLatestVertion = () => {
+      openUrl("https://github.com/cwj0417/schedule-pro/releases");
+    };
+
     // timer
     let timers: any = ref([]);
     let timerHandler: NodeJS.Timeout | null = null;
@@ -247,6 +256,7 @@ export default defineComponent({
       keydown,
       timers,
       versionInfo,
+      gotoLatestVertion,
     };
   },
 });
