@@ -11,6 +11,7 @@ import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
 import { readdirSync, unlinkSync } from 'fs'
 import { join } from 'path'
 import { autoUpdater } from "electron-updater"
+import type { UpdateInfo } from 'electron-updater'
 import { notification } from "../type"
 
 import log from 'electron-log';
@@ -18,31 +19,32 @@ log.transports.file.level = 'debug'
 autoUpdater.logger = log;
 log.info('App starting...');
 
-function sendStatusToWindow(text: any) {
-  log.info(text);
-  windowConf.main.window!.webContents.send('message', text);
-}
 
 autoUpdater.on('checking-for-update', () => {
-  sendStatusToWindow('Checking for update...');
+  console.log('send')
+  mainWindow!.webContents.send('message', {
+    type: 'checking-for-update',
+  });
 })
-autoUpdater.on('update-available', (info) => {
-  sendStatusToWindow('Update available.' + JSON.stringify(info));
+autoUpdater.on('update-available', (info: UpdateInfo) => {
+  mainWindow!.webContents.send('message', {
+    type: 'update-available',
+    value: info,
+  });
 })
 autoUpdater.on('update-not-available', (info) => {
-  sendStatusToWindow('Update not available.' + JSON.stringify(info));
+  mainWindow!.webContents.send('message', {
+    type: 'update-not-available',
+  });
 })
 autoUpdater.on('error', (err) => {
-  sendStatusToWindow('Error in auto-updater. ' + err);
 })
 autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  sendStatusToWindow(log_message);
+  // let log_message = "Download speed: " + progressObj.bytesPerSecond;
+  // log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+  // log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
 })
 autoUpdater.on('update-downloaded', (info) => {
-  sendStatusToWindow('Update downloaded' + JSON.stringify(info));
 });
 
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
@@ -252,7 +254,7 @@ const template: MenuItemConstructorOptions[] = [
     {
       label: 'check for updates',
       click: () => {
-        autoUpdater.checkForUpdatesAndNotify()
+        autoUpdater.checkForUpdates()
       }
     }
     ]
@@ -262,6 +264,8 @@ const template: MenuItemConstructorOptions[] = [
 Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 
 ipcMain.handle('getUserPath', () => userPath)
+
+ipcMain.handle('getVersion', () => app.getVersion())
 
 ipcMain.on('setShortCut', (event, args: {
   window: keyof typeof windowConf,

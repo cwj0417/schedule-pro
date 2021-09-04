@@ -1,7 +1,18 @@
 <template>
   <div class="w-full h-full flex flex-col select-none">
-    <div class="w-full h-16 py-4 dragable">
-      <img class="h-6 m-auto" src="../assets/logo.png" alt="" />
+    <div class="w-full h-16 py-4 dragable flex">
+      <div class="flex text-sm text-gray-400 leading-9 w-1/2">
+        <img class="h-6 m-auto mr-3" src="../assets/logo.png" alt="" />
+        v{{ versionInfo.curVersion }}
+      </div>
+      <div class="w-1/2 flex leading-9 ml-5">
+        <img class="h-6" :class="{'animate-spin': versionInfo.checkingForUpdate}" src="../assets/checkforupdate.png" alt="" />
+        <span v-if="versionInfo.version"
+          >最新版本: v{{ versionInfo.version }} (更新于{{
+            versionInfo.releaseDate
+          }})</span
+        >
+      </div>
     </div>
     <div class="flex-grow w-full flex p-5 space-x-5 bg-gray-100">
       <div class="w-9/12 flex flex-col">
@@ -106,7 +117,6 @@ import { useUserData } from "../composition";
 import keyboard from "./keyboards.vue";
 import { notification } from "../../type";
 import { keyCodes } from "../utils/keyboard";
-import { log } from "util";
 
 export default defineComponent({
   name: "home",
@@ -176,14 +186,34 @@ export default defineComponent({
       }
     };
 
-    // onMessage example
+    // checking for update status
+
+    const versionInfo = reactive({
+      curVersion: "",
+      checkingForUpdate: false,
+      latestVersion: "",
+      releaseDate: "",
+    });
+
     onMounted(() => {
-      onMessage((text: any) => {
-        const container = document.getElementById("messages");
-        const message = document.createElement("div");
-        console.log(message);
-        message.innerHTML = text;
-        container!.appendChild(message);
+      onMessage(({ type, value }: any) => {
+        if (type === "checking-for-update") {
+          versionInfo.checkingForUpdate = true;
+        }
+        if (type === "update-available") {
+          versionInfo.latestVersion = value.version;
+          versionInfo.releaseDate = new Date(
+            value.releaseDate
+          ).toLocaleDateString();
+          versionInfo.checkingForUpdate = false;
+        }
+        if (type === "update-not-available") {
+          versionInfo.latestVersion = "";
+          versionInfo.checkingForUpdate = false;
+        }
+      });
+      electron.ipcRenderer.invoke("getVersion").then((version: string) => {
+        versionInfo.curVersion = version;
       });
     });
 
@@ -216,6 +246,7 @@ export default defineComponent({
       edit,
       keydown,
       timers,
+      versionInfo,
     };
   },
 });
