@@ -2,7 +2,7 @@ import { watch, ref, toRaw } from 'vue'
 
 const {fs, path, electron} = window.apis as any
 
-const useUserData = (name = 'main', init = {}) => {
+const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     let userData = ref<any>(init)
     electron.ipcRenderer.invoke('getUserPath')
     .then((userpath: string) => {
@@ -16,6 +16,7 @@ const useUserData = (name = 'main', init = {}) => {
         watch(userData.value, val => {
             console.log('set userdata', name, toRaw(val))
             fs.writeFileSync(confPath, JSON.stringify(val))
+            extraEffect?.(toRaw(val))
         })
     })
     

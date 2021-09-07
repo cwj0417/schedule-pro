@@ -13,12 +13,15 @@ import { join } from 'path'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
 import { notification } from "../type"
+import { toRaw } from 'vue'
 
 import log from 'electron-log';
+
 log.transports.file.level = 'debug'
 autoUpdater.logger = log;
 log.info('App starting...');
 
+let mainWindow: BrowserWindow | null = null
 
 autoUpdater.on('checking-for-update', () => {
   mainWindow!.webContents.send('message', {
@@ -48,10 +51,19 @@ autoUpdater.on('update-downloaded', (info) => {
 
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
 
-let isQuiting = false // quit的时候也会调用每个窗口的close事件, 所以要区别判断是否要进行便签的删除.
 const countdownInterval = 60000 // 倒计时间隔
 
-let stickiesConfig = useUserData('stickiesConfig')
+let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
+  (function sendMsg() {
+    if (mainWindow) {
+      mainWindow.webContents?.send('message', {
+        type: 'stickesConfigChange',
+        value: Object.entries(toRaw(conf)).map(([key, value]: any) => ({ ...value, id: key })),
+      });
+    }
+  })()
+})
+
 const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
@@ -60,10 +72,15 @@ const ensureIdInStickiesConfig = (id: number) => {
       height: 400,
       x: 0,
       y: 0,
+      title: '',
+      expended: true,
     }
   }
 }
-let mainWindow: BrowserWindow | null = null
+
+const stickyWindows: {
+  [id: number]: BrowserWindow
+} = {}
 
 const windowConf: {
   [prop in 'main' | 'timer' | 'schedule' | 'inspiration']: {
@@ -136,7 +153,8 @@ function createWindow(type: keyof typeof windowConf = 'main') {
 
 function createStickies(id = Date.now()) {
   ensureIdInStickiesConfig(id)
-  const { backgroundColor, width, height, x, y } = stickiesConfig.value[id]
+  const { backgroundColor, width, height, x, y, expended } = stickiesConfig.value[id]
+  if (!expended) return
   let setpositionhandler: NodeJS.Timeout
   const setPosition = () => {
     if (setpositionhandler) {
@@ -173,20 +191,9 @@ function createStickies(id = Date.now()) {
       }
     })]
   }))
-  sticky.on('close', (event) => {
-    if (!isQuiting) {
-      const res = dialog.showMessageBoxSync({
-        message: '关闭后会丢失便签内容',
-        type: 'info',
-        buttons: ['取消', '删除便签']
-      })
-      if (res !== 1) {
-        event.preventDefault()
-      } else {
-        delete stickiesConfig.value[id]
-        unlinkSync(join(userPath, `sticky${id}.json`))
-      }
-    }
+  sticky.on('close', () => {
+    stickiesConfig.value[id].expended = false
+    delete stickyWindows[id]
   })
   sticky.on('resize', () => {
     setPosition()
@@ -194,6 +201,7 @@ function createStickies(id = Date.now()) {
   sticky.on('move', () => {
     setPosition()
   })
+  stickyWindows[id] = sticky
 }
 
 function openStickies() {
@@ -220,12 +228,7 @@ app.on('activate', () => {
   createWindow()
 })
 
-app.on('before-quit', () => {
-  isQuiting = true
-})
-
 app.on('window-all-closed', () => {
-  isQuiting = false
   if (process.platform !== 'darwin') {
     app.quit()
   }
@@ -239,7 +242,7 @@ const template: MenuItemConstructorOptions[] = [
     label: 'File',
     submenu: [{
       label: 'create stickies',
-      accelerator: 'Cmd+N',
+      accelerator: 'CmdOrCtrl+N',
       click: () => {
         createStickies()
       },
@@ -255,7 +258,14 @@ const template: MenuItemConstructorOptions[] = [
       click: () => {
         autoUpdater.checkForUpdates()
       }
-    }
+    },
+    {
+      label: 'gototo homepage',
+      accelerator: 'CmdOrCtrl+Shift+H',
+      click: () => {
+        createWindow()
+      }
+    },
     ]
   }
 ]
@@ -294,7 +304,47 @@ ipcMain.on('addCountDown', (event, args) => {
   })
 })
 
+ipcMain.on('setStickyTitle', (event, args) => {
+  if (stickiesConfig.value[args.key]) {
+    stickiesConfig.value[args.key].title = args.val.match(/\s?([^\n]+)/)?.[1] ?? ''
+  }
+})
+
 ipcMain.handle('getNotificationQ', () => notificationQ)
+
+ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {
+  type: 'stickesConfigChange',
+  value: Object.entries(toRaw(stickiesConfig.value)).map(([key, value]: any) => ({ ...value, id: key })),
+}))
+
+ipcMain.on('openSticky', (event, stickyId) => {
+  if (stickyWindows[stickyId]) {
+    stickyWindows[stickyId].focus()
+  } else {
+    stickiesConfig.value[stickyId].expended = true
+    createStickies(stickyId)
+  }
+})
+
+ipcMain.on('retractSticky', (event, stickyId) => {
+  stickiesConfig.value[stickyId].expended = false
+  stickyWindows[stickyId].close()
+  delete stickyWindows[stickyId]
+})
+
+ipcMain.on('deleteSticky', (event, stickyId) => {
+  const res = dialog.showMessageBoxSync({
+    message: '关闭后会丢失便签内容',
+    type: 'info',
+    buttons: ['取消', '删除便签']
+  })
+  if (res === 1) {
+    stickyWindows[stickyId].close()
+    delete stickiesConfig.value[stickyId]
+    delete stickyWindows[stickyId]
+    unlinkSync(join(userPath, `sticky${stickyId}.json`))
+  }
+})
 
 autoUpdater.checkForUpdatesAndNotify()
 

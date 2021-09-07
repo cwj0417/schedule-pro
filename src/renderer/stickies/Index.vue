@@ -1,19 +1,11 @@
 <template>
-  <div
-    class="dragable"
-    :style="{ background: data?.value.color, height: '100%' }"
-  >
-    <input
-      class="non-border"
-      type="text"
-      :value="data?.value.title"
-      @input="(e) => (data.value.title = e.target.value)"
-    />
-    <br />
-    <br />
+  <div :style="{ background: data?.value.color, height: '100%' }">
+    <div class="dragable h-5 w-full" style="border: 1px solid gray">
+      <button @click="retract">最小化</button>
+      <button @click="deleteSticky">删除</button>
+    </div>
     <textarea
-      style="width: 100%; height: 100%;"
-      class="non-border"
+      class="non-border w-full h-full p-2"
       name=""
       id=""
       cols="30"
@@ -30,17 +22,43 @@ import { useUserData } from "../composition";
 export default defineComponent({
   setup() {
     let data = ref<any>(null);
+    let timerHandler: NodeJS.Timeout | null = null;
     onMounted(() => {
       const query = location.href.split("?id=")[1];
       if (query) {
-        data.value = useUserData("sticky" + query, {
-          title: "",
-          content: "",
-        });
+        data.value = useUserData(
+          "sticky" + query,
+          {
+            content: "",
+          },
+          (val: any) => {
+            if (timerHandler) clearTimeout(timerHandler);
+            timerHandler = setTimeout(
+              window.apis.electron.ipcRenderer.send,
+              350,
+              "setStickyTitle",
+              {
+                key: query,
+                val: val.content,
+              }
+            );
+          }
+        );
       }
     });
+    
+    const retract = () => {
+      const query = location.href.split("?id=")[1];
+      window.apis.electron.ipcRenderer.send('retractSticky', query)
+    }
+    const deleteSticky = () => {
+      const query = location.href.split("?id=")[1];
+      window.apis.electron.ipcRenderer.send('deleteSticky', query)
+    }
     return {
-      data: data,
+      data,
+      retract,
+      deleteSticky,
     };
   },
 });

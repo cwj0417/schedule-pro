@@ -5,6 +5,8 @@ import { watch, ref, toRaw } from 'vue'
 
 const userPath = app.getPath('userData')
 
+console.log('userpath', userPath)
+
 const keyMapToAccelerator = {
     altKey: 'Alt',
     ctrlKey: 'Ctrl',
@@ -20,18 +22,20 @@ const getUserConf = (name: string) => {
     return existsSync(confPath) ? JSON.parse(readFileSync(confPath, { encoding: 'utf-8' }).toString()) as object : {}
 }
 
-const useUserData = (name = 'main', init = {}) => {
+const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     let userData = ref<any>(init)
     const confPath = join(userPath, `${name}.json`)
     if (existsSync(confPath)) {
         userData.value = JSON.parse(readFileSync(confPath, { encoding: 'utf-8' }))
         console.log('got userdata', name, toRaw(userData.value))
+        extraEffect?.(toRaw(userData.value))
     } else {
         writeFileSync(confPath, JSON.stringify(init))
     }
     watch(userData.value, val => {
         console.log('set userdata', name, toRaw(val))
         writeFileSync(confPath, JSON.stringify(val))
+        extraEffect?.(toRaw(val))
     })
 
     return userData
