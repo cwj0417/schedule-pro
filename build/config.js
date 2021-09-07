@@ -49,11 +49,15 @@ const config = {
   },
   mac: {
     icon: 'build/icons/icon.icns', // 默认是dmg+zip, 不然autoUpdater会失败
-    // target: [
-    //   {
-    //     target: 'dir',
-    //   },
-    // ]
+    target: [
+      {
+        target: 'default',
+        arch: ['arm64', 'x64']
+      },
+      // {
+      //   target: 'dir',
+      // },
+    ]
   },
   win: {
     icon: 'build/icons/icon.ico',
