@@ -82,6 +82,17 @@ const stickyWindows: {
   [id: number]: BrowserWindow
 } = {}
 
+let mainWindowConfig: BrowserWindowConstructorOptions = {
+  width: 960,
+  minWidth: 960,
+  height: 552,
+  minHeight: 552,
+  frame: false,
+  webPreferences: {
+    preload: mainPreload,
+  }
+}
+
 const windowConf: {
   [prop in 'main' | 'timer' | 'schedule' | 'inspiration']: {
     url: string,
@@ -142,7 +153,7 @@ function createWindow(type: keyof typeof windowConf = 'main') {
     if (mainWindow!.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
     mainWindow!.show()
   } else {
-    mainWindow = new BrowserWindow(windowConf[type].conf)
+    mainWindow = new BrowserWindow(mainWindowConfig)
     mainWindow!.loadURL(windowConf[type].url)
     mainWindow?.on('close', () => {
       mainWindow = null;
