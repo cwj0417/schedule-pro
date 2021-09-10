@@ -306,17 +306,28 @@ ipcMain.on('removeShortCut', (event, args) => {
 
 ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
+  const id = Date.now()
   notificationQ.push({
-    id: Date.now(),
-    createTime: Date.now(),
+    id,
+    createTime: id,
     cd,
     content,
     end: countdownInterval * cd + Date.now(),
   })
+  notificationHandlers[id] = setTimeout(() => {
+    new Notification({
+      title: 'schedule pro',
+      body: content,
+    }).show()
+    notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
+    delete notificationHandlers[id]
+  }, countdownInterval * cd)
 })
 
 ipcMain.on('removeCountDown', (event, id) => {
   notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
+  clearTimeout(notificationHandlers[id])
+  delete notificationHandlers[id]
 })
 
 ipcMain.on('setStickyTitle', (event, args) => {
@@ -325,7 +336,9 @@ ipcMain.on('setStickyTitle', (event, args) => {
   }
 })
 
-ipcMain.handle('getNotificationQ', () => notificationQ)
+ipcMain.handle('getNotificationQ', () => {
+  return notificationQ
+})
 
 ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {
   type: 'stickesConfigChange',
@@ -365,19 +378,6 @@ autoUpdater.checkForUpdatesAndNotify()
 
 let notificationQ: notification[] = []
 
-setInterval(() => {
-  for (let index = 0; index < notificationQ.length; index++) {
-    const notification = notificationQ[index]
-    if (!notification.cd) {
-      new Notification({
-        title: 'title',
-        body: notification.content,
-      }).show()
-      // 精确度不行, 要不要改成1秒
-      // 想想怎么移除
-      notificationQ.splice(index, 1)
-    } else {
-      notificationQ[index].cd--
-    }
-  }
-}, countdownInterval)
+let notificationHandlers: {
+  [id: number]: NodeJS.Timeout
+} = {}
