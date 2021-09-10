@@ -3,7 +3,7 @@ const getTs = (offset: number = 0) => {
 }
 
 const formatCountdown = (second: number) => {
-    return `${second >= 60 ? Math.floor(second / 60) + ' min ' : ''} ${second % 60 !== 0 ? second % 60 + 'sec' : ''}`
+    return `${second >= 60 ? Math.floor(second / 60) + ' min ' : ''} ${second % 60 !== 0 ? second % 60 + ' sec' : ''}`
 }
 
 export {
