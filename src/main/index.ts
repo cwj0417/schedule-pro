@@ -315,6 +315,10 @@ ipcMain.on('addCountDown', (event, args) => {
   })
 })
 
+ipcMain.on('removeCountDown', (event, id) => {
+  notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
+})
+
 ipcMain.on('setStickyTitle', (event, args) => {
   if (stickiesConfig.value[args.key]) {
     stickiesConfig.value[args.key].title = args.val.match(/\s?([^\n]+)/)?.[1] ?? ''
@@ -369,6 +373,7 @@ setInterval(() => {
         title: 'title',
         body: notification.content,
       }).show()
+      // 精确度不行, 要不要改成1秒
       // 想想怎么移除
       notificationQ.splice(index, 1)
     } else {

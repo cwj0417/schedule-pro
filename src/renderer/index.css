@@ -23,6 +23,11 @@ body {
   height: 0px;
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+ -webkit-appearance: none;
+}
+
 .kbd {
   line-height: 22px;
   align-items: center;

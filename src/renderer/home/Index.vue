@@ -136,10 +136,7 @@
                 ></div>
               </div>
               <div class="my-1 h-4 text-center text-xs text-gray-500">
-                <span v-if="timer.remain >= 60"
-                  >{{ Math.floor(timer.remain / 60) }} min
-                </span>
-                <span>{{ timer.remain % 60 }} sec</span>
+                {{ formatCountdown(timer.remain) }}
               </div>
               <div
                 class="
@@ -425,21 +422,12 @@
   </div>
 </template>
 <script lang="ts">
-import {
-  defineComponent,
-  toRaw,
-  reactive,
-  onMounted,
-  onUnmounted,
-  ref,
-} from "vue";
+import { defineComponent, toRaw, reactive, onMounted, ref } from "vue";
 import empty from "../components/empty.vue";
-import { useUserData } from "../composition";
-import keyboard from "./keyboards.vue";
-import { notification } from "../../type";
+import { useUserData, useTimer } from "../composition";
+import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
-import { getTs } from "../utils/time";
-import { ipcRenderer } from "electron";
+import { getTs, formatCountdown } from "../utils/time";
 
 export default defineComponent({
   name: "home",
@@ -546,27 +534,7 @@ export default defineComponent({
     };
 
     // timer
-    let timers: any = ref([]);
-    let timerHandler: NodeJS.Timeout | null = null;
-    electron.ipcRenderer
-      .invoke("getNotificationQ")
-      .then((messageQ: notification[]) => {
-        const render = () => {
-          timers.value = messageQ
-            .map((item) => ({
-              id: item.id,
-              content: item.content,
-              percent: (item.end - Date.now()) / (item.end - item.createTime),
-              remain: Math.round((item.end - Date.now()) / 1000),
-            }))
-            .filter((i) => i.remain > 0);
-        };
-        timerHandler = setInterval(render, 1000);
-        render();
-      });
-    onUnmounted(() => {
-      clearInterval(timerHandler!);
-    });
+    let { timers } = useTimer();
 
     // inspiration
 
@@ -606,6 +574,7 @@ export default defineComponent({
       getTs,
       stickies,
       openSticky,
+      formatCountdown,
     };
   },
 });
