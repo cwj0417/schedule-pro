@@ -11,7 +11,7 @@
           justify-center
         "
       >
-        <img class="h-6 mr-3" src="../assets/logo.png" alt="" />
+        <img class="h-6 mr-3 mt-1" src="../assets/logo.png" alt="" />
         v{{ versionInfo.curVersion }}
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
@@ -50,7 +50,7 @@
     >
       <div class="w-9/12">
         <div class="h-32">
-          <div class="text-xl">
+          <div class="text-md space-x-2">
             <svg
               class="inline-block"
               width="22px"
@@ -60,23 +60,8 @@
             >
               <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
                 <g transform="translate(-20.000000, -86.000000)">
-                  <rect
-                    fill="#FAFAFA"
-                    fill-rule="nonzero"
-                    x="0"
-                    y="64"
-                    width="960"
-                    height="488"
-                  ></rect>
                   <g transform="translate(20.000000, 84.000000)">
                     <g transform="translate(0.000000, 2.000000)">
-                      <rect
-                        fill-rule="nonzero"
-                        x="0"
-                        y="0"
-                        width="22"
-                        height="22"
-                      ></rect>
                       <path
                         d="M10.196852,12.4744002 C10.1858468,12.4075991 10.1801242,12.3390638 10.1801242,12.2692308 C10.1801242,11.7857182 10.4543567,11.3645259 10.8568291,11.150299 C10.8431172,10.0783465 10.8185214,7.89398357 10.8185214,6.01887829 L10.8185214,5.92307692 L10.9168012,5.92307692 C14.2779459,5.92307692 17.0124224,8.5802246 17.0124224,11.8462121 C17.0124224,15.1121996 14.2779459,17.7692308 10.9168012,17.7692308 C8.51247784,17.7692308 7.91337843,18.0927144 6.33778946,16.2108352 L6.27614015,16.1376439 L6.35071786,16.0769231 C8.1078759,14.6390928 9.44239234,13.2649147 10.196852,12.4744002 Z"
                         fill="#9CC2FF"
@@ -90,7 +75,7 @@
                 </g>
               </g>
             </svg>
-            倒计时
+            <span>倒计时</span>
             <keyboard
               :active="data.editing === 'timer' && !editingAccelerator.length"
               @setShortcut="edit('timer')"
@@ -105,13 +90,14 @@
             <div
               v-if="!timers.length"
               class="
-                w-44
+                w-full
                 flex-none
                 h-20
                 rounded-lg
                 shadow-md
                 overflow-hidden
                 bg-white
+                font-light
               "
             >
               <empty />
@@ -125,6 +111,7 @@
                 shadow-md
                 overflow-hidden
                 bg-white
+                font-light
               "
               v-for="timer of timers"
               :key="timer.id"
@@ -155,7 +142,7 @@
         </div>
         <div style="height: calc(100% - 148px)" class="flex space-x-5 mt-5">
           <div class="w-1/2 h-full">
-            <div class="text-xl">
+            <div class="text-md space-x-2">
               <svg
                 class="inline-block"
                 width="22px"
@@ -173,13 +160,6 @@
                     transform="translate(-20.000000, -240.000000)"
                     fill-rule="nonzero"
                   >
-                    <rect
-                      fill="#FAFAFA"
-                      x="0"
-                      y="64"
-                      width="960"
-                      height="488"
-                    ></rect>
                     <g transform="translate(20.000000, 237.000000)">
                       <g transform="translate(0.000000, 3.000000)">
                         <rect x="0" y="0" width="22" height="22"></rect>
@@ -201,7 +181,7 @@
                   </g>
                 </g>
               </svg>
-              今日待办
+              <span>今日待办</span>
               <keyboard
                 :active="
                   data.editing === 'schedule' && !editingAccelerator.length
@@ -247,7 +227,7 @@
             </div>
           </div>
           <div class="w-1/2 h-full">
-            <div class="text-xl">
+            <div class="text-md space-x-2">
               <svg
                 class="inline-block"
                 width="22px"
@@ -262,14 +242,6 @@
                   fill-rule="evenodd"
                 >
                   <g transform="translate(-390.000000, -240.000000)">
-                    <rect
-                      fill="#FAFAFA"
-                      fill-rule="nonzero"
-                      x="0"
-                      y="64"
-                      width="960"
-                      height="488"
-                    ></rect>
                     <g transform="translate(390.000000, 237.000000)">
                       <g transform="translate(0.000000, 3.000000)">
                         <rect
@@ -292,7 +264,7 @@
                   </g>
                 </g>
               </svg>
-              待办池
+              <span>待办池</span>
               <keyboard
                 :active="
                   data.editing === 'inspiration' && !editingAccelerator.length
@@ -342,7 +314,7 @@
         </div>
       </div>
       <div class="w-3/12">
-        <div class="text-xl">
+        <div class="text-md space-x-2">
           <svg
             class="inline-block"
             width="22px"
@@ -355,13 +327,6 @@
                 transform="translate(-760.000000, -86.000000)"
                 fill-rule="nonzero"
               >
-                <rect
-                  fill="#FAFAFA"
-                  x="0"
-                  y="64"
-                  width="960"
-                  height="488"
-                ></rect>
                 <g transform="translate(760.000000, 84.000000)">
                   <g transform="translate(0.000000, 2.000000)">
                     <rect x="0" y="0" width="22" height="22"></rect>
@@ -383,7 +348,7 @@
               </g>
             </g>
           </svg>
-          便签
+          <span>便签</span>
           <keyboard :disabled="true" :value="['metaKey', 'n']" />
         </div>
         <div

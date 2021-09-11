@@ -1,17 +1,17 @@
 <template>
   <div class="w-full h-full select-none">
-    <div class="w-full h-16 py-4 dragable">
-      <div class="px-5 font-bold absolute left-0 top-5">
+    <div class="w-full h-16 leading-8 py-4 dragable">
+      <div class="px-5 font-bold absolute left-0 top-4">
         ◀︎ schedule pro
         <keyboard :disabled="true" :value="['metaKey', 'shiftKey', 'h']" />
       </div>
-      <div class="text-center w-full">倒计时</div>
+      <div class="text-center w-full font-bold tracking-wide">倒计时</div>
     </div>
     <div style="height: calc(100% - 64px)" class="p-5 bg-gray-50">
       <div class="w-full h-16 p-4 flex divide-x shadow-md rounded-md bg-white">
         <div class="w-1/2 h-full">
           <input
-            class="outline-none w-full h-full"
+            class="outline-none w-full h-full text-gray-600 placeholder-gray-200"
             placeholder="请输入内容..."
             v-focus
             :value="contentinput"
@@ -78,13 +78,14 @@
                 w-full
                 h-6
                 leading-3
-                text-blue-400 text-sm
+                text-blue-100 text-sm
                 border
                 p-1
                 border-blue-200
                 rounded-md
                 mt-1
               "
+              :class="{'text-blue-400': contentinput !== ''}"
               @click="handleEnter"
             >
               开始
@@ -111,7 +112,7 @@
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
         <empty v-if="!timers.length" />
         <div
-          class="w-full h-10 flex leading-10 text-gray-600 text-sm hover:bg-blue-50 group"
+          class="w-full h-10 flex leading-10 text-gray-600 text-sm hover:bg-blue-50 rounded-md group"
           v-for="(timer, index) of timers"
           :key="timer.id"
           :class="{
