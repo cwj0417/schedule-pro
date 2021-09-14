@@ -1,7 +1,7 @@
 <template>
   <div class="w-full h-full select-none">
     <div class="w-full h-16 leading-8 py-4 dragable">
-      <div class="px-5 font-bold absolute left-0 top-4">
+      <div class="px-5 font-bold absolute left-0 top-4 cursor-pointer" @click="location.replace('#/home')">
         ◀︎ schedule pro
         <keyboard :disabled="true" :value="['metaKey', 'shiftKey', 'h']" />
       </div>
@@ -173,6 +173,7 @@ export default defineComponent({
       timers,
       formatCountdown,
       removeCountDown,
+      location,
     };
   },
 });

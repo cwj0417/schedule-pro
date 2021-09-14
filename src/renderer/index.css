@@ -28,6 +28,19 @@ input::-webkit-inner-spin-button {
  -webkit-appearance: none;
 }
 
+.schedule-list-move {
+  transition: transform 0.8s ease;
+}
+.schedule-list-enter-active,
+.schedule-list-leave-active {
+  transition: all .5s ease;
+}
+.schedule-list-enter-from,
+.schedule-list-leave-to {
+  opacity: 0;
+  transform: translateX(200px);
+}
+
 .kbd {
   line-height: 22px;
   align-items: center;

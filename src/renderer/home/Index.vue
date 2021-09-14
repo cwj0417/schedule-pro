@@ -50,7 +50,7 @@
     >
       <div class="w-9/12">
         <div class="h-32">
-          <div class="text-md space-x-2">
+          <div class="text-sm space-x-2">
             <svg
               class="inline-block"
               width="22px"
@@ -75,7 +75,9 @@
                 </g>
               </g>
             </svg>
-            <span>倒计时</span>
+            <span class="cursor-pointer" @click="location.replace('#/timer')"
+              >倒计时</span
+            >
             <keyboard
               :active="data.editing === 'timer' && !editingAccelerator.length"
               @setShortcut="edit('timer')"
@@ -127,7 +129,7 @@
               </div>
               <div
                 class="
-                  text-md text-black text-center
+                  text-sm text-black text-center
                   p-2
                   h-11
                   overflow-hidden
@@ -142,7 +144,7 @@
         </div>
         <div style="height: calc(100% - 148px)" class="flex space-x-5 mt-5">
           <div class="w-1/2 h-full">
-            <div class="text-md space-x-2">
+            <div class="text-sm space-x-2">
               <svg
                 class="inline-block"
                 width="22px"
@@ -181,7 +183,11 @@
                   </g>
                 </g>
               </svg>
-              <span>今日待办</span>
+              <span
+                class="cursor-pointer"
+                @click="location.replace('#/schedule')"
+                >今日待办</span
+              >
               <keyboard
                 :active="
                   data.editing === 'schedule' && !editingAccelerator.length
@@ -203,6 +209,7 @@
                 shadow-lg
                 overflow-y-scroll
                 font-light
+                text-sm
               "
             >
               <empty v-if="!schedule?.[getTs()]?.length" />
@@ -210,24 +217,35 @@
                 :class="{
                   'bg-gray-50': index % 2 === 1,
                   'line-through': item.done,
+                  'text-gray-400': item.done,
                 }"
-                class="w-full h-10 p-2 flex"
+                class="w-full h-10 p-2 flex leading-6"
                 v-for="(item, index) in schedule[getTs()]"
                 :key="index"
               >
                 <div
                   :class="{
                     'bg-blue-500': !item.done,
-                    'bg-blue-300': item.done,
+                    'bg-white': item.done,
                   }"
-                  class="w-2 h-2 rounded-md m-2"
+                  class="w-2 h-2 rounded-md m-2 border border-blue-500"
                 ></div>
-                {{ item.content }}
+                <span
+                  class="
+                    overflow-ellipsis
+                    whitespace-nowrap
+                    break-all
+                    overflow-x-hidden
+                  "
+                  style="width: calc(100% - 24px)"
+                >
+                  {{ item.content }}
+                </span>
               </div>
             </div>
           </div>
           <div class="w-1/2 h-full">
-            <div class="text-md space-x-2">
+            <div class="text-sm space-x-2">
               <svg
                 class="inline-block"
                 width="22px"
@@ -264,7 +282,11 @@
                   </g>
                 </g>
               </svg>
-              <span>待办池</span>
+              <span
+                class="cursor-pointer"
+                @click="location.replace('#/inspiration')"
+                >待办池</span
+              >
               <keyboard
                 :active="
                   data.editing === 'inspiration' && !editingAccelerator.length
@@ -286,6 +308,7 @@
                 shadow-lg
                 overflow-y-scroll
                 font-light
+                text-sm
               "
             >
               <empty v-if="!inspiration.length" />
@@ -293,8 +316,9 @@
                 :class="{
                   'bg-gray-50': index % 2 === 1,
                   'line-through': item.done,
+                  'text-gray-400': item.done,
                 }"
-                class="w-full h-10 p-2 flex"
+                class="w-full h-10 p-2 flex leading-6"
                 v-for="(item, index) in inspiration.sort((a, b) =>
                   a.done && !b.done ? 1 : 0
                 )"
@@ -303,18 +327,28 @@
                 <div
                   :class="{
                     'bg-blue-500': !item.done,
-                    'bg-blue-300': item.done,
+                    'bg-white': item.done,
                   }"
-                  class="w-2 h-2 rounded-md m-2"
+                  class="w-2 h-2 rounded-md m-2 border border-blue-500"
                 ></div>
-                {{ item.content }}
+                <span
+                  class="
+                    overflow-ellipsis
+                    whitespace-nowrap
+                    break-all
+                    overflow-x-hidden
+                  "
+                  style="width: calc(100% - 24px)"
+                >
+                  {{ item.content }}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="w-3/12">
-        <div class="text-md space-x-2">
+        <div class="text-sm space-x-2">
           <svg
             class="inline-block"
             width="22px"
@@ -361,6 +395,7 @@
             overflow-y-scroll
             divide-y
             font-light
+            text-sm
           "
         >
           <empty v-if="!stickies.length" />
@@ -540,6 +575,7 @@ export default defineComponent({
       stickies,
       openSticky,
       formatCountdown,
+      location,
     };
   },
 });
