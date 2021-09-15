@@ -278,7 +278,8 @@ const template: MenuItemConstructorOptions[] = [
       }
     },
     ]
-  }
+  },
+  { role: 'editMenu' }
 ]
 
 Menu.setApplicationMenu(Menu.buildFromTemplate(template))
