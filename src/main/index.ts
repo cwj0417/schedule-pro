@@ -52,6 +52,7 @@ autoUpdater.on('update-downloaded', (info) => {
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
 
 const countdownInterval = 60000 // 倒计时间隔
+let isQuiting = false // quit的时候也会调用每个窗口的close事件, 所以要区别判断是否要进行便签的删除.
 
 let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
   (function sendMsg() {
@@ -203,8 +204,10 @@ function createStickies(id = Date.now()) {
     })]
   }))
   sticky.on('close', () => {
-    stickiesConfig.value[id].expended = false
-    delete stickyWindows[id]
+    if (!isQuiting) {
+      stickiesConfig.value[id].expended = false
+      delete stickyWindows[id]
+    }
   })
   sticky.on('resize', () => {
     setPosition()
@@ -237,6 +240,10 @@ app.whenReady().then(() => {
 
 app.on('activate', () => {
   //
+})
+
+app.on('before-quit', () => {
+  isQuiting = true
 })
 
 app.on('window-all-closed', () => {
