@@ -53,8 +53,8 @@
       <template v-else>
         <div
           :class="{
-            'bg-blue-500': !inspiration.done,
-            'bg-white': inspiration.done,
+            'bg-blue-500': inspiration.done,
+            'bg-white': !inspiration.done,
           }"
           @click="$emit('toggleItem')"
           class="w-2 h-2 rounded-md m-4 border cursor-pointer border-blue-500"

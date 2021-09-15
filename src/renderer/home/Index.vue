@@ -225,8 +225,8 @@
               >
                 <div
                   :class="{
-                    'bg-blue-500': !item.done,
-                    'bg-white': item.done,
+                    'bg-blue-500': item.done,
+                    'bg-white': !item.done,
                   }"
                   class="w-2 h-2 rounded-md m-2 border border-blue-500"
                 ></div>
@@ -326,8 +326,8 @@
               >
                 <div
                   :class="{
-                    'bg-blue-500': !item.done,
-                    'bg-white': item.done,
+                    'bg-blue-500': item.done,
+                    'bg-white': !item.done,
                   }"
                   class="w-2 h-2 rounded-md m-2 border border-blue-500"
                 ></div>
