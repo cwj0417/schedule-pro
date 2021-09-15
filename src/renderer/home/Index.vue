@@ -79,6 +79,11 @@
               >倒计时</span
             >
             <keyboard
+              @esc="
+                keydown({
+                  keyCode: 27,
+                })
+              "
               :active="data.editing === 'timer' && !editingAccelerator.length"
               @setShortcut="edit('timer')"
               :value="
@@ -189,6 +194,11 @@
                 >今日待办</span
               >
               <keyboard
+                @esc="
+                  keydown({
+                    keyCode: 27,
+                  })
+                "
                 :active="
                   data.editing === 'schedule' && !editingAccelerator.length
                 "
@@ -288,6 +298,11 @@
                 >待办池</span
               >
               <keyboard
+                @esc="
+                  keydown({
+                    keyCode: 27,
+                  })
+                "
                 :active="
                   data.editing === 'inspiration' && !editingAccelerator.length
                 "
