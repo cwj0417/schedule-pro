@@ -20,8 +20,9 @@
           height="18px"
           viewBox="0 0 18 18"
           version="1.1"
+          @click="checkForUpdate"
           :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
-          class="mt-1 mr-2"
+          class="mt-1 mr-2 cursor-pointer"
         >
           <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
             <g transform="translate(-922.000000, -31.000000)">
@@ -522,6 +523,12 @@ export default defineComponent({
       releaseDate: "",
     });
 
+    const checkForUpdate = () => {
+      if (!versionInfo.checkingForUpdate) {
+        electron.ipcRenderer.send('checkforupdate')
+      }
+    }
+
     onMounted(() => {
       onMessage(({ type, value }: any) => {
         if (type === "checking-for-update") {
@@ -534,7 +541,7 @@ export default defineComponent({
           ).toLocaleDateString();
           versionInfo.checkingForUpdate = false;
         }
-        if (type === "update-not-available") {
+        if (type === "update-not-available" || type === "update-error") {
           versionInfo.latestVersion = "";
           versionInfo.checkingForUpdate = false;
         }
@@ -582,6 +589,7 @@ export default defineComponent({
       edit,
       keydown,
       timers,
+      checkForUpdate,
       versionInfo,
       gotoLatestVertion,
       inspiration,

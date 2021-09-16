@@ -40,6 +40,9 @@ autoUpdater.on('update-not-available', (info) => {
   });
 })
 autoUpdater.on('error', (err) => {
+  mainWindow!.webContents.send('message', {
+    type: 'update-error',
+  });
 })
 autoUpdater.on('download-progress', (progressObj) => {
   // let log_message = "Download speed: " + progressObj.bytesPerSecond;
@@ -308,6 +311,10 @@ ipcMain.on('setShortCut', (event, args: {
 ipcMain.on('removeShortCut', (event, args) => {
   if (!args.key.length) return
   globalShortcut.unregister(args.key.map(keyToAccelerator).join('+'))
+})
+
+ipcMain.on('checkforupdate', (event) => {
+  autoUpdater.checkForUpdates()
 })
 
 ipcMain.on('addCountDown', (event, args) => {
