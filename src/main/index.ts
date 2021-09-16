@@ -241,7 +241,7 @@ app.whenReady().then(() => {
 })
 
 app.on('activate', () => {
-  //
+  !mainWindow && createWindow()
 })
 
 app.on('before-quit', () => {
@@ -367,6 +367,11 @@ ipcMain.on('retractSticky', (event, stickyId) => {
   stickiesConfig.value[stickyId].expended = false
   stickyWindows[stickyId].close()
   delete stickyWindows[stickyId]
+})
+
+ipcMain.on('changeStickyColor', (event, { stickyId, color }) => {
+  stickiesConfig.value[stickyId].backgroundColor = color
+  stickyWindows[stickyId].setBackgroundColor(color)
 })
 
 ipcMain.on('deleteSticky', (event, stickyId) => {
