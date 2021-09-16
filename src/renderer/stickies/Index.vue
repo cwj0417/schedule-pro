@@ -3,6 +3,8 @@
     <div class="dragable h-5 w-full" style="border: 1px solid gray">
       <button @click="retract">最小化</button>
       <button @click="deleteSticky">删除</button>
+      <button @click="changeColor('#c3fdaa')">绿</button>
+      <button @click="changeColor('#fcf4a7')">黄</button>
     </div>
     <textarea
       class="non-border w-full h-full p-2"
@@ -46,19 +48,27 @@ export default defineComponent({
         );
       }
     });
-    
+
     const retract = () => {
       const query = location.href.split("?id=")[1];
-      window.apis.electron.ipcRenderer.send('retractSticky', query)
-    }
+      window.apis.electron.ipcRenderer.send("retractSticky", query);
+    };
     const deleteSticky = () => {
       const query = location.href.split("?id=")[1];
-      window.apis.electron.ipcRenderer.send('deleteSticky', query)
-    }
+      window.apis.electron.ipcRenderer.send("deleteSticky", query);
+    };
+    const changeColor = (color: string) => {
+      const query = location.href.split("?id=")[1];
+      window.apis.electron.ipcRenderer.send("changeStickyColor", {
+        stickyId: query,
+        color,
+      });
+    };
     return {
       data,
       retract,
       deleteSticky,
+      changeColor,
     };
   },
 });
