@@ -160,7 +160,6 @@ function createWindow(type: keyof typeof windowConf = 'main') {
       mainWindow = null;
     })
   }
-  // sendStatusToWindow('test...')
 }
 
 function createStickies(id = Date.now()) {
@@ -295,20 +294,19 @@ ipcMain.handle('getUserPath', () => userPath)
 
 ipcMain.handle('getVersion', () => app.getVersion())
 
+ipcMain.handle('getNotificationQ', () => notificationQ)
+
 ipcMain.on('setShortCut', (event, args: {
   window: keyof typeof windowConf,
   key: string[]
 }) => {
-  // console.log('set shortcuts', args)
   globalShortcut.register(args.key.map(keyToAccelerator).join('+'), () => {
     createWindow(args.window)
   })
 })
 
 ipcMain.on('removeShortCut', (event, args) => {
-  // console.log('remove shortcuts', args)
   if (!args.key.length) return
-  // console.log('unregister', args.key.map(keyToAccelerator).join('+'))
   globalShortcut.unregister(args.key.map(keyToAccelerator).join('+'))
 })
 
@@ -342,10 +340,6 @@ ipcMain.on('setStickyTitle', (event, args) => {
   if (stickiesConfig.value[args.key]) {
     stickiesConfig.value[args.key].title = args.val.match(/\s?([^\n]+)/)?.[1] ?? ''
   }
-})
-
-ipcMain.handle('getNotificationQ', () => {
-  return notificationQ
 })
 
 ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {

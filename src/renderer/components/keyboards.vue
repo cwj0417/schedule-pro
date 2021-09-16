@@ -19,8 +19,7 @@
       @click="$emit('esc')"
     >
       esc
-    </span></span
-  >
+    </span></span>
   <span
     v-else
     :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-pointer w-36'"
