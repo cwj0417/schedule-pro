@@ -5,8 +5,6 @@ import { watch, ref, toRaw } from 'vue'
 
 const userPath = app.getPath('userData')
 
-console.log('userpath', userPath)
-
 const keyMapToAccelerator = {
     altKey: 'Alt',
     ctrlKey: 'Ctrl',

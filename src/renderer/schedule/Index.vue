@@ -78,7 +78,7 @@
         <empty v-if="!schedules?.[getTs()]?.length" />
         <transition-group name="schedule-list" tag="div">
           <todo-item
-            v-for="(schedule, index) of sort(schedules[getTs()])"
+            v-for="(schedule, index) of sortTodoStatus(schedules[getTs()])"
             :key="schedule.create_time"
             :singleLine="index % 2 === 1"
             :schedule="schedule"
@@ -104,6 +104,7 @@ import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "./todoItem.vue";
 import { getTs } from "../utils/time";
+import { sortTodoStatus} from "../utils/format";
 
 export default defineComponent({
   name: "timer",
@@ -128,14 +129,11 @@ export default defineComponent({
       contentinput.value = "";
     };
 
-    const sort = (arr: any[]) =>
-      arr ? [...arr.filter((i) => !i.done), ...arr.filter((i) => i.done)] : [];
-
     return {
       schedules,
       createSchedule,
       contentinput,
-      sort,
+      sortTodoStatus,
       getTs,
       location,
     };
