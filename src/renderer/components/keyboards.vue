@@ -1,7 +1,7 @@
 <template>
   <span
     v-if="active"
-    class="text-base font-normal text-blue-500 w-42 inline-block"
+    class="text-sm font-normal text-blue-500 w-42 inline-block"
     >请设置快捷键
     <span
       class="
