@@ -157,6 +157,7 @@ export default defineComponent({
         });
         contentinput.value = ''
         fetchTimers()
+        window.apis.electron.ipcRenderer.send("hideWindow")
       }
     };
     

@@ -258,7 +258,12 @@ app.whenReady().then(() => {
 })
 
 app.on('activate', () => {
-  !mainWindow && createWindow()
+  if (!mainWindow) {
+    createWindow()
+  } else {
+    mainWindow.show()
+    mainWindow.focus()
+  }
 })
 
 app.on('before-quit', () => {
@@ -352,6 +357,10 @@ ipcMain.on('addCountDown', (event, args) => {
     notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
     delete notificationHandlers[id]
   }, countdownInterval * cd)
+})
+
+ipcMain.on('hideWindow', () => {
+  BrowserWindow.getFocusedWindow()?.hide()
 })
 
 ipcMain.on('removeCountDown', (event, id) => {
