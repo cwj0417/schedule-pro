@@ -23,6 +23,11 @@ log.info('App starting...');
 
 let mainWindow: BrowserWindow | null = null
 
+const stickyMinFrame = {
+  width: 400,
+  height: 360,
+}
+
 autoUpdater.on('checking-for-update', () => {
   mainWindow!.webContents.send('message', {
     type: 'checking-for-update',
@@ -72,8 +77,8 @@ const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
       backgroundColor: '#FCF4A7',
-      width: 300,
-      height: 400,
+      width: stickyMinFrame.width,
+      height: stickyMinFrame.height,
       x: 0,
       y: 0,
       title: '',
@@ -157,7 +162,11 @@ function createWindow(type: keyof typeof windowConf = 'main') {
     if (mainWindow!.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
     mainWindow!.show()
   } else {
-    mainWindow = new BrowserWindow(mainWindowConfig)
+    mainWindow = new BrowserWindow({
+      ...mainWindowConfig,
+      show: false,
+    })
+    mainWindow.once('ready-to-show', mainWindow.show)
     mainWindow!.loadURL(windowConf[type].url)
     mainWindow?.on('close', () => {
       mainWindow = null;
@@ -191,20 +200,27 @@ function createStickies(id = Date.now()) {
     height,
     x,
     y,
-    backgroundColor,
+    minWidth: stickyMinFrame.width,
+    minHeight: stickyMinFrame.height,
     webPreferences: {
-      preload: stickyPreload,
-    }
+      preload: mainPreload,
+    },
+    show: false
   })
-  sticky.loadURL(stickiesPage + '?id=' + id)
+
+  sticky.loadURL(stickiesPage + '?id=' + id + '&bg=' + backgroundColor)
   sticky.setTouchBar(new TouchBar({
     items: [new TouchBarColorPicker({
       change: (color) => {
-        sticky.setBackgroundColor(color)
+        sticky.webContents.send('message', {
+          type: 'changebg',
+          value: color
+        })
         stickiesConfig.value[id].backgroundColor = color
       }
     })]
   }))
+  sticky.once('ready-to-show', sticky.show)
   sticky.on('close', () => {
     if (!isQuiting) {
       stickiesConfig.value[id].expended = false
@@ -218,6 +234,7 @@ function createStickies(id = Date.now()) {
     setPosition()
   })
   stickyWindows[id] = sticky
+  
 }
 
 function openStickies() {
@@ -371,7 +388,10 @@ ipcMain.on('retractSticky', (event, stickyId) => {
 
 ipcMain.on('changeStickyColor', (event, { stickyId, color }) => {
   stickiesConfig.value[stickyId].backgroundColor = color
-  stickyWindows[stickyId].setBackgroundColor(color)
+  stickyWindows[stickyId].webContents.send('message', {
+    type: 'changebg',
+    value: color,
+  })
 })
 
 ipcMain.on('deleteSticky', (event, stickyId) => {
