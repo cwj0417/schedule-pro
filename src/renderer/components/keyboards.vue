@@ -2,24 +2,16 @@
   <span
     v-if="active"
     class="text-sm font-normal text-blue-500 w-42 inline-block"
-    >请设置快捷键
+    style="height: 25px; line-height: 25px"
+  >
+    <span>请设置快捷键</span>
     <span
-      class="
-        mx-1
-        my-2
-        h-6
-        leading-6
-        px-2
-        border
-        text-gray-500
-        border-gray-300
-        rounded-md
-        animate-pulse
-      "
+      style="width: 40px; margin-left: 10px"
+      class="kbd animate-pulse"
       @click="$emit('esc')"
-    >
-      esc
-    </span></span>
+      >esc
+    </span></span
+  >
   <span
     v-else
     :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-pointer w-36'"

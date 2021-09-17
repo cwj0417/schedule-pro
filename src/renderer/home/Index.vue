@@ -422,7 +422,7 @@
               background: sticky.expended ? sticky.backgroundColor + '22' : '',
             }"
           >
-            {{ sticky.title }}
+            {{ sticky.title || '未命名便签' }}
             <div
               class="w-2 h-2 rounded-md my-4 float-right"
               :style="{

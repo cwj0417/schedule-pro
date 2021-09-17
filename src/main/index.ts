@@ -1,6 +1,6 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog } from 'electron'
 import mainPreload from '@/preload/mainPage.ts'
-import stickyPreload from '@/preload/stickyPage.ts'
+// import stickyPreload from '@/preload/stickyPage.ts'
 import mainPage from '@/renderer/index.html#/home'
 import timerPage from '@/renderer/index.html#/timer'
 import schedulePage from '@/renderer/index.html#/schedule'
@@ -234,7 +234,7 @@ function createStickies(id = Date.now()) {
     setPosition()
   })
   stickyWindows[id] = sticky
-  
+
 }
 
 function openStickies() {
@@ -361,6 +361,30 @@ ipcMain.on('addCountDown', (event, args) => {
 
 ipcMain.on('hideWindow', () => {
   BrowserWindow.getFocusedWindow()?.hide()
+})
+
+ipcMain.on('toggleFullscreen', () => {
+  const curWindow = BrowserWindow.getFocusedWindow()
+  curWindow?.setSimpleFullScreen(!curWindow.isSimpleFullScreen())
+})
+
+ipcMain.on('setPin', (event, isPin) => {
+  BrowserWindow.getFocusedWindow()?.setAlwaysOnTop(isPin)
+})
+
+ipcMain.on('setTransparent', (event, isTransparent) => {
+  const curWindow = BrowserWindow.getFocusedWindow()
+  if (curWindow) {
+    if (isTransparent) {
+      curWindow.setOpacity(0.7)
+    } else {
+      curWindow.setOpacity(1)
+    }
+  }
+})
+
+ipcMain.on('set-ignore-mouse-events', (event, ...args) => {
+  BrowserWindow.fromWebContents(event?.sender)?.setIgnoreMouseEvents(...args)
 })
 
 ipcMain.on('removeCountDown', (event, id) => {

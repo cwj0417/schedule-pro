@@ -42,5 +42,5 @@ input::-webkit-inner-spin-button {
 }
 
 .kbd {
-  @apply border p-1 bg-gray-50 rounded-md mr-1 w-6 h-6 leading-4 inline-block text-center shadow-sm;
+  @apply border border-blue-500 p-1 bg-gray-50 font-light text-blue-500 rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-md;
 }

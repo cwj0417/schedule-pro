@@ -6,7 +6,8 @@ module.exports = {
   },
   variants: {
     extend: {
-      translate: ['group-hover']
+      translate: ['group-hover'],
+      width: ['hover'],
     },
   },
   plugins: [],

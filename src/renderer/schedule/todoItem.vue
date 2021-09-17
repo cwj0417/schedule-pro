@@ -36,18 +36,20 @@
           @keydown.esc="isEditing = false"
         />
         <span
-          class="mx-1 my-2 h-6 leading-6 px-2 border text-gray-500 border-gray-300 rounded-md animate-pulse"
+          class="kbd my-2 animate-pulse"
+          style="width: 40px"
           @click="isEditing = false"
         >
           esc
         </span>
         <span
-          class="mx-1 my-2 h-6 leading-6 px-2 border text-gray-500 border-gray-300 rounded-md animate-pulse"
+          class="kbd my-2 animate-pulse"
+          style="width: 40px"
           @click="
             $emit('changeItem', editingContent);
             isEditing = false;
           "
-          >enter</span
+          >⏎</span
         >
       </template>
       <template v-else>
