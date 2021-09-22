@@ -417,7 +417,7 @@
             @click="openSticky(sticky.id)"
             v-for="sticky in stickies"
             :key="sticky.id"
-            class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden relative"
+            class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative"
             :style="{
               background: sticky.expended ? sticky.backgroundColor + '22' : '',
             }"
