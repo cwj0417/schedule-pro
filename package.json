@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo none && exit 0",
     "dev": "node scripts/run-dev.js",
-    "build": "node scripts/run-build.js"
+    "build": "node scripts/run-build.js",
+    "build:local": "node scripts/run-build.js local"
   },
   "author": "chenwj",
   "license": "MIT",

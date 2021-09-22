@@ -1,13 +1,15 @@
 const builder = require("electron-builder")
 const Platform = builder.Platform
 const { join } = require('path')
-const { stat, remove, writeFile, copyFile } = require('fs-extra')
+const { remove, writeFile } = require('fs-extra')
 const { rendererBuild } = require('./renderer')
 const { mainProdBuild } = require('./main')
 
 const projRoot = join(__dirname, '..')
 
 const runBuild = async () => {
+
+    const isLocal = process.argv[2] === 'local'
 
     // 清理dist和built
     await remove(join(projRoot, 'build', 'built'))
@@ -16,7 +18,7 @@ const runBuild = async () => {
 
     // vite(rollup)打包renderer进程
     await rendererBuild()
-    
+
     // esbuild打包main进程
     await mainProdBuild()
 
@@ -24,12 +26,20 @@ const runBuild = async () => {
     const packageJson = require(join(projRoot, 'package.json'))
     writeFile(join(projRoot, 'dist', 'package.json'), JSON.stringify(packageJson))
 
+    const config = require(join(projRoot, 'build', 'config.js'))
+
+    if (isLocal) {
+        config.mac.target = [{
+            target: 'dir',
+            arch: ['arm64']
+        }]
+    }
+
     // build electron
     builder.build({
         targets: Platform.MAC.createTarget(),
-        config: require(join(projRoot, 'build', 'config.js')),
-        publish: 'always',
-        // dir: true,
+        config,
+        publish: isLocal ? 'never' : 'always',
     })
         .then(() => {
             console.log('done')
