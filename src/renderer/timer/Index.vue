@@ -147,22 +147,24 @@ export default defineComponent({
     const contentinput = ref<string>("");
     const countdown = ref<number>(5);
 
+    const { ipcRenderer } = window.apis
+
     const handleEnter = () => {
       const content = contentinput.value;
       const cd = countdown.value;
       if (content && cd) {
-        window.apis.electron.ipcRenderer.send("addCountDown", {
+        ipcRenderer.send("addCountDown", {
           cd,
           content,
         });
         contentinput.value = ''
         fetchTimers()
-        window.apis.electron.ipcRenderer.send("hideWindow")
+        ipcRenderer.send("hideWindow")
       }
     };
     
     const removeCountDown = (id: number) => {
-      window.apis.electron.ipcRenderer.send("removeCountDown", id);
+      ipcRenderer.send("removeCountDown", id);
       fetchTimers()
     }
 

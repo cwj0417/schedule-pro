@@ -457,11 +457,11 @@ export default defineComponent({
     let editingAccelerator = ref<any>([]);
 
     const config = useUserData("shortcuts", {});
-    const { electron, onMessage, platform, openUrl } = window.apis;
+    const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
 
     const edit = (type: string) => {
       data.editing = type;
-      electron.ipcRenderer.send("removeShortCut", {
+      ipcRenderer.send("removeShortCut", {
         key: toRaw(config.value[type]) ?? [],
       });
       document.addEventListener("keydown", keydown);
@@ -491,7 +491,7 @@ export default defineComponent({
           ? toRaw(config.value[data.editing])
           : getAccelerator(event).concat(key.value);
       config.value[data.editing] = shortcutContent;
-      electron.ipcRenderer.send("setShortCut", {
+      ipcRenderer.send("setShortCut", {
         window: data.editing,
         key: shortcutContent,
       });
@@ -524,7 +524,7 @@ export default defineComponent({
 
     const checkForUpdate = () => {
       if (!versionInfo.checkingForUpdate) {
-        electron.ipcRenderer.send('checkforupdate')
+        ipcRenderer.send('checkforupdate')
       }
     }
 
@@ -545,7 +545,7 @@ export default defineComponent({
           versionInfo.checkingForUpdate = false;
         }
       });
-      electron.ipcRenderer.invoke("getVersion").then((version: string) => {
+      ipcRenderer.invoke("getVersion").then((version: string) => {
         versionInfo.curVersion = version;
       });
     });
@@ -575,11 +575,11 @@ export default defineComponent({
           stickies.value = value;
         }
       });
-      electron.ipcRenderer.send("getStickiesConfig");
+      ipcRenderer.send("getStickiesConfig");
     });
 
     const openSticky = (id: string) =>
-      electron.ipcRenderer.send("openSticky", id);
+      ipcRenderer.send("openSticky", id);
 
     return {
       data,

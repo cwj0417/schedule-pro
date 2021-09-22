@@ -182,7 +182,7 @@ const colors = [
 
 export default defineComponent({
   setup() {
-    const { electron, onMessage } = window.apis;
+    const { ipcRenderer, onMessage } = window.apis;
     const [id, bg] = getquery();
     let data = ref<any>(null);
     let bgColor = ref<string>("white");
@@ -192,13 +192,13 @@ export default defineComponent({
 
     const clickThoughMouseEnter = () => {
       if (isTransparent.value) {
-        window.apis.electron.ipcRenderer.send("set-ignore-mouse-events", false);
+        ipcRenderer.send("set-ignore-mouse-events", false);
       }
     };
 
     const clickThoughMouseLeave = () => {
       if (isTransparent.value) {
-        window.apis.electron.ipcRenderer.send("set-ignore-mouse-events", true, {
+        ipcRenderer.send("set-ignore-mouse-events", true, {
           forward: true,
         });
       }
@@ -220,7 +220,7 @@ export default defineComponent({
           (val: any) => {
             if (timerHandler) clearTimeout(timerHandler);
             timerHandler = setTimeout(
-              electron.ipcRenderer.send,
+              ipcRenderer.send,
               350,
               "setStickyTitle",
               {
@@ -249,32 +249,32 @@ export default defineComponent({
     });
 
     const retract = () => {
-      window.apis.electron.ipcRenderer.send("retractSticky", id);
+      ipcRenderer.send("retractSticky", id);
     };
     const deleteSticky = () => {
-      window.apis.electron.ipcRenderer.send("deleteSticky", id);
+      ipcRenderer.send("deleteSticky", id);
     };
     const changeColor = (color: string) => {
-      window.apis.electron.ipcRenderer.send("changeStickyColor", {
+      ipcRenderer.send("changeStickyColor", {
         stickyId: id,
         color,
       });
     };
     const fullscreen = () => {
-      window.apis.electron.ipcRenderer.send("toggleFullscreen");
+      ipcRenderer.send("toggleFullscreen");
       isPin.value = false;
-      window.apis.electron.ipcRenderer.send("setTransparent", false);
+      ipcRenderer.send("setTransparent", false);
       isTransparent.value = false;
     };
     const toggleTransparent = () => {
-      window.apis.electron.ipcRenderer.send(
+      ipcRenderer.send(
         "setTransparent",
         !isTransparent.value
       );
       isTransparent.value = !isTransparent.value;
     };
     const togglePin = () => {
-      window.apis.electron.ipcRenderer.send("setPin", !isPin.value);
+      ipcRenderer.send("setPin", !isPin.value);
       isPin.value = !isPin.value;
     };
     return {

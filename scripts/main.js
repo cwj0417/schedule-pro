@@ -86,7 +86,7 @@ let prodPreloadPlugin = () => ({
 })
 
 const mainDevServer = async (port, onChange = () => { }) => {
-    build({
+    await build({
         entryPoints: [join(__dirname, '..', 'src/main/index.ts')],
         outfile: 'dist/main/index.js',
         bundle: true, // 如果false就不会处理文件里的import
@@ -104,7 +104,7 @@ const mainDevServer = async (port, onChange = () => { }) => {
 }
 
 const mainProdBuild = async () => {
-    build({
+    await build({
         entryPoints: [join(__dirname, '..', 'src/main/index.ts')],
         outfile: 'dist/main/index.js',
         bundle: true, // 如果false就不会处理文件里的import

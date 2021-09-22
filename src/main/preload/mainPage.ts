@@ -7,8 +7,8 @@ const path = require('path')
 
 electron.contextBridge.exposeInMainWorld('apis', {
     fs,
-    path,
-    electron,
+    join: path.join,
+    ipcRenderer: electron.ipcRenderer,
     openUrl: electron.shell.openExternal,
     platform: process.platform,
     onMessage: (fn: any) => {

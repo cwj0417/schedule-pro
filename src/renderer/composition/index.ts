@@ -2,13 +2,13 @@ import { watch, ref, toRaw, onMounted, onUnmounted } from 'vue'
 
 import { notification } from "../../type";
 
-const { fs, path, electron } = window.apis as any
+const { fs, join, ipcRenderer } = window.apis as any
 
 const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     let userData = ref<any>(init)
-    electron.ipcRenderer.invoke('getUserPath')
+    ipcRenderer.invoke('getUserPath')
         .then((userpath: string) => {
-            const confPath = path.join(userpath, `${name}.json`)
+            const confPath = join(userpath, `${name}.json`)
             if (fs.existsSync(confPath)) {
                 userData.value = JSON.parse(fs.readFileSync(confPath, { encoding: 'utf-8' }))
                 console.log('got userdata', name, toRaw(userData.value))
@@ -30,7 +30,7 @@ const useTimer = () => {
     let timerHandler: NodeJS.Timeout | null = null;
     const fetchTimers = () => {
         if (timerHandler) clearInterval(timerHandler)
-        electron.ipcRenderer
+        ipcRenderer
         .invoke("getNotificationQ")
         .then((messageQ: notification[]) => {
             const render = () => {
