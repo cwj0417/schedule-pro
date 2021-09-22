@@ -184,6 +184,7 @@ function createStickies(id = Date.now()) {
       clearTimeout(setpositionhandler)
     }
     setpositionhandler = setTimeout(() => {
+      if (!stickyWindows[id]) return
       const { width, height, x, y } = sticky.getBounds()
       stickiesConfig.value[id] = {
         ...stickiesConfig.value[id],
