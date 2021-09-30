@@ -231,7 +231,7 @@
                   'text-gray-400': item.done,
                 }"
                 class="w-full h-10 p-2 flex leading-6"
-                v-for="(item, index) in sortTodoStatus(schedule[getTs()])"
+                v-for="(item, index) in sortTodoStatus(sortCreatetime(schedule[getTs()]))"
                 :key="index"
               >
                 <div
@@ -335,7 +335,7 @@
                   'text-gray-400': item.done,
                 }"
                 class="w-full h-10 p-2 flex leading-6"
-                v-for="(item, index) in sortTodoStatus(inspiration)"
+                v-for="(item, index) in sortTodoStatus(sortCreatetime(inspiration))"
                 :key="index"
               >
                 <div
@@ -442,7 +442,7 @@ import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
-import { sortTodoStatus} from "../utils/format";
+import { sortTodoStatus, sortCreatetime } from "../utils/format";
 
 export default defineComponent({
   name: "home",
@@ -588,6 +588,7 @@ export default defineComponent({
       edit,
       keydown,
       sortTodoStatus,
+      sortCreatetime,
       timers,
       checkForUpdate,
       versionInfo,

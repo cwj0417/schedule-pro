@@ -64,7 +64,7 @@
         <empty v-if="!inspirations.length" />
         <transition-group name="schedule-list" tag="div">
           <todo-item
-            v-for="(inspiration, index) of sortTodoStatus(inspirations)"
+            v-for="(inspiration, index) of sortTodoStatus(sortCreatetime(inspirations))"
             :key="inspiration.create_time"
             :singleLine="index % 2 === 1"
             :inspiration="inspiration"
@@ -92,7 +92,7 @@ import keyboard from "../components/keyboards.vue";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "./todoItem.vue";
-import { sortTodoStatus} from "../utils/format";
+import { sortTodoStatus, sortCreatetime } from "../utils/format";
 
 export default defineComponent({
   name: "timer",
@@ -122,6 +122,7 @@ export default defineComponent({
       createInspiration,
       contentinput,
       sortTodoStatus,
+      sortCreatetime,
       location,
     };
   },
