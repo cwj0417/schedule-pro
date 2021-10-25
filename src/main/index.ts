@@ -224,8 +224,13 @@ function createStickies(id = Date.now()) {
   sticky.once('ready-to-show', sticky.show)
   sticky.on('close', () => {
     if (!isQuiting) {
-      stickiesConfig.value[id].expended = false
       delete stickyWindows[id]
+      if (stickiesConfig.value[id].title) {
+        stickiesConfig.value[id].expended = false
+      } else {
+        delete stickiesConfig.value[id]
+        unlinkSync(join(userPath, `sticky${id}.json`))
+      }
     }
   })
   sticky.on('resize', () => {
@@ -435,12 +440,16 @@ ipcMain.on('deleteSticky', (event, stickyId) => {
     buttons: ['取消', '删除便签']
   })
   if (res === 1) {
-    stickyWindows[stickyId].close()
-    delete stickiesConfig.value[stickyId]
-    delete stickyWindows[stickyId]
-    unlinkSync(join(userPath, `sticky${stickyId}.json`))
+    removeSticky(stickyId)
   }
 })
+
+const removeSticky = (stickyId: number) => {
+  stickyWindows[stickyId].close()
+  delete stickiesConfig.value[stickyId]
+  delete stickyWindows[stickyId]
+  unlinkSync(join(userPath, `sticky${stickyId}.json`))
+}
 
 autoUpdater.checkForUpdatesAndNotify()
 
