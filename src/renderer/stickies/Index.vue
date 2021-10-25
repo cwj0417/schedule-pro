@@ -149,6 +149,7 @@
       :style="{ backgroundColor: bgColor + '66' }"
     >
       <textarea
+        autofocus
         class="non-border w-full h-full p-2"
         name=""
         cols="30"
@@ -219,15 +220,10 @@ export default defineComponent({
           },
           (val: any) => {
             if (timerHandler) clearTimeout(timerHandler);
-            timerHandler = setTimeout(
-              ipcRenderer.send,
-              350,
-              "setStickyTitle",
-              {
-                key: id,
-                val: val.content,
-              }
-            );
+            timerHandler = setTimeout(ipcRenderer.send, 350, "setStickyTitle", {
+              key: id,
+              val: val.content,
+            });
           }
         );
       }
@@ -267,10 +263,7 @@ export default defineComponent({
       isTransparent.value = false;
     };
     const toggleTransparent = () => {
-      ipcRenderer.send(
-        "setTransparent",
-        !isTransparent.value
-      );
+      ipcRenderer.send("setTransparent", !isTransparent.value);
       isTransparent.value = !isTransparent.value;
     };
     const togglePin = () => {
