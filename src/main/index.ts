@@ -255,15 +255,13 @@ function openStickies() {
 app.whenReady().then(() => {
   createWindow()
   openStickies()
-  let shortcuts = getUserConf('shortcuts')
-  if (JSON.stringify(shortcuts) === '{}') {
-    shortcuts = {
-      timer: ["metaKey", "shiftKey", "i"],
-      schedule: ["metaKey", "shiftKey", "j"],
-      inspiration: ["metaKey", "shiftKey", "l"],
-      main: ["metaKey", "shiftKey", "h"],
-    }
-  }
+  let shortcuts: {
+    [key: string]: any[]
+  } = getUserConf('shortcuts')
+  shortcuts.timer = shortcuts.timer ?? ["metaKey", "shiftKey", "i"]
+  shortcuts.schedule = shortcuts.schedule ?? ["metaKey", "shiftKey", "j"]
+  shortcuts.inspiration = shortcuts.inspiration ?? ["metaKey", "shiftKey", "l"]
+  shortcuts.main = shortcuts.main ?? ["metaKey", "shiftKey", "h"]
   for (let [windowName, key] of Object.entries(shortcuts)) {
     globalShortcut.register(key.map(keyToAccelerator).join('+'), () => {
       createWindow(windowName as any)

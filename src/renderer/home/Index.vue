@@ -446,11 +446,20 @@ export default defineComponent({
     });
     let editingAccelerator = ref<any>([]);
 
-    const config = useUserData("shortcuts", {
-      timer: ["metaKey", "shiftKey", "i"],
-      schedule: ["metaKey", "shiftKey", "j"],
-      inspiration: ["metaKey", "shiftKey", "l"],
-      main: ["metaKey", "shiftKey", "h"],
+    const config = useUserData("shortcuts");
+    setTimeout(() => {
+      config.value.timer = config.value.timer ?? ["metaKey", "shiftKey", "i"];
+      config.value.schedule = config.value.schedule ?? [
+        "metaKey",
+        "shiftKey",
+        "j",
+      ];
+      config.value.inspiration = config.value.inspiration ?? [
+        "metaKey",
+        "shiftKey",
+        "l",
+      ];
+      config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
     });
     const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
 

@@ -17,7 +17,7 @@ const keyToAccelerator = (key: string) => {
 
 const getUserConf = (name: string) => {
     const confPath = join(userPath, `${name}.json`)
-    return existsSync(confPath) ? JSON.parse(readFileSync(confPath, { encoding: 'utf-8' }).toString()) as object : {}
+    return existsSync(confPath) ? JSON.parse(readFileSync(confPath, { encoding: 'utf-8' }).toString()) as any : {}
 }
 
 const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
