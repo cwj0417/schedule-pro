@@ -1,14 +1,27 @@
 <template>
   <div class="w-full h-full select-none">
     <div class="w-full h-16 leading-8 py-4 dragable">
-      <div class="px-5 font-bold absolute left-0 top-4 cursor-pointer" @click="location.replace('#/home')">
+      <div
+        class="px-5 font-bold absolute left-0 top-4 cursor-pointer"
+        @click="location.replace('#/home')"
+      >
         ◀︎ schedule pro
-        <keyboard :disabled="true" :value="['metaKey', 'shiftKey', 'h']" />
       </div>
       <div class="text-center w-full font-bold tracking-wide">待办池</div>
     </div>
     <div style="height: calc(100% - 64px)" class="p-5 bg-gray-50">
-      <div class="w-full h-16 p-4 flex shadow-md rounded-md bg-white focus-within:ring-1 focus-within:ring-blue-400">
+      <div
+        class="
+          w-full
+          h-16
+          p-4
+          flex
+          shadow-md
+          rounded-md
+          bg-white
+          focus-within:ring-1 focus-within:ring-blue-400
+        "
+      >
         <div class="flex-grow h-full">
           <input
             class="
@@ -88,7 +101,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import keyboard from "../components/keyboards.vue";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "./todoItem.vue";
@@ -97,7 +109,6 @@ import { sortTodoStatus } from "../utils/format";
 export default defineComponent({
   name: "timer",
   components: {
-    keyboard,
     empty,
     todoItem,
   },

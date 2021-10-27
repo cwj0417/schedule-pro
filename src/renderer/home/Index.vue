@@ -1,20 +1,25 @@
 <template>
   <div class="w-full h-full select-none">
     <div class="w-full h-16 py-4 dragable flex">
-      <div
-        class="
-          flex
-          text-sm text-gray-400
-          leading-9
-          w-full
-          text-center
-          justify-center
-        "
-      >
+      <div class="flex w-full justify-center">
         <img class="h-6 mr-3 mt-1" src="../assets/logo.png" alt="" />
-        v{{ versionInfo.curVersion }}
+        <span class="w-44 mt-1">
+          <keyboard
+            @esc="
+              keydown({
+                keyCode: 27,
+              })
+            "
+            :active="data.editing === 'main' && !editingAccelerator.length"
+            @setShortcut="edit('main')"
+            :value="data.editing === 'main' ? editingAccelerator : config.main"
+          />
+        </span>
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
+        <span class="text-sm text-gray-400 text-center leading-6 mr-3">
+          v{{ versionInfo.curVersion }}
+        </span>
         <svg
           width="18px"
           height="18px"
@@ -426,7 +431,7 @@ import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
 import { sortTodoStatus } from "../utils/format";
-import stikies from "./stickies.vue"
+import stikies from "./stickies.vue";
 
 export default defineComponent({
   name: "home",
@@ -441,7 +446,12 @@ export default defineComponent({
     });
     let editingAccelerator = ref<any>([]);
 
-    const config = useUserData("shortcuts", {});
+    const config = useUserData("shortcuts", {
+      timer: ["metaKey", "shiftKey", "i"],
+      schedule: ["metaKey", "shiftKey", "j"],
+      inspiration: ["metaKey", "shiftKey", "l"],
+      main: ["metaKey", "shiftKey", "h"],
+    });
     const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
 
     const edit = (type: string) => {
@@ -509,9 +519,9 @@ export default defineComponent({
 
     const checkForUpdate = () => {
       if (!versionInfo.checkingForUpdate) {
-        ipcRenderer.send('checkforupdate')
+        ipcRenderer.send("checkforupdate");
       }
-    }
+    };
 
     onMounted(() => {
       onMessage(({ type, value }: any) => {

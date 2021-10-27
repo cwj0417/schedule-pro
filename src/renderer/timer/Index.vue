@@ -1,9 +1,11 @@
 <template>
   <div class="w-full h-full select-none">
     <div class="w-full h-16 leading-8 py-4 dragable">
-      <div class="px-5 font-bold absolute left-0 top-4 cursor-pointer" @click="location.replace('#/home')">
+      <div
+        class="px-5 font-bold absolute left-0 top-4 cursor-pointer"
+        @click="location.replace('#/home')"
+      >
         ◀︎ schedule pro
-        <keyboard :disabled="true" :value="['metaKey', 'shiftKey', 'h']" />
       </div>
       <div class="text-center w-full font-bold tracking-wide">倒计时</div>
     </div>
@@ -11,7 +13,13 @@
       <div class="w-full h-16 p-4 flex divide-x shadow-md rounded-md bg-white">
         <div class="w-1/2 h-full">
           <input
-            class="outline-none w-full h-full text-gray-600 placeholder-gray-200"
+            class="
+              outline-none
+              w-full
+              h-full
+              text-gray-600
+              placeholder-gray-200
+            "
             placeholder="请输入内容..."
             v-focus
             :value="contentinput"
@@ -85,7 +93,7 @@
                 rounded-md
                 mt-1
               "
-              :class="{'text-blue-400': contentinput !== ''}"
+              :class="{ 'text-blue-400': contentinput !== '' }"
               @click="handleEnter"
             >
               开始
@@ -112,18 +120,49 @@
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
         <empty v-if="!timers.length" />
         <div
-          class="w-full h-10 flex leading-10 text-gray-600 text-sm hover:bg-blue-50 rounded-md group"
+          class="
+            w-full
+            h-10
+            flex
+            leading-10
+            text-gray-600 text-sm
+            hover:bg-blue-50
+            rounded-md
+            group
+          "
           v-for="(timer, index) of timers"
           :key="timer.id"
           :class="{
             'bg-gray-100': index % 2 === 1,
           }"
         >
-          <div class="w-1/2 pl-5 overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden">{{ timer.content }}</div>
+          <div
+            class="
+              w-1/2
+              pl-5
+              overflow-ellipsis
+              whitespace-nowrap
+              break-all
+              overflow-x-hidden
+            "
+          >
+            {{ timer.content }}
+          </div>
           <div class="w-1/4 pl-5">{{ formatCountdown(timer.last) }}</div>
           <div class="w-1/4 pl-5">
-          {{ formatCountdown(timer.remain) }}
-          <span class="float-right text-blue-500 pr-3 opacity-0 cursor-pointer group-hover:opacity-100" @click="removeCountDown(timer.id)">✘</span>
+            {{ formatCountdown(timer.remain) }}
+            <span
+              class="
+                float-right
+                text-blue-500
+                pr-3
+                opacity-0
+                cursor-pointer
+                group-hover:opacity-100
+              "
+              @click="removeCountDown(timer.id)"
+              >✘</span
+            >
           </div>
         </div>
       </div>
@@ -132,7 +171,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import keyboard from "../components/keyboards.vue";
 import { useTimer } from "../composition";
 import { formatCountdown } from "../utils/time";
 import empty from "../components/empty.vue";
@@ -140,14 +178,13 @@ import empty from "../components/empty.vue";
 export default defineComponent({
   name: "timer",
   components: {
-    keyboard,
     empty,
   },
   setup() {
     const contentinput = ref<string>("");
     const countdown = ref<number>(5);
 
-    const { ipcRenderer } = window.apis
+    const { ipcRenderer } = window.apis;
 
     const handleEnter = () => {
       const content = contentinput.value;
@@ -157,16 +194,16 @@ export default defineComponent({
           cd,
           content,
         });
-        contentinput.value = ''
-        fetchTimers()
-        ipcRenderer.send("hideWindow")
+        contentinput.value = "";
+        fetchTimers();
+        ipcRenderer.send("hideWindow");
       }
     };
-    
+
     const removeCountDown = (id: number) => {
       ipcRenderer.send("removeCountDown", id);
-      fetchTimers()
-    }
+      fetchTimers();
+    };
 
     const { timers, fetchTimers } = useTimer();
     return {

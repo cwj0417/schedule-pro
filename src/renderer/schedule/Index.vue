@@ -6,7 +6,6 @@
         @click="location.replace('#/home')"
       >
         ◀︎ schedule pro
-        <keyboard :disabled="true" :value="['metaKey', 'shiftKey', 'h']" />
       </div>
       <div class="text-center w-full font-bold tracking-wide">今日待办</div>
     </div>
@@ -99,7 +98,6 @@
 </template>
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import keyboard from "../components/keyboards.vue";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "./todoItem.vue";
@@ -109,7 +107,6 @@ import { sortTodoStatus } from "../utils/format";
 export default defineComponent({
   name: "timer",
   components: {
-    keyboard,
     empty,
     todoItem,
   },
