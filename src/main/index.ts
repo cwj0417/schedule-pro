@@ -264,18 +264,16 @@ app.whenReady().then(() => {
   shortcuts.main = shortcuts.main ?? ["metaKey", "shiftKey", "h"]
   for (let [windowName, key] of Object.entries(shortcuts)) {
     globalShortcut.register(key.map(keyToAccelerator).join('+'), () => {
+      if (windowName === 'main') {
+        Object.values(stickyWindows).forEach(win => win.focus())
+      }
       createWindow(windowName as any)
     })
   }
 })
 
 app.on('activate', () => {
-  if (!mainWindow) {
-    createWindow()
-  } else {
-    mainWindow.show()
-    mainWindow.focus()
-  }
+  if (!mainWindow) createWindow()
 })
 
 app.on('before-quit', () => {
