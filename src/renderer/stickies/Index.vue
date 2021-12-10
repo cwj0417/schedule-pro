@@ -145,12 +145,13 @@
       <button @click="changeColor('#fcf4a7')">黄</button> -->
     </div>
     <div
+      class="p-2"
       style="height: calc(100% - 2.5rem)"
       :style="{ backgroundColor: bgColor + '66' }"
     >
       <textarea
         autofocus
-        class="non-border w-full h-full p-2"
+        class="non-border w-full h-full"
         name=""
         cols="30"
         rows="10"
