@@ -67,7 +67,7 @@ let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
     if (mainWindow) {
       mainWindow.webContents?.send('message', {
         type: 'stickesConfigChange',
-        value: Object.entries(toRaw(conf)).map(([key, value]: any) => ({ ...value, id: key })),
+        value: Object.entries(toRaw(conf)).map(([key, value]: any) => ({ ...value, id: key })).sort((a, b) => a.order - b.order),
       });
     }
   })()
@@ -411,7 +411,7 @@ ipcMain.on('setStickyTitle', (event, args) => {
 
 ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {
   type: 'stickesConfigChange',
-  value: Object.entries(toRaw(stickiesConfig.value)).map(([key, value]: any) => ({ ...value, id: key })),
+  value: Object.entries(toRaw(stickiesConfig.value)).map(([key, value]: any) => ({ ...value, id: key })).sort((a, b) => a.order - b.order),
 }))
 
 ipcMain.on('openSticky', (event, stickyId) => {
@@ -421,6 +421,12 @@ ipcMain.on('openSticky', (event, stickyId) => {
     stickiesConfig.value[stickyId].expended = true
     createStickies(stickyId)
   }
+})
+
+ipcMain.on('sortStickies', (event, sorted) => {
+  sorted.forEach((sticky: any, order: number) => {
+    stickiesConfig.value[sticky.id].order = order
+  })
 })
 
 ipcMain.on('retractSticky', (event, stickyId) => {
