@@ -47,6 +47,7 @@ autoUpdater.on('update-not-available', (info) => {
 autoUpdater.on('error', (err) => {
   mainWindow!.webContents.send('message', {
     type: 'update-error',
+    value: err,
   });
 })
 autoUpdater.on('download-progress', (progressObj) => {
