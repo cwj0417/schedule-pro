@@ -1,6 +1,18 @@
 <template>
   <div class="w-full h-full select-none">
     <div class="w-full h-16 py-4 dragable flex">
+      <div
+        class="absolute left-3 top-3 p-2 rounded-md"
+        :style="{ border: searchContent ? '1px solid red' : '' }"
+      >
+        <input
+          type="text"
+          class="outline-none caret-transparent"
+          ref="searchInput"
+          v-model="searchContent"
+          @keydown.esc="searchContent = ''"
+        />
+      </div>
       <div class="flex w-full justify-center">
         <img class="h-6 mr-3 mt-1" src="../assets/logo.png" alt="" />
         <span class="w-44 mt-1">
@@ -228,36 +240,45 @@
                 text-sm
               "
             >
-              <empty v-if="!schedule?.[getTs()]?.length" />
-              <div
-                :class="{
-                  'bg-gray-50': index % 2 === 1,
-                  'line-through': item.done,
-                  'text-gray-400': item.done,
-                }"
-                class="w-full h-10 p-2 flex leading-6"
-                v-for="(item, index) in sortTodoStatus(schedule[getTs()])"
-                :key="index"
-              >
+              <empty
+                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length"
+              />
+              <transition-group name="animate-list" tag="div">
                 <div
                   :class="{
-                    'bg-blue-500': item.done,
-                    'bg-white': !item.done,
+                    'bg-gray-50': index % 2 === 1,
+                    'line-through': item.done,
+                    'text-gray-400': item.done,
                   }"
-                  class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                ></div>
-                <span
-                  class="
-                    overflow-ellipsis
-                    whitespace-nowrap
-                    break-all
-                    overflow-x-hidden
-                  "
-                  style="width: calc(100% - 24px)"
+                  class="w-full h-10 p-2 flex leading-6"
+                  v-for="(item, index) in searchScheduleOrInspiration(
+                    sortTodoStatus(schedule[getTs()])
+                  )"
+                  :key="index"
                 >
-                  {{ item.content }}
-                </span>
-              </div>
+                  <div
+                    :class="{
+                      'bg-blue-500': item.done,
+                      'bg-white': !item.done,
+                    }"
+                    class="w-2 h-2 rounded-md m-2 border border-blue-500"
+                  ></div>
+                  <span
+                    class="
+                      overflow-ellipsis
+                      whitespace-nowrap
+                      break-all
+                      overflow-x-hidden
+                    "
+                    style="width: calc(100% - 24px)"
+                  >
+                    <search-result
+                      :search="searchContent"
+                      :value="item.content"
+                    />
+                  </span>
+                </div>
+              </transition-group>
             </div>
           </div>
           <div class="w-1/2 h-full">
@@ -332,36 +353,43 @@
                 text-sm
               "
             >
-              <empty v-if="!inspiration.length" />
-              <div
-                :class="{
-                  'bg-gray-50': index % 2 === 1,
-                  'line-through': item.done,
-                  'text-gray-400': item.done,
-                }"
-                class="w-full h-10 p-2 flex leading-6"
-                v-for="(item, index) in sortTodoStatus(inspiration)"
-                :key="index"
-              >
+              <empty v-if="!searchScheduleOrInspiration(inspiration).length" />
+              <transition-group name="animate-list" tag="div">
                 <div
                   :class="{
-                    'bg-blue-500': item.done,
-                    'bg-white': !item.done,
+                    'bg-gray-50': index % 2 === 1,
+                    'line-through': item.done,
+                    'text-gray-400': item.done,
                   }"
-                  class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                ></div>
-                <span
-                  class="
-                    overflow-ellipsis
-                    whitespace-nowrap
-                    break-all
-                    overflow-x-hidden
-                  "
-                  style="width: calc(100% - 24px)"
+                  class="w-full h-10 p-2 flex leading-6"
+                  v-for="(item, index) in searchScheduleOrInspiration(
+                    sortTodoStatus(inspiration)
+                  )"
+                  :key="index"
                 >
-                  {{ item.content }}
-                </span>
-              </div>
+                  <div
+                    :class="{
+                      'bg-blue-500': item.done,
+                      'bg-white': !item.done,
+                    }"
+                    class="w-2 h-2 rounded-md m-2 border border-blue-500"
+                  ></div>
+                  <span
+                    class="
+                      overflow-ellipsis
+                      whitespace-nowrap
+                      break-all
+                      overflow-x-hidden
+                    "
+                    style="width: calc(100% - 24px)"
+                  >
+                    <search-result
+                      :search="searchContent"
+                      :value="item.content"
+                    />
+                  </span>
+                </div>
+              </transition-group>
             </div>
           </div>
         </div>
@@ -417,14 +445,21 @@
             text-sm
           "
         >
-          <stikies />
+          <stikies :search="searchContent" />
         </div>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, toRaw, reactive, onMounted, ref } from "vue";
+import {
+  defineComponent,
+  toRaw,
+  reactive,
+  onMounted,
+  ref,
+  onUnmounted,
+} from "vue";
 import empty from "../components/empty.vue";
 import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
@@ -432,6 +467,8 @@ import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
 import { sortTodoStatus } from "../utils/format";
 import stikies from "./stickies.vue";
+import { useSearchContent } from "../components/searchContent";
+import searchResult from "../components/searchResult.vue";
 
 export default defineComponent({
   name: "home",
@@ -439,8 +476,28 @@ export default defineComponent({
     keyboard,
     empty,
     stikies,
+    searchResult,
   },
   setup() {
+    // global search
+
+    const searchInput = ref<any>(null);
+    const searchContent = ref("");
+
+    const focusSearchInput = () => {
+      searchInput.value.focus();
+    };
+
+    onMounted(() => {
+      focusSearchInput();
+      document.addEventListener("mouseup", focusSearchInput);
+    });
+
+    onUnmounted(() => {
+      document.removeEventListener("mouseup", focusSearchInput);
+    });
+
+    // shortcuts
     const data = reactive({
       editing: "",
     });
@@ -569,7 +626,16 @@ export default defineComponent({
 
     let schedule = useUserData("schedule");
 
+    // define search
+
+    const searchScheduleOrInspiration = useSearchContent(
+      searchContent,
+      "content"
+    );
+
     return {
+      searchContent,
+      searchInput,
       data,
       editingAccelerator,
       config,
@@ -585,6 +651,7 @@ export default defineComponent({
       getTs,
       formatCountdown,
       location,
+      searchScheduleOrInspiration,
     };
   },
 });

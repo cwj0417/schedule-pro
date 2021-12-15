@@ -75,7 +75,7 @@
       </div>
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
         <empty v-if="!inspirations.length" />
-        <transition-group name="schedule-list" tag="div">
+        <transition-group name="animate-list" tag="div">
           <todo-item
             v-for="(inspiration, index) of sortTodoStatus(inspirations)"
             :key="inspiration.create_time"
