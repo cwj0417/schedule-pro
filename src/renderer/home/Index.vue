@@ -7,7 +7,7 @@
       >
         <input
           type="text"
-          class="outline-none caret-transparent"
+          class="outline-none caret-transparent cursor-default"
           ref="searchInput"
           v-model="searchContent"
           @keydown.esc="searchContent = ''"
@@ -243,42 +243,48 @@
               <empty
                 v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length"
               />
-              <transition-group name="animate-list" tag="div">
-                <div
-                  :class="{
-                    'bg-gray-50': index % 2 === 1,
-                    'line-through': item.done,
-                    'text-gray-400': item.done,
-                  }"
-                  class="w-full h-10 p-2 flex leading-6"
-                  v-for="(item, index) in searchScheduleOrInspiration(
-                    sortTodoStatus(schedule[getTs()])
-                  )"
-                  :key="index"
-                >
+              <draggable
+                group="sni"
+                v-else
+                item-key="id"
+                :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
+                @update:modelValue="handleScheduleUpdate($event)"
+                tag="transition-group"
+                :component-data="{ name: 'animate-list', tag: 'div' }"
+              >
+                <template #item="{ element: item, index }">
                   <div
                     :class="{
-                      'bg-blue-500': item.done,
-                      'bg-white': !item.done,
+                      'bg-gray-50': index % 2 === 1,
+                      'line-through': item.done,
+                      'text-gray-400': item.done,
                     }"
-                    class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                  ></div>
-                  <span
-                    class="
-                      overflow-ellipsis
-                      whitespace-nowrap
-                      break-all
-                      overflow-x-hidden
-                    "
-                    style="width: calc(100% - 24px)"
+                    class="w-full h-10 p-2 flex leading-6"
                   >
-                    <search-result
-                      :search="searchContent"
-                      :value="item.content"
-                    />
-                  </span>
-                </div>
-              </transition-group>
+                    <div
+                      :class="{
+                        'bg-blue-500': item.done,
+                        'bg-white': !item.done,
+                      }"
+                      class="w-2 h-2 rounded-md m-2 border border-blue-500"
+                    ></div>
+                    <span
+                      class="
+                        overflow-ellipsis
+                        whitespace-nowrap
+                        break-all
+                        overflow-x-hidden
+                      "
+                      style="width: calc(100% - 24px)"
+                    >
+                      <search-result
+                        :search="searchContent"
+                        :value="item.content"
+                      />
+                    </span>
+                  </div>
+                </template>
+              </draggable>
             </div>
           </div>
           <div class="h-full" style="width: calc(50% - 0.625rem)">
@@ -354,42 +360,48 @@
               "
             >
               <empty v-if="!searchScheduleOrInspiration(inspiration).length" />
-              <transition-group name="animate-list" tag="div">
-                <div
-                  :class="{
-                    'bg-gray-50': index % 2 === 1,
-                    'line-through': item.done,
-                    'text-gray-400': item.done,
-                  }"
-                  class="w-full h-10 p-2 flex leading-6"
-                  v-for="(item, index) in searchScheduleOrInspiration(
-                    sortTodoStatus(inspiration)
-                  )"
-                  :key="index"
-                >
+              <draggable
+                group="sni"
+                v-else
+                item-key="id"
+                :modelValue="searchScheduleOrInspiration(inspiration)"
+                @update:modelValue="handleInspirationUpdate($event)"
+                tag="transition-group"
+                :component-data="{ name: 'animate-list', tag: 'div' }"
+              >
+                <template #item="{ element: item, index }">
                   <div
                     :class="{
-                      'bg-blue-500': item.done,
-                      'bg-white': !item.done,
+                      'bg-gray-50': index % 2 === 1,
+                      'line-through': item.done,
+                      'text-gray-400': item.done,
                     }"
-                    class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                  ></div>
-                  <span
-                    class="
-                      overflow-ellipsis
-                      whitespace-nowrap
-                      break-all
-                      overflow-x-hidden
-                    "
-                    style="width: calc(100% - 24px)"
+                    class="w-full h-10 p-2 flex leading-6"
                   >
-                    <search-result
-                      :search="searchContent"
-                      :value="item.content"
-                    />
-                  </span>
-                </div>
-              </transition-group>
+                    <div
+                      :class="{
+                        'bg-blue-500': item.done,
+                        'bg-white': !item.done,
+                      }"
+                      class="w-2 h-2 rounded-md m-2 border border-blue-500"
+                    ></div>
+                    <span
+                      class="
+                        overflow-ellipsis
+                        whitespace-nowrap
+                        break-all
+                        overflow-x-hidden
+                      "
+                      style="width: calc(100% - 24px)"
+                    >
+                      <search-result
+                        :search="searchContent"
+                        :value="item.content"
+                      />
+                    </span>
+                  </div>
+                </template>
+              </draggable>
             </div>
           </div>
         </div>
@@ -469,6 +481,7 @@ import { sortTodoStatus } from "../utils/format";
 import stikies from "./stickies.vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
+import draggable from "vuedraggable";
 
 export default defineComponent({
   name: "home",
@@ -477,6 +490,7 @@ export default defineComponent({
     empty,
     stikies,
     searchResult,
+    draggable,
   },
   setup() {
     // global search
@@ -633,6 +647,25 @@ export default defineComponent({
       "content"
     );
 
+    // schedule and inspiration sort
+
+    const handleInspirationUpdate = (val: any[]) => {
+      // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
+      if (searchContent.value) return;
+      inspiration.value = val.map(i => toRaw(i)).map(i => ({
+        ...i,
+        finish_time: i.finish_time ?? Date.now(),
+      }));
+    };
+
+    const handleScheduleUpdate = (val: any[]) => {
+      if (searchContent.value) return;
+      schedule.value[getTs()] = val.map(i => toRaw(i)).map(i => {
+        delete i.finish_time;
+        return i;
+      });
+    };
+
     return {
       searchContent,
       searchInput,
@@ -652,6 +685,8 @@ export default defineComponent({
       formatCountdown,
       location,
       searchScheduleOrInspiration,
+      handleInspirationUpdate,
+      handleScheduleUpdate,
     };
   },
 });

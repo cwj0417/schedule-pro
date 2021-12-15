@@ -69,6 +69,7 @@ export default defineComponent({
     const openSticky = (id: string) => ipcRenderer.send("openSticky", id);
 
     const sortSticky = (value: any[]) => {
+      if (props.search) return;
       ipcRenderer.send(
         "sortStickies",
         value.map((i) => toRaw(i))
