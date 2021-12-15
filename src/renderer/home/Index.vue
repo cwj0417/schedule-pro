@@ -166,7 +166,7 @@
           </div>
         </div>
         <div style="height: calc(100% - 148px)" class="flex space-x-5 mt-5">
-          <div class="w-1/2 h-full">
+          <div class="h-full" style="width: calc(50% - 0.625rem)">
             <div class="text-sm space-x-2">
               <svg
                 class="inline-block"
@@ -281,7 +281,7 @@
               </transition-group>
             </div>
           </div>
-          <div class="w-1/2 h-full">
+          <div class="h-full" style="width: calc(50% - 0.625rem)">
             <div class="text-sm space-x-2">
               <svg
                 class="inline-block"
