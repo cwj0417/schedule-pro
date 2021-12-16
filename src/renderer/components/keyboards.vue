@@ -14,9 +14,9 @@
   >
   <span
     v-else
-    :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-pointer w-36'"
+    :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-context-menu w-36'"
     class="text-base font-normal text-gray-400 inline-block"
-    @click="!disabled && $emit('setShortcut')"
+    @dblclick="!disabled && $emit('setShortcut')"
   >
     <span class="kbd" v-if="value && value[0]">{{ format(value[0]) }}</span>
     <span
