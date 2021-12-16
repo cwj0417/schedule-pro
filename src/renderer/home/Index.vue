@@ -3,7 +3,7 @@
     <div class="w-full h-16 py-4 dragable flex">
       <div
         class="absolute left-3 top-3 p-2 rounded-md"
-        :style="{ border: searchContent ? '1px solid red' : '' }"
+        :class="searchContent ? 'border-2 border-blue-300' : ''"
       >
         <input
           type="text"
@@ -238,9 +238,17 @@
                 overflow-y-scroll
                 font-light
                 text-sm
+                border
+                cursor-grab
               "
+              :class='{
+                "border-blue-300": isDragging,
+              }'
             >
               <draggable
+                :disabled="searchContent"
+                @start="isDragging = true"
+                @end="isDragging = false"
                 group="sni"
                 item-key="id"
                 :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
@@ -282,7 +290,7 @@
                 </template>
               </draggable>
               <empty
-                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length"
+                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging"
               />
             </div>
           </div>
@@ -356,9 +364,17 @@
                 overflow-y-scroll
                 font-light
                 text-sm
+                border
+                cursor-grab
               "
+              :class='{
+                "border-blue-300": isDragging,
+              }'
             >
               <draggable
+                :disabled="searchContent"
+                @start="isDragging = true"
+                @end="isDragging = false"
                 group="sni"
                 item-key="id"
                 :modelValue="searchScheduleOrInspiration(inspiration)"
@@ -647,6 +663,8 @@ export default defineComponent({
 
     // schedule and inspiration sort
 
+    const isDragging = ref(false);
+
     const handleInspirationUpdate = (val: any[]) => {
       // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
       if (searchContent.value) return;
@@ -689,6 +707,7 @@ export default defineComponent({
       searchScheduleOrInspiration,
       handleInspirationUpdate,
       handleScheduleUpdate,
+      isDragging,
     };
   },
 });

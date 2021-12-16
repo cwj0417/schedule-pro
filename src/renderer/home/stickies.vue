@@ -1,6 +1,7 @@
 <template>
   <empty v-if="!searchSticky(stickies).length" />
   <draggable
+    :disabled="search"
     v-else
     :modelValue="searchSticky(stickies)"
     @update:modelValue="sortSticky($event)"
