@@ -240,12 +240,8 @@
                 text-sm
               "
             >
-              <empty
-                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length"
-              />
               <draggable
                 group="sni"
-                v-else
                 item-key="id"
                 :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
                 @update:modelValue="handleScheduleUpdate($event)"
@@ -285,6 +281,9 @@
                   </div>
                 </template>
               </draggable>
+              <empty
+                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length"
+              />
             </div>
           </div>
           <div class="h-full" style="width: calc(50% - 0.625rem)">
@@ -359,10 +358,8 @@
                 text-sm
               "
             >
-              <empty v-if="!searchScheduleOrInspiration(inspiration).length" />
               <draggable
                 group="sni"
-                v-else
                 item-key="id"
                 :modelValue="searchScheduleOrInspiration(inspiration)"
                 @update:modelValue="handleInspirationUpdate($event)"
@@ -402,6 +399,7 @@
                   </div>
                 </template>
               </draggable>
+              <empty v-if="!searchScheduleOrInspiration(inspiration).length" />
             </div>
           </div>
         </div>
