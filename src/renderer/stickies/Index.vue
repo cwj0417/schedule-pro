@@ -221,7 +221,7 @@ export default defineComponent({
           },
           (val: any) => {
             if (timerHandler) clearTimeout(timerHandler);
-            timerHandler = setTimeout(ipcRenderer.send, 350, "setStickyTitle", {
+            timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
               key: id,
               val: val.content,
             });

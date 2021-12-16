@@ -225,13 +225,15 @@ function createStickies(id = Date.now()) {
   sticky.once('ready-to-show', sticky.show)
   sticky.on('close', () => {
     if (!isQuiting) {
-      delete stickyWindows[id]
-      if (stickiesConfig.value[id].title) {
-        stickiesConfig.value[id].expended = false
-      } else {
-        delete stickiesConfig.value[id]
-        unlinkSync(join(userPath, `sticky${id}.json`))
-      }
+      setTimeout(() => {
+        delete stickyWindows[id]
+        if (stickiesConfig.value[id].title) {
+          stickiesConfig.value[id].expended = false
+        } else {
+          delete stickiesConfig.value[id]
+          unlinkSync(join(userPath, `sticky${id}.json`))
+        }
+      }, 350)
     }
   })
   sticky.on('resize', () => {
