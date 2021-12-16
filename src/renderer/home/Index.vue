@@ -66,7 +66,7 @@
       style="height: calc(100% - 64px)"
       class="w-full flex p-5 space-x-5 bg-gray-100"
     >
-      <div class="w-9/12">
+      <div style="width: calc(75% - 0.625rem)">
         <div class="h-32">
           <div class="text-sm space-x-2">
             <svg
@@ -406,7 +406,7 @@
           </div>
         </div>
       </div>
-      <div class="w-3/12">
+      <div style="width: calc(25% - 0.625rem)">
         <div class="text-sm space-x-2">
           <svg
             class="inline-block"
@@ -652,18 +652,22 @@ export default defineComponent({
     const handleInspirationUpdate = (val: any[]) => {
       // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
       if (searchContent.value) return;
-      inspiration.value = val.map(i => toRaw(i)).map(i => ({
-        ...i,
-        finish_time: i.finish_time ?? Date.now(),
-      }));
+      inspiration.value = val
+        .map((i) => toRaw(i))
+        .map((i) => ({
+          ...i,
+          finish_time: i.finish_time ?? Date.now(),
+        }));
     };
 
     const handleScheduleUpdate = (val: any[]) => {
       if (searchContent.value) return;
-      schedule.value[getTs()] = val.map(i => toRaw(i)).map(i => {
-        delete i.finish_time;
-        return i;
-      });
+      schedule.value[getTs()] = val
+        .map((i) => toRaw(i))
+        .map((i) => {
+          delete i.finish_time;
+          return i;
+        });
     };
 
     return {
