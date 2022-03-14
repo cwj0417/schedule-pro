@@ -77,6 +77,7 @@ let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
 const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
+      order: Math.min(...Object.values(stickiesConfig.value).map((i: any) => i.order)) - 1,
       backgroundColor: '#FCF4A7',
       width: stickyMinFrame.width,
       height: stickyMinFrame.height,
