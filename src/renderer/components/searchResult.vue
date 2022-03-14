@@ -8,7 +8,7 @@
   </span>
 </template>
 
-<script>
+<script lang="ts">
 import { getHighlightedText } from "./searchContent";
 export default {
   props: ["value", "search"],
