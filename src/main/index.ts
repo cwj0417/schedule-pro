@@ -77,7 +77,7 @@ let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
 const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
-      order: Math.min(...Object.values(stickiesConfig.value).map((i: any) => i.order)) - 1,
+      order: 0,
       backgroundColor: '#FCF4A7',
       width: stickyMinFrame.width,
       height: stickyMinFrame.height,
@@ -86,6 +86,7 @@ const ensureIdInStickiesConfig = (id: number) => {
       title: '',
       expended: true,
     }
+    toTop(id)
   }
 }
 
@@ -425,6 +426,14 @@ ipcMain.on('openSticky', (event, stickyId) => {
     stickiesConfig.value[stickyId].expended = true
     createStickies(stickyId)
   }
+})
+
+const toTop = (stickyId: number) => {
+  stickiesConfig.value[stickyId].order = Math.min(...Object.values(stickiesConfig.value).map((i: any) => i.order)) - 1
+}
+
+ipcMain.on('toTop', (event, stickyId) => {
+  toTop(stickyId)
 })
 
 ipcMain.on('sortStickies', (event, sorted) => {
