@@ -6,6 +6,8 @@ html,
 body {
   height: 100%;
   width: 100%;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
 
 #app {
@@ -25,7 +27,7 @@ body {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
- -webkit-appearance: none;
+  -webkit-appearance: none;
 }
 
 .animate-list-move {
@@ -33,7 +35,7 @@ input::-webkit-inner-spin-button {
 }
 .animate-list-enter-active,
 .animate-list-leave-active {
-  transition: all .3s ease;
+  transition: all 0.3s ease;
 }
 .animate-list-enter-from,
 .animate-list-leave-to {
