@@ -4,33 +4,16 @@
       <div
         class="px-5 font-bold absolute left-0 top-4 cursor-pointer"
         @click="location.replace('#/home')"
-      >
-        ◀︎ schedule pro
-      </div>
+      >◀︎ schedule pro</div>
       <div class="text-center w-full font-bold tracking-wide">待办池</div>
     </div>
     <div style="height: calc(100% - 64px)" class="p-5 bg-gray-50">
       <div
-        class="
-          w-full
-          h-16
-          p-4
-          flex
-          shadow-md
-          rounded-md
-          bg-white
-          focus-within:ring-1 focus-within:ring-blue-400
-        "
+        class="w-full h-16 p-4 flex shadow-md rounded-md bg-white focus-within:ring-1 focus-within:ring-blue-400"
       >
         <div class="flex-grow h-full">
           <input
-            class="
-              outline-none
-              w-full
-              h-full
-              text-gray-600
-              placeholder-gray-200
-            "
+            class="outline-none w-full h-full text-gray-600 placeholder-gray-200"
             placeholder="请输入内容..."
             v-focus
             :value="contentinput"
@@ -41,36 +24,13 @@
         </div>
         <div class="w-14 h-full">
           <button
-            class="
-              w-full
-              h-6
-              leading-3
-              text-blue-100 text-sm
-              border
-              p-1
-              border-blue-200
-              rounded-md
-              mt-1
-            "
+            class="w-full h-6 leading-3 text-blue-100 text-sm border p-1 border-blue-200 rounded-md mt-1"
             :class="{ 'text-blue-400': contentinput !== '' }"
             @click="createInspiration"
-          >
-            添加
-          </button>
+          >添加</button>
         </div>
       </div>
-      <div
-        class="
-          w-full
-          h-5
-          mt-6
-          mb-3
-          border-l
-          divide-x
-          flex
-          text-gray-400 text-sm
-        "
-      >
+      <div class="w-full h-5 mt-6 mb-3 border-l divide-x flex text-gray-400 text-sm">
         <div class="w-full pl-5">待办内容</div>
       </div>
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
@@ -81,60 +41,38 @@
             :key="inspiration.create_time"
             :singleLine="index % 2 === 1"
             :inspiration="inspiration"
-            @deleteItem="
-              (id) =>
-                inspirations.splice(
-                  inspirations.findIndex((i) => i.id === id),
-                  1
-                )
-            "
-            @toggleItem="
-              inspiration.done = !inspiration.done;
-              inspiration.finish_time = Date.now();
-            "
-            @changeItem="(val) => (inspiration.content = val)"
+            @deleteItem="(id: any) => inspirations.splice(inspirations.findIndex((i: any) => i.id === id), 1)"
+            @toggleItem="inspiration.done = !inspiration.done; inspiration.finish_time = Date.now();"
+            @changeItem="(val: any) => (inspiration.content = val)"
           />
         </transition-group>
       </div>
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
+import { ref } from "vue";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "./todoItem.vue";
 import { sortTodoStatus } from "../utils/format";
 
-export default defineComponent({
-  name: "timer",
-  components: {
-    empty,
-    todoItem,
-  },
-  setup() {
-    const contentinput = ref<string>("");
-    let inspirations = useUserData("inspiration", []);
+const contentinput = ref<string>("");
+let inspirations = useUserData("inspiration", []);
 
-    const createInspiration = () => {
-      if (!contentinput.value.trim()) return;
-      inspirations.value.unshift({
-        id: Date.now(),
-        create_time: Date.now(),
-        finish_time: Date.now(),
-        content: contentinput.value,
-        done: false,
-      });
-      contentinput.value = "";
-    };
+const createInspiration = () => {
+  if (!contentinput.value.trim()) return;
+  inspirations.value.unshift({
+    id: Date.now(),
+    create_time: Date.now(),
+    finish_time: Date.now(),
+    content: contentinput.value,
+    done: false,
+  });
+  contentinput.value = "";
+};
 
-    return {
-      inspirations,
-      createInspiration,
-      contentinput,
-      sortTodoStatus,
-      location,
-    };
-  },
-});
+const location = window.location
+
+
 </script>

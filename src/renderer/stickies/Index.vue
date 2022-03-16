@@ -6,26 +6,10 @@
       @dblclick="fullscreen"
     >
       <div
-        class="
-          w-5
-          h-5
-          ml-5
-          hover:w-60
-          bg-white
-          rounded-xl
-          transition-all
-          duration-500
-          overflow-hidden
-        "
+        class="w-5 h-5 ml-5 hover:w-60 bg-white rounded-xl transition-all duration-500 overflow-hidden"
       >
-        <div
-          class="w-3 h-3 rounded-lg m-1 float-left"
-          :style="{ backgroundColor: bgColor }"
-        />
-        <div
-          class="w-px h-2.5 bg-gray-400 float-left ml-2 mr-0.5"
-          style="margin-top: 5px"
-        />
+        <div class="w-3 h-3 rounded-lg m-1 float-left" :style="{ backgroundColor: bgColor }" />
+        <div class="w-px h-2.5 bg-gray-400 float-left ml-2 mr-0.5" style="margin-top: 5px" />
         <div
           class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left"
           v-for="color in colors"
@@ -38,111 +22,19 @@
       <div class="flex-grow"></div>
       <div class="h-5 pr-5 flex leading-4">
         <div class="cursor-pointer ml-3" @click="togglePin">
-          <svg
-            class="inline-block"
-            width="16px"
-            height="16px"
-            viewBox="0 0 12 12"
-            version="1.1"
-          >
-            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-              <g
-                transform="translate(-580.000000, -14.000000)"
-                :fill="isPin ? '#333333' : '#999999'"
-              >
-                <g transform="translate(580.000000, 10.000000)">
-                  <g transform="translate(0.000000, 4.000000)">
-                    <path
-                      d="M5.68321906,1.72664472 L1.25534586,5.60894171 C1.19756685,5.65958536 1.12598122,5.6844721 1.05468564,5.6844721 C0.969989503,5.6844721 0.88581547,5.64937541 0.8256,5.58069033 C0.714682873,5.45422624 0.727271271,5.26180359 0.85379337,5.15088646 L5.78699503,0.825582597 C5.9046656,0.722377949 6.07944095,0.726200821 6.19248208,0.829106803 C6.19119128,0.827914795 6.18987963,0.826743785 6.18855785,0.825584038 L11.1217608,5.15088646 C11.2482829,5.26180359 11.2608713,5.45422624 11.1499541,5.58069033 C11.0897967,5.64937541 11.0055066,5.6844721 10.9208685,5.6844721 C10.8495729,5.6844721 10.7779873,5.65958536 10.7202083,5.60894171 L6.29233508,1.72664472 L6.29233508,9.76176133 C6.29233508,9.92993536 6.1559511,10.0663193 5.98777707,10.0663193 C5.81960304,10.0663193 5.68321906,9.92993536 5.68321906,9.76176133 L5.68321906,1.72664472 Z M6.27356627,0.949158957 C6.28632026,0.983727721 6.29253661,1.02003328 6.29233508,1.05623016 L6.29233508,1.05459282 C6.29233508,1.01612894 6.2852057,0.979332936 6.27219702,0.945452804 Z M10.6208412,11.2255773 L1.35473619,11.2255773 C1.18650414,11.2255773 1.05017818,11.0891934 1.05017818,10.9210193 C1.05017818,10.7528453 1.18650414,10.6164613 1.35473619,10.6164613 L10.6208412,10.6164613 C10.7890152,10.6164613 10.9253992,10.7528453 10.9253992,10.9210193 C10.9253992,11.0891934 10.7890152,11.2255773 10.6208412,11.2255773 Z"
-                    ></path>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
+          <ArrowupSvg class="inline-block" :fill="isPin ? '#333333' : '#999999'" />
         </div>
         <div class="cursor-pointer ml-3" @click="toggleTransparent">
-          <svg
-            class="inline-block"
-            width="16px"
-            height="16px"
-            viewBox="0 0 12 12"
-            version="1.1"
-          >
-            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-              <g
-                transform="translate(-684.000000, -14.000000)"
-                :fill="isTransparent ? '#333333' : '#999999'"
-              >
-                <g transform="translate(684.000000, 10.000000)">
-                  <g transform="translate(0.000000, 4.000000)">
-                    <g transform="translate(0.750000, 0.750000)">
-                      <path
-                        d="M7.59051908,8.17800099 L2.89100921,8.17800099 C2.56654539,8.17800099 2.30356184,7.91494836 2.30356184,7.59055362 L2.30356184,2.89097467 C2.30356184,2.56657993 2.56654539,2.3035273 2.89100921,2.3035273 L7.59051908,2.3035273 C7.91491382,2.3035273 8.17796645,2.56657993 8.17796645,2.89097467 L8.17796645,7.59055362 C8.17796645,7.91494836 7.91491382,8.17800099 7.59051908,8.17800099"
-                        opacity="0.4"
-                      ></path>
-                      <path
-                        d="M7.83258553,8.523375 L2.89102303,8.523375 C2.37583224,8.523375 1.95818092,8.10572368 1.95818092,7.59053289 L1.95818092,2.64897039 L0.690789474,2.64897039 L0.690789474,9.79076645 L7.83258553,9.79076645 L7.83258553,8.523375 Z M7.83258553,7.83258553 L7.83258553,2.64897039 L2.64890132,2.64897039 L2.64890132,7.83258553 L7.83258553,7.83258553 Z M1.95818092,1.95818092 L1.95818092,0.932842105 C1.95818092,0.417651316 2.37583224,6.75015599e-14 2.89102303,6.75015599e-14 L9.54871382,6.75015599e-14 C10.0639046,6.75015599e-14 10.4814868,0.417651316 10.4814868,0.932842105 L10.4814868,7.59053289 C10.4814868,8.10572368 10.0639046,8.523375 9.54871382,8.523375 L8.523375,8.523375 L8.523375,9.54871382 C8.523375,10.0639046 8.10572368,10.4815559 7.59053289,10.4815559 L0.932842105,10.4815559 C0.417651316,10.4815559 -1.59872116e-13,10.0639046 -1.59872116e-13,9.54871382 L-1.59872116e-13,2.89102303 C-1.59872116e-13,2.37583224 0.417651316,1.95818092 0.932842105,1.95818092 L1.95818092,1.95818092 Z M2.64890132,1.95818092 L7.59053289,1.95818092 C8.10572368,1.95818092 8.523375,2.37583224 8.523375,2.89102303 L8.523375,7.83258553 L9.79069737,7.83258553 L9.79069737,0.690789474 L2.64890132,0.690789474 L2.64890132,1.95818092 Z"
-                      ></path>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
+          <TransparentSvg class="inline-block" :fill="isTransparent ? '#333333' : '#999999'" />
         </div>
-        <div
-          class="w-px h-2.5 bg-gray-400 float-left ml-3"
-          style="margin-top: 5px"
-        />
+        <div class="w-px h-2.5 bg-gray-400 float-left ml-3" style="margin-top: 5px" />
         <div class="cursor-pointer ml-3">
-          <svg
-            @click="deleteSticky"
-            class="inline-block"
-            width="16px"
-            height="16px"
-            viewBox="0 0 16 16"
-            version="1.1"
-          >
-            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-              <g transform="translate(-70.000000, -192.000000)">
-                <g transform="translate(70.000000, 192.000000)">
-                  <g>
-                    <path
-                      d="M5.86328989,11.8109857 L5.86337067,5.67563137 C5.86337067,5.39922654 6.09447855,5.17436281 6.37873882,5.17436281 C6.66291831,5.17436281 6.89410697,5.39922654 6.89410697,5.67563137 L6.89410697,11.8138141 C6.89410697,12.090219 6.66291831,12.3150827 6.37873882,12.3150827 C6.10554523,12.3150827 5.87427579,12.0888833 5.86328989,11.8109857 Z M9.10598952,11.8138141 L9.10598952,5.67563137 C9.10598952,5.39922654 9.3370974,5.17436281 9.62135766,5.17436281 C9.90545638,5.17436281 10.136645,5.39922654 10.136645,5.67563137 L10.136645,11.8138141 C10.136645,12.090219 9.90545638,12.3150827 9.62135766,12.3150827 C9.3370974,12.3150827 9.10598952,12.090219 9.10598952,11.8138141 Z M5.63977521,1.79025006 C5.48290296,1.79025006 5.35995777,1.90983169 5.35995777,2.06241218 L5.35995777,2.71516127 L10.6527402,2.71516127 L10.6527402,2.06241218 C10.6527402,1.90983169 10.529795,1.79025006 10.3729228,1.79025006 L5.63977521,1.79025006 Z M3.39097679,13.1642536 C3.39097679,13.7340341 3.86757116,14.1975111 4.45329756,14.1975111 L11.5467181,14.1975111 C12.1325253,14.1975111 12.6090389,13.7340341 12.6090389,13.1642536 L12.6090389,3.70536309 L3.39097679,3.70536309 L3.39097679,13.1642536 Z M4.45329756,15.2000482 C3.2991314,15.2000482 2.36024049,14.2867652 2.36024049,13.1642536 L2.36024049,3.71769838 L0.515335611,3.71769838 C0.231156121,3.71769838 4.82412063e-05,3.49283465 4.82412063e-05,3.21642982 C4.82412063e-05,2.940025 0.231156121,2.71516127 0.515335611,2.71516127 L4.34190373,2.71516127 L4.34190373,2.06241218 C4.34190373,1.36637172 4.92415665,0.800048241 5.63977521,0.800048241 L10.3729228,0.800048241 C11.0885413,0.800048241 11.6707942,1.36637172 11.6707942,2.06241218 L11.6707942,2.71516127 L15.4846801,2.71516127 C15.7736255,2.71516127 16.0000482,2.9299682 16.0000482,3.20409453 C16.0000482,3.48049936 15.7688596,3.70536309 15.4846801,3.70536309 L13.6397752,3.70536309 L13.6397752,13.1642536 C13.6397752,14.2867652 12.7008035,15.2000482 11.5467181,15.2000482 L4.45329756,15.2000482 Z"
-                      fill="#333333"
-                    ></path>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
+          <TrashSvg @click="deleteSticky" class="inline-block" fill="#333333" />
         </div>
         <div class="cursor-pointer ml-3">
-          <svg
-            @click="retract"
-            class="inline-block"
-            width="16px"
-            height="16px"
-            viewBox="0 0 16 16"
-            version="1.1"
-          >
-            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-              <g transform="translate(-872.000000, -12.000000)" fill="#333333">
-                <g transform="translate(872.000000, 12.000000)">
-                  <path
-                    d="M1.84677232,9.69355733 C1.84677232,9.94106888 1.63440182,10.1390442 1.38189431,10.1149959 C1.16164884,10.093996 1,9.89644398 1,9.67535173 L1,2.14348134 C1,1.51195854 1.51195854,1 2.14348134,1 L9.67535173,1 C9.89644398,1 10.093996,1.16164884 10.1149959,1.38172496 C10.1391289,1.63431714 9.94115356,1.84677232 9.69355733,1.84677232 L1.84677232,1.84677232 L1.84677232,9.69355733 Z M14.535122,5.88502102 C14.7875448,5.86097269 15,6.05894805 15,6.3064596 L15,13.8564509 C15,14.4879737 14.4880415,14.9999323 13.8565187,14.9999323 L6.32464827,14.9999323 C6.10347134,14.9999323 5.90608872,14.8382834 5.88508876,14.6180379 C5.86095575,14.3656151 6.05884644,14.1531599 6.30644267,14.1531599 L14.1532277,14.1531599 L14.1532277,6.32458053 C14.1532277,6.10348828 14.3148765,5.90602097 14.535122,5.88502102 Z M6.49715273,9.71703833 C6.50917689,9.74515117 6.51679785,9.76970757 6.52213251,9.79511074 C6.52873734,9.82711873 6.53144701,9.85455415 6.53144701,9.88156619 L6.53144701,12.893366 C6.53144701,13.0037004 6.48843097,13.10743 6.41044324,13.1854177 C6.33254019,13.2633208 6.22881058,13.3063368 6.11847615,13.3063368 C5.8906944,13.3063368 5.70533594,13.1209784 5.70533594,12.8932813 L5.70533594,10.8785559 L3.39855879,13.1853331 C3.32057106,13.2634055 3.21684145,13.3064215 3.10650702,13.3064215 C2.99617259,13.3064215 2.89244298,13.2634055 2.81445525,13.1853331 C2.65339916,13.0243616 2.65339916,12.7622856 2.81445525,12.6013142 L5.12123239,10.2944524 L3.1065917,10.2944524 C2.87889462,10.2944524 2.69353616,10.1091786 2.69353616,9.88139684 C2.69345149,9.77114708 2.73646752,9.66741747 2.81445525,9.58934506 C2.89252766,9.51135733 2.99617259,9.4683413 3.10650702,9.4683413 L6.11822212,9.4683413 C6.14531883,9.4683413 6.17275425,9.47113565 6.19985097,9.47647031 L6.21018159,9.47901063 C6.23033477,9.48315982 6.25472181,9.49078077 6.27741531,9.50026462 C6.30612089,9.51279685 6.32822165,9.52473634 6.34837483,9.53836937 C6.37335462,9.55564353 6.39308441,9.57190155 6.41052792,9.58934506 C6.42788675,9.60661922 6.44380607,9.62592563 6.45904797,9.64802639 C6.47505197,9.67165133 6.48673743,9.69307467 6.49715273,9.71703833 Z M9.49923155,6.27429919 C9.49084851,6.25465407 9.48322756,6.23009768 9.47789289,6.20469451 C9.47128807,6.17277119 9.4685784,6.14533577 9.4685784,6.11832373 L9.4685784,3.10652396 C9.4685784,2.99618952 9.51159443,2.89245992 9.58958216,2.81447219 C9.66748521,2.73648446 9.77121482,2.6935531 9.88154925,2.6935531 C10.109331,2.6935531 10.2946895,2.87882688 10.2946895,3.10660863 L10.2946895,5.12133401 L12.6014666,2.81455686 C12.6794543,2.73648446 12.7831839,2.6935531 12.8935184,2.6935531 C13.0038528,2.6935531 13.1075824,2.73648446 13.1855702,2.81455686 C13.3466262,2.97552828 13.3466262,3.23760431 13.1855702,3.39866041 L10.878793,5.70543755 L12.8934337,5.70543755 C13.1211308,5.70543755 13.3064892,5.89071133 13.3064892,6.11849308 C13.3065739,6.22874284 13.2636426,6.33247245 13.1855702,6.41046018 C13.1075824,6.48853259 13.0039375,6.53146394 12.8936031,6.53146394 L9.88180329,6.53146394 L9.88121055,6.43543996 L9.88121055,6.53146394 C9.85419851,6.53146394 9.82693244,6.52875427 9.80000508,6.52333493 L9.79128333,6.521218 C9.76985999,6.5167301 9.74547294,6.50910915 9.72261009,6.4996253 C9.69390451,6.48709307 9.67180375,6.47506891 9.65165057,6.46152055 C9.62684014,6.44441575 9.60702567,6.42798837 9.58949748,6.41054486 C9.57222333,6.39335538 9.55638869,6.37421832 9.54106211,6.35194821 C9.52497343,6.32823859 9.51328797,6.30673057 9.50287268,6.28285159 L9.49923155,6.27429919 Z"
-                  ></path>
-                </g>
-              </g>
-            </g>
-          </svg>
+          <RetractSvg @click="retract" class="inline-block" />
         </div>
       </div>
-      <!-- <button @click="retract">最小化</button>
-      <button @click="deleteSticky">删除</button>
-      <button @click="changeColor('#c3fdaa')">绿</button>
-      <button @click="changeColor('#fcf4a7')">黄</button> -->
     </div>
     <div
       class="p-2"
@@ -152,7 +44,6 @@
       <textarea
         autofocus
         class="non-border w-full h-full"
-        name=""
         cols="30"
         rows="10"
         :value="data?.value.content"
@@ -161,9 +52,13 @@
     </div>
   </div>
 </template>
-<script lang="ts">
-import { defineComponent, onMounted, onUnmounted, ref } from "vue";
+<script lang="ts" setup>
+import { onMounted, onUnmounted, ref } from "vue";
 import { useUserData } from "../composition";
+import TrashSvg from "@/assets/svg/trash.svg";
+import RetractSvg from "@/assets/svg/retract.svg";
+import ArrowupSvg from "@/assets/svg/arrowup.svg";
+import TransparentSvg from "@/assets/svg/transparent.svg";
 
 const getquery = () => {
   const matched = location.href.match(/\?id=([^&]+)&bg=(.+)/);
@@ -181,111 +76,93 @@ const colors = [
   "#FFB0AF",
   "#FFDCFE",
 ];
+const { ipcRenderer, onMessage } = window.apis;
+const [id, bg] = getquery();
+let data = ref<any>(null);
+let bgColor = ref<string>("white");
+let isPin = ref<boolean>(false);
+let isTransparent = ref<boolean>(false);
+let timerHandler: NodeJS.Timeout | null = null;
 
-export default defineComponent({
-  setup() {
-    const { ipcRenderer, onMessage } = window.apis;
-    const [id, bg] = getquery();
-    let data = ref<any>(null);
-    let bgColor = ref<string>("white");
-    let isPin = ref<boolean>(false);
-    let isTransparent = ref<boolean>(false);
-    let timerHandler: NodeJS.Timeout | null = null;
+const clickThoughMouseEnter = () => {
+  if (isTransparent.value) {
+    ipcRenderer.send("set-ignore-mouse-events", false);
+  }
+};
 
-    const clickThoughMouseEnter = () => {
-      if (isTransparent.value) {
-        ipcRenderer.send("set-ignore-mouse-events", false);
-      }
-    };
+const clickThoughMouseLeave = () => {
+  if (isTransparent.value) {
+    ipcRenderer.send("set-ignore-mouse-events", true, {
+      forward: true,
+    });
+  }
+};
 
-    const clickThoughMouseLeave = () => {
-      if (isTransparent.value) {
-        ipcRenderer.send("set-ignore-mouse-events", true, {
-          forward: true,
+onMounted(() => {
+  onMessage(({ type, value }: any) => {
+    if (type === "changebg") {
+      bgColor.value = value;
+    }
+  });
+  if (id) {
+    bgColor.value = bg;
+    data.value = useUserData(
+      "sticky" + id,
+      {
+        content: "",
+      },
+      (val: any) => {
+        if (timerHandler) clearTimeout(timerHandler);
+        timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
+          key: id,
+          val: val.content,
         });
       }
-    };
-
-    onMounted(() => {
-      onMessage(({ type, value }: any) => {
-        if (type === "changebg") {
-          bgColor.value = value;
-        }
-      });
-      if (id) {
-        bgColor.value = bg;
-        data.value = useUserData(
-          "sticky" + id,
-          {
-            content: "",
-          },
-          (val: any) => {
-            if (timerHandler) clearTimeout(timerHandler);
-            timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
-              key: id,
-              val: val.content,
-            });
-          }
-        );
-      }
-      document
-        .getElementsByClassName("dragable")[0]
-        .addEventListener("mouseenter", clickThoughMouseEnter);
-      document
-        .getElementsByClassName("dragable")[0]
-        .addEventListener("mouseleave", clickThoughMouseLeave);
-    });
-
-    onUnmounted(() => {
-      document
-        .getElementsByClassName("dragable")[0]
-        .removeEventListener("mouseenter", clickThoughMouseEnter);
-      document
-        .getElementsByClassName("dragable")[0]
-        .removeEventListener("mouseleave", clickThoughMouseLeave);
-    });
-
-    const retract = () => {
-      ipcRenderer.send("retractSticky", id);
-    };
-    const deleteSticky = () => {
-      ipcRenderer.send("deleteSticky", id);
-    };
-    const changeColor = (color: string) => {
-      ipcRenderer.send("changeStickyColor", {
-        stickyId: id,
-        color,
-      });
-    };
-    const fullscreen = () => {
-      ipcRenderer.send("toggleFullscreen");
-      isPin.value = false;
-      ipcRenderer.send("setTransparent", false);
-      isTransparent.value = false;
-    };
-    const toggleTransparent = () => {
-      ipcRenderer.send("setTransparent", !isTransparent.value);
-      isTransparent.value = !isTransparent.value;
-    };
-    const togglePin = () => {
-      ipcRenderer.send("setPin", !isPin.value);
-      isPin.value = !isPin.value;
-    };
-    return {
-      data,
-      retract,
-      deleteSticky,
-      changeColor,
-      bgColor,
-      colors,
-      fullscreen,
-      isPin,
-      isTransparent,
-      togglePin,
-      toggleTransparent,
-    };
-  },
+    );
+  }
+  document
+    .getElementsByClassName("dragable")[0]
+    .addEventListener("mouseenter", clickThoughMouseEnter);
+  document
+    .getElementsByClassName("dragable")[0]
+    .addEventListener("mouseleave", clickThoughMouseLeave);
 });
+
+onUnmounted(() => {
+  document
+    .getElementsByClassName("dragable")[0]
+    .removeEventListener("mouseenter", clickThoughMouseEnter);
+  document
+    .getElementsByClassName("dragable")[0]
+    .removeEventListener("mouseleave", clickThoughMouseLeave);
+});
+
+const retract = () => {
+  ipcRenderer.send("retractSticky", id);
+};
+const deleteSticky = () => {
+  ipcRenderer.send("deleteSticky", id);
+};
+const changeColor = (color: string) => {
+  ipcRenderer.send("changeStickyColor", {
+    stickyId: id,
+    color,
+  });
+};
+const fullscreen = () => {
+  ipcRenderer.send("toggleFullscreen");
+  isPin.value = false;
+  ipcRenderer.send("setTransparent", false);
+  isTransparent.value = false;
+};
+const toggleTransparent = () => {
+  ipcRenderer.send("setTransparent", !isTransparent.value);
+  isTransparent.value = !isTransparent.value;
+};
+const togglePin = () => {
+  ipcRenderer.send("setPin", !isPin.value);
+  isPin.value = !isPin.value;
+};
 </script>
 <style lang="less" scoped>
 .non-border {

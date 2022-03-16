@@ -14,7 +14,7 @@
         />
       </div>
       <div class="flex w-full justify-center">
-        <img class="h-6 mr-3 mt-1" src="../assets/logo.png" alt="" />
+        <img class="h-6 mr-3 mt-1" src="@/assets/logo.png" alt />
         <span class="w-44 mt-1">
           <keyboard
             @esc="
@@ -29,73 +29,29 @@
         </span>
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
-        <span class="text-sm text-gray-400 text-center leading-6 mr-3">
-          v{{ versionInfo.curVersion }}
-        </span>
-        <svg
-          width="18px"
-          height="18px"
-          viewBox="0 0 18 18"
-          version="1.1"
+        <span class="text-sm text-gray-400 text-center leading-6 mr-3">v{{ versionInfo.curVersion }}</span>
+        <RefreshSvg
           @click="checkForUpdate"
           :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer"
-        >
-          <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-            <g transform="translate(-922.000000, -31.000000)">
-              <g transform="translate(922.000000, 31.000000)" fill="#999999">
-                <path
-                  d="M14.4162427,3.29113384 C12.9315774,1.81395426 10.9573304,1 8.85727985,1 C4.52497055,1 1,4.504941 1,8.81254504 C1,11.9181708 2.84158142,14.6834467 5.61054107,15.9308587 L4.2690632,16.4007889 C3.98680571,16.4919253 3.83337109,16.7897987 3.9263285,17.0662545 C4.01928591,17.3427104 4.32350184,17.4930809 4.60575932,17.4019446 C4.6145427,17.3991666 4.62314309,17.3961198 4.63174348,17.3928937 L7.21744163,16.487355 C7.4970458,16.3895873 7.64261198,16.088219 7.54279256,15.8144515 C7.54270107,15.8142723 7.54260957,15.8140034 7.54251808,15.8137346 L7.53922431,15.8043252 C7.52961749,15.7251074 7.50198645,15.6492053 7.45816106,15.5819956 L6.61898257,13.2823485 C6.51962061,13.0086706 6.21265988,12.8658276 5.93333018,12.9631472 C5.93259824,12.9634161 5.93195778,12.9635953 5.93122583,12.9638641 C5.65171315,13.0617214 5.50596399,13.3630001 5.6058749,13.6368572 C5.6059664,13.6370365 5.60605789,13.6373053 5.60614938,13.6375741 L6.09975688,14.990819 C3.6851516,13.9215575 2.0759637,11.5167945 2.0759637,8.81272427 C2.0759637,5.08590164 5.11812299,2.05375847 8.85746284,2.05375847 C10.6675705,2.05375847 12.3686179,2.75569657 13.6494355,4.03053014 C14.9323576,5.30769365 15.63823,7.0057691 15.63823,8.81272427 C15.63823,11.4214463 14.1074521,13.824686 11.7372211,14.9346317 C11.4691451,15.0602691 11.3558762,15.3749897 11.4840586,15.6375556 C11.612424,15.9000318 11.9335662,16.0109727 12.2016422,15.8855146 C14.9428793,14.6012716 16.7142852,11.8247941 16.7142852,8.81272427 C16.7150172,6.72778979 15.8987121,4.76678999 14.4162427,3.29113384"
-                  transform="translate(8.857143, 9.214286) scale(-1, 1) translate(-8.857143, -9.214286) "
-                ></path>
-              </g>
-            </g>
-          </g>
-        </svg>
+        />
         <span
           class="cursor-pointer text-gray-400 text-xs mt-1"
           v-if="versionInfo.latestVersion"
           @click="gotoLatestVertion"
-          >点击下载最新版本: v{{ versionInfo.latestVersion }} (更新于{{
+        >
+          点击下载最新版本: v{{ versionInfo.latestVersion }} (更新于{{
             versionInfo.releaseDate
           }})
         </span>
       </div>
     </div>
-    <div
-      style="height: calc(100% - 64px)"
-      class="w-full flex p-5 space-x-5 bg-gray-100"
-    >
+    <div style="height: calc(100% - 64px)" class="w-full flex p-5 space-x-5 bg-gray-100">
       <div style="width: calc(75% - 0.625rem)">
         <div class="h-32">
           <div class="text-sm space-x-2">
-            <svg
-              class="inline-block"
-              width="22px"
-              height="22px"
-              viewBox="0 0 22 22"
-              version="1.1"
-            >
-              <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                <g transform="translate(-20.000000, -86.000000)">
-                  <g transform="translate(20.000000, 84.000000)">
-                    <g transform="translate(0.000000, 2.000000)">
-                      <path
-                        d="M10.196852,12.4744002 C10.1858468,12.4075991 10.1801242,12.3390638 10.1801242,12.2692308 C10.1801242,11.7857182 10.4543567,11.3645259 10.8568291,11.150299 C10.8431172,10.0783465 10.8185214,7.89398357 10.8185214,6.01887829 L10.8185214,5.92307692 L10.9168012,5.92307692 C14.2779459,5.92307692 17.0124224,8.5802246 17.0124224,11.8462121 C17.0124224,15.1121996 14.2779459,17.7692308 10.9168012,17.7692308 C8.51247784,17.7692308 7.91337843,18.0927144 6.33778946,16.2108352 L6.27614015,16.1376439 L6.35071786,16.0769231 C8.1078759,14.6390928 9.44239234,13.2649147 10.196852,12.4744002 Z"
-                        fill="#9CC2FF"
-                      ></path>
-                      <path
-                        d="M1.94729077,12.191166 C1.94729077,16.97202 5.83736224,20.86174 10.6187639,20.86174 C15.4001655,20.86174 19.2902369,16.97202 19.2902369,12.191166 C19.2902369,7.41008079 15.4001655,3.52047644 10.6187639,3.52047644 C5.83736224,3.52047644 1.94729077,7.41008079 1.94729077,12.191166 Z M0.785913146,12.1796019 C0.774463596,10.1122775 1.44778968,8.05304794 2.68202808,6.37855795 L1.6461329,5.34287201 C1.42061145,5.10314703 1.42685666,4.74384866 1.65966419,4.52436095 C1.771731,4.41912712 1.91560211,4.36119069 2.06502453,4.36119069 C2.22196433,4.36119069 2.36814848,4.42456227 2.47686139,4.53985692 L3.44544708,5.49760044 C5.18427526,3.64085932 7.5323583,2.5376387 10.0631715,2.38822979 C10.062015,2.37643435 10.0612055,2.36371378 10.0612055,2.34995243 L10.0612055,1.16138833 L8.22476697,1.16138833 C7.90452651,1.16138833 7.6439625,0.900847863 7.6439625,0.580751986 C7.6439625,0.260540467 7.90452651,0 8.22476697,0 L13.0740675,0 C13.3932671,1.73549399e-29 13.6431911,0.250017083 13.6431911,0.569187828 C13.6431911,0.889399347 13.3826271,1.14982417 13.0625023,1.14982417 L11.1994527,1.14982417 L11.1994527,2.34995243 C11.1994527,2.36255736 11.1989901,2.37527793 11.1977179,2.38834543 C13.7138433,2.53786999 16.0449255,3.63264877 17.7686033,5.4741252 L18.6932412,4.54945517 C18.8009132,4.44190851 18.9460565,4.38281566 19.1019555,4.38281566 C19.2576231,4.38281566 19.4027664,4.44190851 19.5104384,4.54933953 C19.6177635,4.65665491 19.676746,4.80166944 19.676746,4.95778557 C19.676746,5.11378605 19.6177635,5.25880059 19.5104384,5.36600033 L18.5162936,6.3600553 C19.7609407,8.0309604 20.4399337,10.0968971 20.4284842,12.1801801 C20.4284842,17.5947499 16.0227203,22 10.6071987,22 C5.19167699,22 0.785913146,17.5945186 0.785913146,12.1796019 Z M5.583853,16.2295086 C5.48427661,16.1101665 5.43790015,15.9601793 5.45328187,15.8074168 C5.46877924,15.6548856 5.54418436,15.5151906 5.66585029,15.4138886 C5.77028407,15.3269261 5.89657608,15.2807851 6.03073242,15.2807851 C6.2038635,15.2807851 6.36832068,15.3589588 6.48189097,15.4954159 C7.51859571,16.7598408 9.05167894,17.4850291 10.6881551,17.4850291 C13.6840051,17.4850291 16.1213715,15.047883 16.1213715,12.0523036 C16.1213715,9.05672429 13.6840051,6.61969376 10.6881551,6.61969376 C10.3679146,6.61969376 10.1074663,6.35915329 10.1074663,6.03894177 C10.1074663,5.7188459 10.3679146,5.45830543 10.6881551,5.45830543 C14.3243704,5.45830543 17.2827491,8.4164169 17.2827491,12.0523036 C17.2827491,15.6819457 14.3192817,18.6348533 10.6765899,18.6348533 C8.69824635,18.6348533 6.84203137,17.7581745 5.583853,16.2295086 Z M10.0045347,13.3068706 L8.1052753,15.1162271 C7.98349371,15.2244677 7.84517389,15.2812477 7.70430973,15.2812477 C7.38406928,15.2812477 7.12362092,15.0207072 7.12362092,14.7006113 C7.12362092,14.5506242 7.18838605,14.3995963 7.30160938,14.2862676 L9.23084748,12.4483514 C9.16943885,12.2815678 9.13589674,12.1014202 9.13589674,11.91358 C9.13589674,11.0577167 9.83223758,10.3615544 10.6880626,10.3615544 C11.5441188,10.3615544 12.240344,11.0577167 12.240344,11.91358 C12.2463579,12.3230668 12.0908059,12.7097722 11.8022541,13.0023454 C11.5076884,13.3011632 11.1120429,13.4656056 10.6880626,13.4656056 C10.4429306,13.4656056 10.2108828,13.4084918 10.0045347,13.3068706 Z M10.29739,11.9212123 C10.3068735,12.1366526 10.4764193,12.3064144 10.6921104,12.315897 C10.7972381,12.3110401 10.8972771,12.2662868 10.9712944,12.1899634 C11.0450803,12.1137556 11.0832455,12.0128005 11.0788507,11.9059477 C11.0788507,11.6888884 10.9044475,11.512535 10.6900286,11.511263 C10.460575,11.5220176 10.2880222,11.7018403 10.29739,11.9212123 Z"
-                        fill="#4475DF"
-                      ></path>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </svg>
-            <span class="cursor-pointer" @click="location.replace('#/timer')"
-              >倒计时</span
-            >
+            <CountdownSvg class="inline-block" />
+            <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
             <keyboard
               @esc="
                 keydown({
@@ -109,108 +65,35 @@
               "
             />
           </div>
-          <div
-            class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2"
-          >
+          <div class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2">
             <div
               v-if="!timers.length"
-              class="
-                w-full
-                flex-none
-                h-20
-                rounded-lg
-                shadow-md
-                overflow-hidden
-                bg-white
-                font-light
-              "
+              class="w-full flex-none h-20 rounded-lg shadow-md overflow-hidden bg-white font-light"
             >
               <empty />
             </div>
             <div
-              class="
-                w-44
-                flex-none
-                h-20
-                rounded-lg
-                shadow-md
-                overflow-hidden
-                bg-white
-                font-light
-              "
+              class="w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden bg-white font-light"
               v-for="timer of timers"
               :key="timer.id"
             >
               <div class="w-44 h-2">
-                <div
-                  class="bg-blue-500 h-full"
-                  :style="{ width: timer.percent * 100 + '%' }"
-                ></div>
-              </div>
-              <div class="my-1 h-4 text-center text-xs text-gray-500">
-                {{ formatCountdown(timer.remain) }}
+                <div class="bg-blue-500 h-full" :style="{ width: timer.percent * 100 + '%' }"></div>
               </div>
               <div
-                class="
-                  text-sm text-black text-center
-                  p-2
-                  h-11
-                  overflow-hidden
-                  whitespace-nowrap
-                  overflow-ellipsis
-                "
-              >
-                {{ timer.content }}
-              </div>
+                class="my-1 h-4 text-center text-xs text-gray-500"
+              >{{ formatCountdown(timer.remain) }}</div>
+              <div
+                class="text-sm text-black text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis"
+              >{{ timer.content }}</div>
             </div>
           </div>
         </div>
         <div style="height: calc(100% - 148px)" class="flex space-x-5 mt-5">
           <div class="h-full" style="width: calc(50% - 0.625rem)">
             <div class="text-sm space-x-2">
-              <svg
-                class="inline-block"
-                width="22px"
-                height="22px"
-                viewBox="0 0 22 22"
-                version="1.1"
-              >
-                <g
-                  stroke="none"
-                  stroke-width="1"
-                  fill="none"
-                  fill-rule="evenodd"
-                >
-                  <g
-                    transform="translate(-20.000000, -240.000000)"
-                    fill-rule="nonzero"
-                  >
-                    <g transform="translate(20.000000, 237.000000)">
-                      <g transform="translate(0.000000, 3.000000)">
-                        <rect x="0" y="0" width="22" height="22"></rect>
-                        <g transform="translate(1.357143, 0.785714)">
-                          <rect
-                            fill="#9CC2FF"
-                            x="2.45535714"
-                            y="9.82142857"
-                            width="14.7321429"
-                            height="7.36607143"
-                          ></rect>
-                          <path
-                            d="M19.6428571,7.60007359 L19.6428571,18.3899064 C19.6428571,18.6691464 19.5412487,18.9372168 19.3553269,19.1382696 C19.1737288,19.3348545 18.9229505,19.4465505 18.6613629,19.4487844 L0.981494293,19.4487844 C0.717744725,19.4465505 0.466966448,19.3348545 0.287530266,19.1382696 C0.10160844,18.9372168 0,18.6691464 0,18.3899064 L0,2.57124173 C0,1.98818866 0.438861985,1.51236373 0.981494293,1.51236373 L4.15121281,1.51236373 C4.22471679,1.51012981 4.28524948,1.44758006 4.28308759,1.36939286 L4.28308759,0.755064906 C4.28308759,0.337321896 4.52049464,5.32907052e-15 4.90747146,5.32907052e-15 C5.29444829,5.32907052e-15 5.51338877,0.339555816 5.51338877,0.755064906 L5.51338877,1.36939286 C5.51122689,1.44534614 5.56959769,1.51012981 5.64526355,1.51236373 L14.0078092,1.51236373 C14.0813132,1.51012981 14.139684,1.44758006 14.139684,1.36939286 L14.139684,0.755064906 C14.139684,0.337321896 14.3397613,5.32907052e-15 14.7267382,5.32907052e-15 C15.113715,5.32907052e-15 15.27165,0.339555816 15.27165,0.755064906 L15.27165,1.36939286 C15.2694882,1.44534614 15.327859,1.51012981 15.4035248,1.51236373 L18.6527153,1.51236373 C18.9121411,1.51236373 19.1629194,1.62405972 19.3466793,1.82287859 C19.5304393,2.02169745 19.6342096,2.29200175 19.6342096,2.57124173 L19.6342096,7.79414632 L19.6428571,7.60007359 Z M18.4286663,9.08311806 L18.4157149,9.08311806 L18.4157149,9.07194847 L1.32742963,9.07194847 C1.29289274,9.07194847 1.25835585,9.0875859 1.23461173,9.11439294 C1.20870906,9.14119998 1.19575773,9.17917662 1.19575773,9.21491934 L1.19575773,17.9986921 C1.19575773,18.0746454 1.25403873,18.1371952 1.32742963,18.1394291 L18.2991529,18.1394291 C18.3725438,18.1371952 18.4308248,18.0724115 18.4286663,17.9964582 L18.4286663,9.08311806 Z M4.2938837,2.98453927 C4.2938837,2.94656263 4.27877381,2.91081991 4.2550297,2.88401287 C4.23128558,2.85720583 4.19674869,2.8415684 4.16005324,2.84380232 L1.32527107,2.84380232 C1.25188018,2.84603624 1.19359917,2.90858599 1.19575773,2.98230535 L1.19575773,7.65117545 C1.19359917,7.72712872 1.25188018,7.7919124 1.32742963,7.79414632 L18.284043,7.79414632 C18.3574339,7.7919124 18.4157149,7.72936264 18.4157149,7.65117545 L18.4157149,2.98453927 C18.4157149,2.94656263 18.4027636,2.91081991 18.3768609,2.88401287 C18.3531168,2.85720583 18.3185799,2.84380232 18.284043,2.84380232 L15.3946944,2.84380232 C15.3601575,2.84380232 15.3256206,2.85720583 15.3018765,2.88401287 C15.2781324,2.91081991 15.2630225,2.94656263 15.2630225,2.98453927 L15.2630225,3.5966333 C15.2716567,4.00544063 15.1163658,4.34276253 14.7213501,4.35169821 C14.3263344,4.34276253 14.1267393,4.00544063 14.133215,3.5966333 L14.133215,2.98453927 C14.133215,2.94656263 14.1202636,2.91081991 14.0943609,2.88401287 C14.0706168,2.85720583 14.0360799,2.84380232 14.0015431,2.84380232 L5.65370154,2.84380232 C5.58031065,2.84603624 5.52202964,2.90858599 5.52202964,2.98453927 L5.52202964,3.5966333 C5.52202964,3.79545217 5.44863875,3.98756927 5.31696685,4.13054014 C5.18745351,4.27127709 5.10282575,4.34946429 4.91718995,4.34946429 C4.52217425,4.34052861 4.28524948,4.00097279 4.2938837,3.59216546 L4.2938837,2.98453927 Z M5.09533745,12.2767857 C5.0469117,12.2767857 4.99848596,12.2641106 4.96519325,12.2423817 C4.93190055,12.2206529 4.91071429,12.1916812 4.91071429,12.1608987 L4.91071429,11.1649942 C4.91071429,11.1016185 4.99243274,11.0491071 5.09231084,11.0491071 L14.5474383,11.0491071 C14.650343,11.0491071 14.7320614,11.0998077 14.7320614,11.1649942 L14.7320614,12.1590879 C14.735088,12.2206529 14.6533696,12.2731642 14.5474383,12.274975 L14.5444117,12.274975 L5.09533745,12.2767857 Z M5.09541736,15.9598214 C5.04699201,15.9598214 4.99856666,15.9471276 4.96527424,15.9253666 C4.93198181,15.9036057 4.91079572,15.8745912 4.91079572,15.8437632 L4.91079572,14.8482011 C4.90776914,14.7865452 4.98948691,14.7357697 5.09239077,14.7321429 L14.5474398,14.7321429 C14.6503437,14.7321429 14.7320614,14.7829183 14.7320614,14.8463877 L14.7320614,15.8419498 C14.735088,15.9036057 14.6533703,15.9561946 14.5474398,15.958008 L14.5444132,15.958008 L5.09541736,15.9598214 Z"
-                            fill="#4475DF"
-                          ></path>
-                        </g>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-              <span
-                class="cursor-pointer"
-                @click="location.replace('#/schedule')"
-                >今日待办</span
-              >
+              <ScheduleSvg class="inline-block" />
+              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日待办</span>
               <keyboard
                 @esc="
                   keydown({
@@ -230,20 +113,10 @@
             </div>
             <div
               style="height: calc(100% - 44px)"
-              class="
-                bg-white
-                mt-3
-                rounded-xl
-                shadow-lg
-                overflow-y-scroll
-                font-light
-                text-sm
-                border
-                cursor-grab
-              "
-              :class='{
-                "border-blue-300": isDragging,
-              }'
+              class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll font-light text-sm border cursor-grab"
+              :class="{
+                'border-blue-300': isDragging,
+              }"
             >
               <draggable
                 :disabled="searchContent"
@@ -273,18 +146,10 @@
                       class="w-2 h-2 rounded-md m-2 border border-blue-500"
                     ></div>
                     <span
-                      class="
-                        overflow-ellipsis
-                        whitespace-nowrap
-                        break-all
-                        overflow-x-hidden
-                      "
+                      class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
                       style="width: calc(100% - 24px)"
                     >
-                      <search-result
-                        :search="searchContent"
-                        :value="item.content"
-                      />
+                      <search-result :search="searchContent" :value="item.content" />
                     </span>
                   </div>
                 </template>
@@ -296,47 +161,8 @@
           </div>
           <div class="h-full" style="width: calc(50% - 0.625rem)">
             <div class="text-sm space-x-2">
-              <svg
-                class="inline-block"
-                width="22px"
-                height="22px"
-                viewBox="0 0 22 22"
-                version="1.1"
-              >
-                <g
-                  stroke="none"
-                  stroke-width="1"
-                  fill="none"
-                  fill-rule="evenodd"
-                >
-                  <g transform="translate(-390.000000, -240.000000)">
-                    <g transform="translate(390.000000, 237.000000)">
-                      <g transform="translate(0.000000, 3.000000)">
-                        <rect
-                          fill-rule="nonzero"
-                          x="0"
-                          y="0"
-                          width="22"
-                          height="22"
-                        ></rect>
-                        <path
-                          d="M19.106576,18.3102847 C19.106576,18.3584827 19.0589701,18.3978022 19.0005221,18.3978022 L3.16160941,18.3978022 C3.1031614,18.3978022 3.05555556,18.3584827 3.05555556,18.3102847 L3.05555556,4.70751753 C3.05555556,4.65921377 3.1031614,4.62 3.16160941,4.62 L7.0275279,4.62 C7.88530544,4.62 8.58331677,5.19594567 8.58331677,5.90390752 C8.58331677,7.42711418 10.9571286,9.51189165 12.8029143,9.51189165 L19.0005221,9.51189165 C19.0589701,9.51189165 19.106576,9.55110542 19.106576,9.59940918 L19.106576,18.3102847 Z"
-                          fill="#9CC2FF"
-                        ></path>
-                        <path
-                          d="M20.0059378,19.1520879 L20.0059378,8.2150611 C20.0059378,8.15112088 19.9518038,8.09901714 19.885103,8.09901714 L13.1047004,8.09901714 C11.0008458,8.09901714 9.28922103,6.45537055 9.28922103,4.43492923 C9.28922103,3.49590154 8.4937656,2.73186813 7.51584964,2.73186813 L2.11489699,2.73186813 C2.04819618,2.73186813 1.9940622,2.78385582 1.9940622,2.84791209 L1.9940622,19.1520879 C1.9940622,19.2161442 2.04819618,19.2681319 2.11489699,19.2681319 L19.885103,19.2681319 C19.9518038,19.2681319 20.0059378,19.2161442 20.0059378,19.1520879 Z M18.5936208,5.35248879 C18.5936208,4.96849934 18.1825408,4.65622505 17.6772097,4.65622505 L10.5092899,4.65622505 C10.6261372,5.93514549 11.7425298,6.93857758 13.1047004,6.93857758 L18.5936208,6.93857758 L18.5936208,5.35248879 Z M19.885103,6.93857758 C20.6191744,6.93857758 21.2142857,7.51009407 21.2142857,8.2150611 L21.2142857,19.1520879 C21.2142857,19.8570549 20.6191744,20.4285714 19.885103,20.4285714 L2.11489699,20.4285714 C1.3807048,20.4285714 0.785714286,19.8570549 0.785714286,19.1520879 L0.785714286,2.84791209 C0.785714286,2.14294505 1.3807048,1.57142857 2.11489699,1.57142857 L7.51584964,1.57142857 C8.82001954,1.57142857 9.9278329,2.37584527 10.3326294,3.49578549 L17.6772097,3.49578549 C18.8488238,3.49578549 19.8020895,4.32874901 19.8020895,5.35248879 L19.8020895,6.93857758 L19.885103,6.93857758 Z M9.25722345,15.6997802 C9.5835956,15.6997802 9.84826319,15.9643561 9.84826319,16.2908791 C9.84826319,16.6174022 9.5835956,16.881978 9.25722345,16.881978 L5.00173734,16.881978 C4.67536519,16.881978 4.4106976,16.6174022 4.4106976,16.2908791 C4.4106976,15.9643561 4.67536519,15.6997802 5.00173734,15.6997802 L9.25722345,15.6997802 Z"
-                          fill="#4475DF"
-                        ></path>
-                      </g>
-                    </g>
-                  </g>
-                </g>
-              </svg>
-              <span
-                class="cursor-pointer"
-                @click="location.replace('#/inspiration')"
-                >待办池</span
-              >
+              <InspirationSvg class="inline-block" />
+              <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
               <keyboard
                 @esc="
                   keydown({
@@ -356,20 +182,10 @@
             </div>
             <div
               style="height: calc(100% - 44px)"
-              class="
-                bg-white
-                mt-3
-                rounded-xl
-                shadow-lg
-                overflow-y-scroll
-                font-light
-                text-sm
-                border
-                cursor-grab
-              "
-              :class='{
-                "border-blue-300": isDragging,
-              }'
+              class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll font-light text-sm border cursor-grab"
+              :class="{
+                'border-blue-300': isDragging,
+              }"
             >
               <draggable
                 :disabled="searchContent"
@@ -399,18 +215,10 @@
                       class="w-2 h-2 rounded-md m-2 border border-blue-500"
                     ></div>
                     <span
-                      class="
-                        overflow-ellipsis
-                        whitespace-nowrap
-                        break-all
-                        overflow-x-hidden
-                      "
+                      class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
                       style="width: calc(100% - 24px)"
                     >
-                      <search-result
-                        :search="searchContent"
-                        :value="item.content"
-                      />
+                      <search-result :search="searchContent" :value="item.content" />
                     </span>
                   </div>
                 </template>
@@ -422,54 +230,14 @@
       </div>
       <div style="width: calc(25% - 0.625rem)">
         <div class="text-sm space-x-2">
-          <svg
-            class="inline-block"
-            width="22px"
-            height="22px"
-            viewBox="0 0 22 22"
-            version="1.1"
-          >
-            <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-              <g
-                transform="translate(-760.000000, -86.000000)"
-                fill-rule="nonzero"
-              >
-                <g transform="translate(760.000000, 84.000000)">
-                  <g transform="translate(0.000000, 2.000000)">
-                    <rect x="0" y="0" width="22" height="22"></rect>
-                    <g transform="translate(1.000000, 2.000000)">
-                      <rect
-                        fill="#9CC2FF"
-                        x="2.45535714"
-                        y="8.82142857"
-                        width="14.7321429"
-                        height="7.36607143"
-                      ></rect>
-                      <path
-                        d="M19.6428571,6.60007359 L19.6428571,17.3899064 C19.6428571,17.6691464 19.5412487,17.9372168 19.3553269,18.1382696 C19.1737288,18.3348545 18.9229505,18.4465505 18.6613629,18.4487844 L0.981494293,18.4487844 C0.717744725,18.4465505 0.466966448,18.3348545 0.287530266,18.1382696 C0.10160844,17.9372168 0,17.6691464 0,17.3899064 L0,1.57124173 C0,0.988188657 0.438861985,0.512363731 0.981494293,0.512363731 L4.15121281,0.512363731 C4.22471679,0.510129811 5.56959769,0.510129811 5.64526355,0.512363731 L14.0078092,0.512363731 C14.0813132,0.510129811 15.327859,0.510129811 15.4035248,0.512363731 L18.6527153,0.512363731 C18.9121411,0.512363731 19.1629194,0.624059723 19.3466793,0.822878588 C19.5304393,1.02169745 19.6342096,1.29200175 19.6342096,1.57124173 L19.6342096,6.79414632 L19.6428571,6.60007359 Z M18.4286663,8.08311806 L18.4157149,8.08311806 L18.4157149,8.07194847 L1.32742963,8.07194847 C1.29289274,8.07194847 1.25835585,8.0875859 1.23461173,8.11439294 C1.20870906,8.14119998 1.19575773,8.17917662 1.19575773,8.21491934 L1.19575773,16.9986921 C1.19575773,17.0746454 1.25403873,17.1371952 1.32742963,17.1394291 L18.2991529,17.1394291 C18.3725438,17.1371952 18.4308248,17.0724115 18.4286663,16.9964582 L18.4286663,8.08311806 Z M4.16005324,1.84380232 L1.32527107,1.84380232 C1.25188018,1.84603624 1.19359917,1.90858599 1.19575773,1.98230535 L1.19575773,6.65117545 C1.19359917,6.72712872 1.25188018,6.7919124 1.32742963,6.79414632 L18.284043,6.79414632 C18.3574339,6.7919124 18.4157149,6.72936264 18.4157149,6.65117545 L18.4157149,1.98453927 C18.4157149,1.94656263 18.4027636,1.91081991 18.3768609,1.88401287 C18.3531168,1.85720583 18.3185799,1.84380232 18.284043,1.84380232 L15.3946944,1.84380232 C15.3601575,1.84380232 14.0360799,1.84380232 14.0015431,1.84380232 L5.65370154,1.84380232 C5.58031065,1.84603624 4.19674869,1.8415684 4.16005324,1.84380232 Z M4.96519325,11.2423817 C4.93190055,11.2206529 4.91071429,11.1916812 4.91071429,11.1608987 L4.91071429,10.1649942 C4.91071429,10.1016185 4.99243274,10.0491071 5.09231084,10.0491071 L14.5474383,10.0491071 C14.650343,10.0491071 14.7320614,10.0998077 14.7320614,10.1649942 L14.7320614,11.1590879 C14.735088,11.2206529 14.6533696,11.2731642 14.5474383,11.274975 L14.5444117,11.274975 L5.09533745,11.2767857 C5.0469117,11.2767857 4.99848596,11.2641106 4.96519325,11.2423817 Z M4.96527424,14.9253666 C4.93198181,14.9036057 4.91079572,14.8745912 4.91079572,14.8437632 L4.91079572,13.8482011 C4.90776914,13.7865452 4.98948691,13.7357697 5.09239077,13.7321429 L14.5474398,13.7321429 C14.6503437,13.7321429 14.7320614,13.7829183 14.7320614,13.8463877 L14.7320614,14.8419498 C14.735088,14.9036057 14.6533703,14.9561946 14.5474398,14.958008 L14.5444132,14.958008 L5.09541736,14.9598214 C5.04699201,14.9598214 4.99856666,14.9471276 4.96527424,14.9253666 Z"
-                        fill="#4475DF"
-                      ></path>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
+          <StickySvg class="inline-block" />
+
           <span>便签</span>
           <keyboard :disabled="true" :value="['metaKey', 'n']" />
         </div>
         <div
           style="height: calc(100% - 44px)"
-          class="
-            bg-white
-            mt-3
-            rounded-xl
-            shadow-lg
-            overflow-y-scroll
-            divide-y
-            font-light
-            text-sm
-          "
+          class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll divide-y font-light text-sm"
         >
           <stikies :search="searchContent" />
         </div>
@@ -477,7 +245,7 @@
     </div>
   </div>
 </template>
-<script lang="ts">
+<script lang="ts" setup>
 import {
   defineComponent,
   toRaw,
@@ -491,224 +259,195 @@ import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
-import { sortTodoStatus } from "../utils/format";
 import stikies from "./stickies.vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
 import draggable from "vuedraggable";
+import CountdownSvg from "@/assets/svg/countdown.svg";
+import StickySvg from "@/assets/svg/sticky.svg";
+import ScheduleSvg from "@/assets/svg/schedule.svg";
+import InspirationSvg from "@/assets/svg/inspiration.svg";
+import RefreshSvg from "@/assets/svg/refresh.svg";
 
-export default defineComponent({
-  name: "home",
-  components: {
-    keyboard,
-    empty,
-    stikies,
-    searchResult,
-    draggable,
-  },
-  setup() {
-    // global search
+// global search
 
-    const searchInput = ref<any>(null);
-    const searchContent = ref("");
+const searchInput = ref<any>(null);
+const searchContent = ref("");
 
-    const focusSearchInput = () => {
-      searchInput.value.focus();
-    };
+const focusSearchInput = () => {
+  searchInput.value.focus();
+};
 
-    onMounted(() => {
-      focusSearchInput();
-      document.addEventListener("mouseup", focusSearchInput);
-    });
-
-    onUnmounted(() => {
-      document.removeEventListener("mouseup", focusSearchInput);
-    });
-
-    // shortcuts
-    const data = reactive({
-      editing: "",
-    });
-    let editingAccelerator = ref<any>([]);
-
-    const config = useUserData("shortcuts");
-    setTimeout(() => {
-      config.value.timer = config.value.timer ?? ["metaKey", "shiftKey", "i"];
-      config.value.schedule = config.value.schedule ?? [
-        "metaKey",
-        "shiftKey",
-        "j",
-      ];
-      config.value.inspiration = config.value.inspiration ?? [
-        "metaKey",
-        "shiftKey",
-        "l",
-      ];
-      config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
-    });
-    const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
-
-    const edit = (type: string) => {
-      data.editing = type;
-      ipcRenderer.send("removeShortCut", {
-        key: toRaw(config.value[type]) ?? [],
-      });
-      document.addEventListener("keydown", keydown);
-      document.addEventListener("keyup", keyup);
-    };
-
-    const getAccelerator = (keyEvent: any) =>
-      ["altKey", "ctrlKey", "metaKey", "shiftKey"].filter((i) => keyEvent[i]);
-
-    const keydown = (event: any) => {
-      const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
-
-      if (
-        !key ||
-        !["normal", "accelerator", "esc"].includes(key.type) ||
-        !key.value
-      )
-        return;
-
-      if (key.type === "accelerator") {
-        editingAccelerator.value = getAccelerator(event);
-        return;
-      }
-
-      const shortcutContent =
-        key.value === "esc"
-          ? toRaw(config.value[data.editing])
-          : getAccelerator(event).concat(key.value);
-      config.value[data.editing] = shortcutContent;
-      ipcRenderer.send("setShortCut", {
-        window: data.editing,
-        key: shortcutContent,
-      });
-      editingAccelerator.value = [];
-      document.removeEventListener("keydown", keydown);
-      document.removeEventListener("keyup", keyup);
-      data.editing = "";
-    };
-
-    const keyup = (event: any) => {
-      const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
-
-      if (!key || !["normal", "accelerator"].includes(key.type) || !key.value)
-        return;
-
-      if (key.type === "accelerator") {
-        editingAccelerator.value = getAccelerator(event);
-        return;
-      }
-    };
-
-    // checking for update status
-
-    const versionInfo = reactive({
-      curVersion: "",
-      checkingForUpdate: false,
-      latestVersion: "",
-      releaseDate: "",
-    });
-
-    const checkForUpdate = () => {
-      if (!versionInfo.checkingForUpdate) {
-        ipcRenderer.send("checkforupdate");
-      }
-    };
-
-    onMounted(() => {
-      onMessage(({ type, value }: any) => {
-        if (type === "checking-for-update") {
-          versionInfo.checkingForUpdate = true;
-        }
-        if (type === "update-available") {
-          versionInfo.latestVersion = value.version;
-          versionInfo.releaseDate = new Date(
-            value.releaseDate
-          ).toLocaleDateString();
-          versionInfo.checkingForUpdate = false;
-        }
-        if (type === "update-not-available" || type === "update-error") {
-          versionInfo.latestVersion = "";
-          versionInfo.checkingForUpdate = false;
-        }
-      });
-      ipcRenderer.invoke("getVersion").then((version: string) => {
-        versionInfo.curVersion = version;
-      });
-    });
-
-    const gotoLatestVertion = () => {
-      openUrl("https://github.com/cwj0417/schedule-pro/releases");
-    };
-
-    // timer
-    let { timers } = useTimer();
-
-    // inspiration
-
-    let inspiration = useUserData("inspiration", []);
-
-    // schedule
-
-    let schedule = useUserData("schedule");
-
-    // define search
-
-    const searchScheduleOrInspiration = useSearchContent(
-      searchContent,
-      "content"
-    );
-
-    // schedule and inspiration sort
-
-    const isDragging = ref(false);
-
-    const handleInspirationUpdate = (val: any[]) => {
-      // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
-      if (searchContent.value) return;
-      inspiration.value = val
-        .map((i) => toRaw(i))
-        .map((i) => ({
-          ...i,
-          finish_time: i.finish_time ?? Date.now(),
-        }));
-    };
-
-    const handleScheduleUpdate = (val: any[]) => {
-      if (searchContent.value) return;
-      schedule.value[getTs()] = val
-        .map((i) => toRaw(i))
-        .map((i) => {
-          delete i.finish_time;
-          return i;
-        });
-    };
-
-    return {
-      searchContent,
-      searchInput,
-      data,
-      editingAccelerator,
-      config,
-      edit,
-      keydown,
-      sortTodoStatus,
-      timers,
-      checkForUpdate,
-      versionInfo,
-      gotoLatestVertion,
-      inspiration,
-      schedule,
-      getTs,
-      formatCountdown,
-      location,
-      searchScheduleOrInspiration,
-      handleInspirationUpdate,
-      handleScheduleUpdate,
-      isDragging,
-    };
-  },
+onMounted(() => {
+  focusSearchInput();
+  document.addEventListener("mouseup", focusSearchInput);
 });
+
+onUnmounted(() => {
+  document.removeEventListener("mouseup", focusSearchInput);
+});
+
+// shortcuts
+const data = reactive({
+  editing: "",
+});
+let editingAccelerator = ref<any>([]);
+
+const config = useUserData("shortcuts");
+setTimeout(() => {
+  config.value.timer = config.value.timer ?? ["metaKey", "shiftKey", "i"];
+  config.value.schedule = config.value.schedule ?? [
+    "metaKey",
+    "shiftKey",
+    "j",
+  ];
+  config.value.inspiration = config.value.inspiration ?? [
+    "metaKey",
+    "shiftKey",
+    "l",
+  ];
+  config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
+});
+const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
+
+const edit = (type: string) => {
+  data.editing = type;
+  ipcRenderer.send("removeShortCut", {
+    key: toRaw(config.value[type]) ?? [],
+  });
+  document.addEventListener("keydown", keydown);
+  document.addEventListener("keyup", keyup);
+};
+
+const getAccelerator = (keyEvent: any) =>
+  ["altKey", "ctrlKey", "metaKey", "shiftKey"].filter((i) => keyEvent[i]);
+
+const keydown = (event: any) => {
+  const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
+
+  if (
+    !key ||
+    !["normal", "accelerator", "esc"].includes(key.type) ||
+    !key.value
+  )
+    return;
+
+  if (key.type === "accelerator") {
+    editingAccelerator.value = getAccelerator(event);
+    return;
+  }
+
+  const shortcutContent =
+    key.value === "esc"
+      ? toRaw(config.value[data.editing])
+      : getAccelerator(event).concat(key.value);
+  config.value[data.editing] = shortcutContent;
+  ipcRenderer.send("setShortCut", {
+    window: data.editing,
+    key: shortcutContent,
+  });
+  editingAccelerator.value = [];
+  document.removeEventListener("keydown", keydown);
+  document.removeEventListener("keyup", keyup);
+  data.editing = "";
+};
+
+const keyup = (event: any) => {
+  const key = keyCodes?.[event.keyCode]?.[platform as "darwin" | "win32"];
+
+  if (!key || !["normal", "accelerator"].includes(key.type) || !key.value)
+    return;
+
+  if (key.type === "accelerator") {
+    editingAccelerator.value = getAccelerator(event);
+    return;
+  }
+};
+
+// checking for update status
+
+const versionInfo = reactive({
+  curVersion: "",
+  checkingForUpdate: false,
+  latestVersion: "",
+  releaseDate: "",
+});
+
+const checkForUpdate = () => {
+  if (!versionInfo.checkingForUpdate) {
+    ipcRenderer.send("checkforupdate");
+  }
+};
+
+onMounted(() => {
+  onMessage(({ type, value }: any) => {
+    if (type === "checking-for-update") {
+      versionInfo.checkingForUpdate = true;
+    }
+    if (type === "update-available") {
+      versionInfo.latestVersion = value.version;
+      versionInfo.releaseDate = new Date(
+        value.releaseDate
+      ).toLocaleDateString();
+      versionInfo.checkingForUpdate = false;
+    }
+    if (type === "update-not-available" || type === "update-error") {
+      versionInfo.latestVersion = "";
+      versionInfo.checkingForUpdate = false;
+    }
+  });
+  ipcRenderer.invoke("getVersion").then((version: string) => {
+    versionInfo.curVersion = version;
+  });
+});
+
+const gotoLatestVertion = () => {
+  openUrl("https://github.com/cwj0417/schedule-pro/releases");
+};
+
+// timer
+let { timers } = useTimer();
+
+// inspiration
+
+let inspiration = useUserData("inspiration", []);
+
+// schedule
+
+let schedule = useUserData("schedule");
+
+// define search
+
+const searchScheduleOrInspiration = useSearchContent(
+  searchContent,
+  "content"
+);
+
+// schedule and inspiration sort
+
+const isDragging = ref(false);
+
+const handleInspirationUpdate = (val: any[]) => {
+  // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
+  if (searchContent.value) return;
+  inspiration.value = val
+    .map((i) => toRaw(i))
+    .map((i) => ({
+      ...i,
+      finish_time: i.finish_time ?? Date.now(),
+    }));
+};
+
+const handleScheduleUpdate = (val: any[]) => {
+  if (searchContent.value) return;
+  schedule.value[getTs()] = val
+    .map((i) => toRaw(i))
+    .map((i) => {
+      delete i.finish_time;
+      return i;
+    });
+};
+
+const location = window.location
+
 </script>
