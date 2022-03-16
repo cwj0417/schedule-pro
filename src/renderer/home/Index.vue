@@ -276,6 +276,11 @@ const searchContent = ref("");
 
 const focusSearchInput = () => {
   searchInput.value.focus();
+  setTimeout(() => {
+    if (data.editing) {
+      searchInput.value.blur();
+    }
+  })
 };
 
 onMounted(() => {
@@ -350,6 +355,7 @@ const keydown = (event: any) => {
   document.removeEventListener("keydown", keydown);
   document.removeEventListener("keyup", keyup);
   data.editing = "";
+  focusSearchInput();
 };
 
 const keyup = (event: any) => {
