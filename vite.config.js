@@ -9,7 +9,7 @@ module.exports = {
   plugins: [vue(), svg()],
   resolve: {
     alias: {
-      '@': join(__dirname, './src/renderer')
+      '@': join(__dirname, './src/renderer'),
     }
   }
 }

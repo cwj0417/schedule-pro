@@ -5,15 +5,10 @@ export default function svgloader() {
     return {
         name: 'svg-loader',
         enforce: 'pre',
-        resolveId(source) {
-            if (source.includes('/assets/svg')) {
-                return source;
-            }
-            return null;
-        },
         load(id) {
             if (id.includes('/assets/svg')) {
-                const filepath = path.join(__dirname, '../../src/renderer', id)
+                const filepath = id
+                console.log('filepath', filepath);
                 const file = fs.readFileSync(filepath, 'utf-8');
                 const { code } = compileTemplate({
                     id: JSON.stringify(id),
@@ -22,6 +17,7 @@ export default function svgloader() {
                     transformAssetUrls: false
                 })
                 return `${code}\nexport default { render }`
+                return null;
             }
             return null;
         }
