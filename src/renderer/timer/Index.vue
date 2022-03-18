@@ -123,4 +123,6 @@ const removeCountDown = (id: number) => {
 };
 
 const { timers, fetchTimers } = useTimer();
+
+const location = window.location
 </script>
