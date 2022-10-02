@@ -25,13 +25,13 @@ const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     const confPath = join(userPath, `${name}.json`)
     if (existsSync(confPath)) {
         userData.value = JSON.parse(readFileSync(confPath, { encoding: 'utf-8' }))
-        console.log('got userdata', name, toRaw(userData.value))
+        // console.log('got userdata', name, toRaw(userData.value))
         extraEffect?.(toRaw(userData.value))
     } else {
         writeFileSync(confPath, JSON.stringify(init))
     }
     watch(userData.value, val => {
-        console.log('set userdata', name, toRaw(val))
+        // console.log('set userdata', name, toRaw(val))
         writeFileSync(confPath, JSON.stringify(val))
         extraEffect?.(toRaw(val))
     })
