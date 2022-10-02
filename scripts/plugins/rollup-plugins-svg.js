@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { compileTemplate } = require('@vue/compiler-sfc')
 export default function svgloader() {
     return {
@@ -8,7 +7,6 @@ export default function svgloader() {
         load(id) {
             if (id.includes('/assets/svg')) {
                 const filepath = id
-                console.log('filepath', filepath);
                 const file = fs.readFileSync(filepath, 'utf-8');
                 const { code } = compileTemplate({
                     id: JSON.stringify(id),
@@ -17,7 +15,6 @@ export default function svgloader() {
                     transformAssetUrls: false
                 })
                 return `${code}\nexport default { render }`
-                return null;
             }
             return null;
         }

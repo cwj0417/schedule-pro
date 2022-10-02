@@ -247,7 +247,6 @@
 </template>
 <script lang="ts" setup>
 import {
-  defineComponent,
   toRaw,
   reactive,
   onMounted,

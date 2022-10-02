@@ -102,6 +102,7 @@ let mainWindowConfig: BrowserWindowConstructorOptions = {
   frame: false,
   webPreferences: {
     preload: mainPreload,
+    sandbox: false,
   }
 }
 
@@ -121,6 +122,7 @@ const windowConf: {
       frame: false,
       webPreferences: {
         preload: mainPreload,
+        sandbox: false,
       }
     },
   },
@@ -132,6 +134,7 @@ const windowConf: {
       frame: false,
       webPreferences: {
         preload: mainPreload,
+        sandbox: false,
       }
     },
   },
@@ -143,6 +146,7 @@ const windowConf: {
       frame: false,
       webPreferences: {
         preload: mainPreload,
+        sandbox: false,
       }
     },
   },
@@ -154,6 +158,7 @@ const windowConf: {
       frame: false,
       webPreferences: {
         preload: mainPreload,
+        sandbox: false,
       }
     },
   }
@@ -208,6 +213,7 @@ function createStickies(id = Date.now()) {
     minHeight: stickyMinFrame.height,
     webPreferences: {
       preload: mainPreload,
+      sandbox: false,
     },
     show: false
   })
