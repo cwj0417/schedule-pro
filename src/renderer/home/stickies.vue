@@ -14,6 +14,7 @@
       <div
         @click="openSticky(sticky?.id)"
         class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group"
+        style="borderColor: var(--bg-2)"
         :style="{
           background: sticky?.expended ? sticky?.backgroundColor + '22' : '',
         }"

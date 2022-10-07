@@ -1,0 +1,72 @@
+.wrap {
+  @apply w-full h-full select-none;
+  background-color: var(--bg-0);
+  color: var(--color-0);
+  .page-title {
+    @apply w-full h-16 leading-8 py-4 dragable text-center font-bold tracking-wide;
+    .back-home {
+      @apply px-5 font-bold absolute left-0 top-4 cursor-pointer;
+    }
+  }
+  .page-body {
+    @apply p-5;
+    background-color: var(--bg-1);
+    height: calc(100% - 64px);
+    .content-input-wrap {
+      @apply w-full h-16 p-4 flex shadow-md rounded-md focus-within:ring-1;
+      --tw-ring-color: var(--theme-1);
+      background-color: var(--bg-0);
+      .content-input-txt {
+        @apply outline-none w-full h-full bg-transparent;
+        &::inpupt-placeholder {
+          color: var(--color-3);
+        }
+        color: var(--color-1);
+      }
+      .content-input-btn {
+        @apply w-full h-6 leading-3 border p-1 rounded-md mt-1;
+        border-color: var(--theme-3);
+        color: var(--theme-4);
+        &.active {
+          color: var(--theme-1);
+        }
+      }
+    }
+    .card {
+      @apply w-full h-5 mt-6 mb-3 border-l divide-x flex text-sm;
+      color: var(--color-2);
+      border-color: var(--color-3);
+      div {
+        @apply pl-5;
+      }
+    }
+    .todo-item-wrap {
+      @apply w-full h-10 flex leading-10 text-sm rounded-md relative;
+      background: var(--bg-1);
+      &.stripped {
+        background: var(--bg-2);
+      }
+      &:hover {
+        background: var(--theme-5);
+      }
+      color: var(--color-1);
+      .todo-item {
+        @apply w-full flex mr-3 overflow-x-hidden;
+        .icon-wrap {
+          @apply w-8 cursor-pointer text-center transition-all;
+        }
+      }
+    }
+  }
+  .indicator {
+    @apply w-2 h-2 rounded-md border cursor-pointer;
+    background-color: var(--bg-0);
+    border-color: var(--theme-0);
+    &.done {
+      background-color: var(--theme-0);
+    }
+  }
+  .active {
+    color: var(--theme-0);
+  }
+}

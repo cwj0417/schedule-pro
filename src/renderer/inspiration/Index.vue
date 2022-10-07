@@ -1,19 +1,19 @@
 <template>
-  <div class="w-full h-full select-none">
-    <div class="w-full h-16 leading-8 py-4 dragable">
+  <div class="wrap">
+    <div class="page-title">
       <div
-        class="px-5 font-bold absolute left-0 top-4 cursor-pointer"
+        class="back-home"
         @click="location.replace('#/home')"
       >◀︎ schedule pro</div>
-      <div class="text-center w-full font-bold tracking-wide">待办池</div>
+      <div>待办池</div>
     </div>
-    <div style="height: calc(100% - 64px)" class="p-5 bg-gray-50">
+    <div class="page-body">
       <div
-        class="w-full h-16 p-4 flex shadow-md rounded-md bg-white focus-within:ring-1 focus-within:ring-blue-400"
+        class="content-input-wrap"
       >
         <div class="flex-grow h-full">
           <input
-            class="outline-none w-full h-full text-gray-600 placeholder-gray-200"
+            class="content-input-txt"
             placeholder="请输入内容..."
             v-focus
             :value="contentinput"
@@ -24,14 +24,14 @@
         </div>
         <div class="w-14 h-full">
           <button
-            class="w-full h-6 leading-3 text-blue-100 text-sm border p-1 border-blue-200 rounded-md mt-1"
-            :class="{ 'text-blue-400': contentinput !== '' }"
+            class="content-input-btn text-sm"
+            :class="{ 'active': contentinput !== '' }"
             @click="createInspiration"
           >添加</button>
         </div>
       </div>
-      <div class="w-full h-5 mt-6 mb-3 border-l divide-x flex text-gray-400 text-sm">
-        <div class="w-full pl-5">待办内容</div>
+      <div class="card">
+        <div class="w-full">待办内容</div>
       </div>
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
         <empty v-if="!inspirations.length" />
@@ -40,7 +40,7 @@
             v-for="(inspiration, index) of sortTodoStatus(inspirations)"
             :key="inspiration.create_time"
             :singleLine="index % 2 === 1"
-            :inspiration="inspiration"
+            :item="inspiration"
             @deleteItem="(id: any) => inspirations.splice(inspirations.findIndex((i: any) => i.id === id), 1)"
             @toggleItem="inspiration.done = !inspiration.done; inspiration.finish_time = Date.now();"
             @changeItem="(val: any) => (inspiration.content = val)"
@@ -54,7 +54,7 @@
 import { ref } from "vue";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
-import todoItem from "./todoItem.vue";
+import todoItem from "../components/todoItem.vue";
 import { sortTodoStatus } from "../utils/format";
 
 const contentinput = ref<string>("");

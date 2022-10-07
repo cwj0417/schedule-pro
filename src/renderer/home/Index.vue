@@ -1,91 +1,67 @@
 <template>
-  <div class="w-full h-full select-none">
-    <div class="w-full h-16 py-4 dragable flex">
-      <div
-        class="absolute left-3 top-3 p-2 rounded-md"
-        :class="searchContent ? 'border-2 border-blue-300' : ''"
-      >
-        <input
-          type="text"
-          class="outline-none caret-transparent cursor-default"
-          ref="searchInput"
-          v-model="searchContent"
-          @keydown.esc="searchContent = ''"
-        />
+  <div class="wrap">
+    <div class="page-title">
+      <div class="absolute left-3 top-3 px-2 py-1 h-10 rounded-md" :style="{
+        borderWidth: searchContent ? '2px': '',
+        borderColor: searchContent ? 'var(--theme-2)' : ''
+      }">
+        <input type="text" class="outline-none caret-transparent cursor-default bg-transparent" ref="searchInput"
+          v-model="searchContent" @keydown.esc="searchContent = ''" />
       </div>
       <div class="flex w-full justify-center">
         <img class="h-6 mr-3 mt-1" src="@/assets/logo.png" alt />
         <span class="w-44 mt-1">
-          <keyboard
-            @esc="
-              keydown({
-                keyCode: 27,
-              })
-            "
-            :active="data.editing === 'main' && !editingAccelerator.length"
-            @setShortcut="edit('main')"
-            :value="data.editing === 'main' ? editingAccelerator : config.main"
-          />
+          <keyboard @esc="
+            keydown({
+              keyCode: 27,
+            })
+          " :active="data.editing === 'main' && !editingAccelerator.length" @setShortcut="edit('main')"
+            :value="data.editing === 'main' ? editingAccelerator : config.main" />
         </span>
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
-        <span class="text-sm text-gray-400 text-center leading-6 mr-3">v{{ versionInfo.curVersion }}</span>
-        <RefreshSvg
-          @click="checkForUpdate"
-          :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
-          class="mt-1 mr-2 cursor-pointer"
-        />
-        <span
-          class="cursor-pointer text-gray-400 text-xs mt-1"
-          v-if="versionInfo.latestVersion"
-          @click="gotoLatestVertion"
-        >
+        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3">v{{ versionInfo.curVersion
+        }}</span>
+        <RefreshSvg @click="checkForUpdate" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
+          class="mt-1 mr-2 cursor-pointer" />
+        <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.latestVersion"
+          @click="gotoLatestVertion">
           点击下载最新版本: v{{ versionInfo.latestVersion }} (更新于{{
-            versionInfo.releaseDate
+          versionInfo.releaseDate
           }})
         </span>
       </div>
     </div>
-    <div style="height: calc(100% - 64px)" class="w-full flex p-5 space-x-5 bg-gray-100">
+    <div class="w-full flex space-x-5 page-body">
       <div style="width: calc(75% - 0.625rem)">
         <div class="h-32">
           <div class="text-sm space-x-2">
             <CountdownSvg class="inline-block" />
             <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
-            <keyboard
-              @esc="
-                keydown({
-                  keyCode: 27,
-                })
-              "
-              :active="data.editing === 'timer' && !editingAccelerator.length"
-              @setShortcut="edit('timer')"
-              :value="
-                data.editing === 'timer' ? editingAccelerator : config.timer
-              "
-            />
+            <keyboard @esc="
+              keydown({
+                keyCode: 27,
+              })
+            " :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')" :value="
+              data.editing === 'timer' ? editingAccelerator : config.timer
+            " />
           </div>
           <div class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2">
-            <div
-              v-if="!timers.length"
-              class="w-full flex-none h-20 rounded-lg shadow-md overflow-hidden bg-white font-light"
-            >
+            <div v-if="!timers.length" class="content-block w-full flex-none h-20 rounded-lg shadow-md overflow-hidden">
               <empty />
             </div>
-            <div
-              class="w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden bg-white font-light"
-              v-for="timer of timers"
-              :key="timer.id"
-            >
+            <div class="content-block w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden" v-for="timer of timers"
+              :key="timer.id">
               <div class="w-44 h-2">
-                <div class="bg-blue-500 h-full" :style="{ width: timer.percent * 100 + '%' }"></div>
+                <div class="h-full" style="backgroundColor: var(--theme-0);"
+                  :style="{ width: timer.percent * 100 + '%' }"></div>
               </div>
-              <div
-                class="my-1 h-4 text-center text-xs text-gray-500"
-              >{{ formatCountdown(timer.remain) }}</div>
-              <div
-                class="text-sm text-black text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis"
-              >{{ timer.content }}</div>
+              <div style="color: var(--color-2)" class="my-1 h-4 text-center text-xs">{{ formatCountdown(timer.remain)
+              }}
+              </div>
+              <div style="color: var(--color-0)"
+                class="text-sm text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                {{ timer.content }}</div>
             </div>
           </div>
         </div>
@@ -94,130 +70,72 @@
             <div class="text-sm space-x-2">
               <ScheduleSvg class="inline-block" />
               <span class="cursor-pointer" @click="location.replace('#/schedule')">今日待办</span>
-              <keyboard
-                @esc="
-                  keydown({
-                    keyCode: 27,
-                  })
-                "
-                :active="
-                  data.editing === 'schedule' && !editingAccelerator.length
-                "
-                @setShortcut="edit('schedule')"
-                :value="
-                  data.editing === 'schedule'
-                    ? editingAccelerator
-                    : config.schedule
-                "
-              />
+              <keyboard @esc="
+                keydown({
+                  keyCode: 27,
+                })
+              " :active="
+                data.editing === 'schedule' && !editingAccelerator.length
+              " @setShortcut="edit('schedule')" :value="
+                data.editing === 'schedule'
+                  ? editingAccelerator
+                  : config.schedule
+              " />
             </div>
-            <div
-              style="height: calc(100% - 44px)"
-              class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll font-light text-sm border cursor-grab"
-              :class="{
-                'border-blue-300': isDragging,
-              }"
-            >
-              <draggable
-                :disabled="searchContent"
-                @start="isDragging = true"
-                @end="isDragging = false"
-                group="sni"
-                item-key="id"
-                :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
-                @update:modelValue="handleScheduleUpdate($event)"
-                tag="transition-group"
-                :component-data="{ name: 'animate-list', tag: 'div' }"
-              >
+            <div style="height: calc(100% - 44px);"
+              :style="{borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)'}"
+              class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
+                item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
+                @update:modelValue="handleScheduleUpdate($event)" tag="transition-group"
+                :component-data="{ name: 'animate-list', tag: 'div' }">
                 <template #item="{ element: item, index }">
-                  <div
-                    :class="{
-                      'bg-gray-50': index % 2 === 1,
-                      'line-through': item.done,
-                      'text-gray-400': item.done,
-                    }"
-                    class="w-full h-10 p-2 flex leading-6"
-                  >
-                    <div
-                      :class="{
-                        'bg-blue-500': item.done,
-                        'bg-white': !item.done,
-                      }"
-                      class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                    ></div>
-                    <span
-                      class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                      style="width: calc(100% - 24px)"
-                    >
+                  <div :class="{
+                    'stripped': index % 2 === 1,
+                    'item-done': item.done,
+                  }" class="w-full h-10 p-2 flex leading-6">
+                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
+                      style="width: calc(100% - 24px)">
                       <search-result :search="searchContent" :value="item.content" />
                     </span>
                   </div>
                 </template>
               </draggable>
-              <empty
-                v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging"
-              />
+              <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
             </div>
           </div>
           <div class="h-full" style="width: calc(50% - 0.625rem)">
             <div class="text-sm space-x-2">
               <InspirationSvg class="inline-block" />
               <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
-              <keyboard
-                @esc="
-                  keydown({
-                    keyCode: 27,
-                  })
-                "
-                :active="
-                  data.editing === 'inspiration' && !editingAccelerator.length
-                "
-                @setShortcut="edit('inspiration')"
-                :value="
-                  data.editing === 'inspiration'
-                    ? editingAccelerator
-                    : config.inspiration
-                "
-              />
+              <keyboard @esc="
+                keydown({
+                  keyCode: 27,
+                })
+              " :active="
+                data.editing === 'inspiration' && !editingAccelerator.length
+              " @setShortcut="edit('inspiration')" :value="
+                data.editing === 'inspiration'
+                  ? editingAccelerator
+                  : config.inspiration
+              " />
             </div>
-            <div
-              style="height: calc(100% - 44px)"
-              class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll font-light text-sm border cursor-grab"
-              :class="{
-                'border-blue-300': isDragging,
-              }"
-            >
-              <draggable
-                :disabled="searchContent"
-                @start="isDragging = true"
-                @end="isDragging = false"
-                group="sni"
-                item-key="id"
-                :modelValue="searchScheduleOrInspiration(inspiration)"
-                @update:modelValue="handleInspirationUpdate($event)"
-                tag="transition-group"
-                :component-data="{ name: 'animate-list', tag: 'div' }"
-              >
+            <div style="height: calc(100% - 44px);"
+              :style="{borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)'}"
+              class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
+                item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
+                @update:modelValue="handleInspirationUpdate($event)" tag="transition-group"
+                :component-data="{ name: 'animate-list', tag: 'div' }">
                 <template #item="{ element: item, index }">
-                  <div
-                    :class="{
-                      'bg-gray-50': index % 2 === 1,
-                      'line-through': item.done,
-                      'text-gray-400': item.done,
-                    }"
-                    class="w-full h-10 p-2 flex leading-6"
-                  >
-                    <div
-                      :class="{
-                        'bg-blue-500': item.done,
-                        'bg-white': !item.done,
-                      }"
-                      class="w-2 h-2 rounded-md m-2 border border-blue-500"
-                    ></div>
-                    <span
-                      class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                      style="width: calc(100% - 24px)"
-                    >
+                  <div :class="{
+                    'stripped': index % 2 === 1,
+                    'item-done': item.done,
+                  }" class="w-full h-10 p-2 flex leading-6">
+                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
+                      style="width: calc(100% - 24px)">
                       <search-result :search="searchContent" :value="item.content" />
                     </span>
                   </div>
@@ -235,10 +153,8 @@
           <span>便签</span>
           <keyboard :disabled="true" :value="['metaKey', 'n']" />
         </div>
-        <div
-          style="height: calc(100% - 44px)"
-          class="bg-white mt-3 rounded-xl shadow-lg overflow-y-scroll divide-y font-light text-sm"
-        >
+        <div style="height: calc(100% - 44px)"
+          class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll divide-y text-sm">
           <stikies :search="searchContent" />
         </div>
       </div>
@@ -456,3 +372,18 @@ const handleScheduleUpdate = (val: any[]) => {
 const location = window.location
 
 </script>
+<style lang="less">
+.content-block {
+  @apply font-light;
+  background-color: var(--bg-0);
+}
+
+.stripped {
+  background-color: var(--bg-1);
+}
+
+.item-done {
+  @apply line-through;
+  color: var(--color-2);
+}
+</style>
