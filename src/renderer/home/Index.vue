@@ -9,8 +9,9 @@
           v-model="searchContent" @keydown.esc="searchContent = ''" />
       </div>
       <div class="flex w-full justify-center">
-        <img class="h-6 mr-3 mt-1" src="@/assets/logo.png" alt />
-        <span class="w-44 mt-1">
+        <img v-if="!isDark" class="h-6 mr-3 mt-1" src="@/assets/logo.png" />
+        <img v-else class="h-6 mr-3 mt-1" src="@/assets/logoblack.png" />
+        <span class="w-44">
           <keyboard @esc="
             keydown({
               keyCode: 27,
@@ -169,6 +170,7 @@ import {
   ref,
   onUnmounted,
 } from "vue";
+import { usePreferredDark } from "@vueuse/core";
 import empty from "../components/empty.vue";
 import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
@@ -183,6 +185,8 @@ import StickySvg from "@/assets/svg/sticky.svg";
 import ScheduleSvg from "@/assets/svg/schedule.svg";
 import InspirationSvg from "@/assets/svg/inspiration.svg";
 import RefreshSvg from "@/assets/svg/refresh.svg";
+
+const isDark = usePreferredDark();
 
 // global search
 
