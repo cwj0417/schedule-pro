@@ -51,7 +51,6 @@ const config = {
   mac: {
     icon: 'build/icons/icon.icns', // 默认是dmg+zip, 不然autoUpdater会失败
     category: 'Productivity',
-    identity: '02DE3E213EFC6E0D9BE45A801AAC20B2BCA2C32C',
     target: [
       {
         target: 'default',
