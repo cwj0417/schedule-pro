@@ -3,8 +3,9 @@
  * @type {import('electron-builder').Configuration}
  */
 const config = {
-  productName: '',
+  productName: 'schedule-pro',
   appId: 'com.cwj.schedule-pro',
+  copyright: 'chenwj',
   electronVersion: process.env.ELECTRON_VERSION, // only used for development debugging
   directories: {
     output: 'build/built',
@@ -49,6 +50,7 @@ const config = {
   },
   mac: {
     icon: 'build/icons/icon.icns', // 默认是dmg+zip, 不然autoUpdater会失败
+    category: 'Productivity',
     target: [
       {
         target: 'default',
