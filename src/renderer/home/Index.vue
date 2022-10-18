@@ -25,12 +25,12 @@
         }}</span>
         <RefreshSvg @click="checkForUpdate" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer" />
-        <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.latestVersion"
+        <a style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.latestVersion"
           @click="gotoLatestVertion">
-          点击下载最新版本: v{{ versionInfo.latestVersion }} (更新于{{
+          下载更新: v{{ versionInfo.latestVersion }} ({{
           versionInfo.releaseDate
           }})
-        </span>
+        </a>
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
@@ -232,7 +232,7 @@ setTimeout(() => {
   ];
   config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
 });
-const { ipcRenderer, onMessage, platform, openUrl } = window.apis;
+const { ipcRenderer, onMessage, platform } = window.apis;
 
 const edit = (type: string) => {
   data.editing = type;
@@ -329,7 +329,7 @@ onMounted(() => {
 });
 
 const gotoLatestVertion = () => {
-  openUrl("https://github.com/cwj0417/schedule-pro/releases");
+  ipcRenderer.send("downloadUpdate");
 };
 
 // timer
