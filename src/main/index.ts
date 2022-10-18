@@ -319,7 +319,7 @@ const template: MenuItemConstructorOptions[] = [
     {
       label: 'check for updates',
       click: () => {
-        autoUpdater.checkForUpdates()
+        autoUpdater.checkForUpdatesAndNotify()
       }
     },
     {
@@ -357,7 +357,7 @@ ipcMain.on('removeShortCut', (event, args) => {
 })
 
 ipcMain.on('checkforupdate', (event) => {
-  autoUpdater.checkForUpdates()
+  autoUpdater.checkForUpdatesAndNotify()
 })
 
 ipcMain.on('addCountDown', (event, args) => {

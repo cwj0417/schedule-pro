@@ -56,9 +56,6 @@ const config = {
         target: 'default',
         arch: ['arm64', 'x64']
       },
-      // {
-      //   target: 'dir',
-      // },
     ]
   },
   win: {
