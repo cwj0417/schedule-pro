@@ -1,6 +1,6 @@
 {
   "name": "schedule-pro",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "manage schedule for daily production",
   "main": "main/index.js",
   "scripts": {

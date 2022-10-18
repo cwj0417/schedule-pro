@@ -372,6 +372,10 @@ ipcMain.on('downloadUpdate', (event) => {
   autoUpdater.downloadUpdate().then(console.log)
 })
 
+ipcMain.on('quitAndInstall', (event) => {
+  autoUpdater.quitAndInstall().then(console.log)
+})
+
 ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
   const id = Date.now()

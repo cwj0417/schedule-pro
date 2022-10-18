@@ -25,7 +25,15 @@
         }}</span>
         <RefreshSvg @click="checkForUpdate" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer" />
-        <a style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.latestVersion"
+
+        <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.downloaded"
+          @click="restart">
+          更新完毕, 点击重启应用
+        </span>
+        <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
+          {{ versionInfo.status }}
+        </span>
+        <a style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.latestVersion"
           @click="gotoLatestVertion">
           下载更新: v{{ versionInfo.latestVersion }} ({{
           versionInfo.releaseDate
@@ -296,6 +304,8 @@ const versionInfo = reactive({
   checkingForUpdate: false,
   latestVersion: "",
   releaseDate: "",
+  status: "",
+  downloaded: false,
 });
 
 const checkForUpdate = () => {
@@ -319,9 +329,20 @@ onMounted(() => {
       versionInfo.checkingForUpdate = false;
     }
     if (type === "update-not-available" || type === "update-error") {
+      versionInfo.status = value;
       versionInfo.latestVersion = "";
       versionInfo.checkingForUpdate = false;
     }
+
+    if (type === "download-progress") {
+      versionInfo.status = value.percent + '%';
+    }
+
+
+    if (type === "update-downloaded") {
+      versionInfo.downloaded = true;
+    }
+
   });
   ipcRenderer.invoke("getVersion").then((version: string) => {
     versionInfo.curVersion = version;
@@ -331,6 +352,10 @@ onMounted(() => {
 const gotoLatestVertion = () => {
   ipcRenderer.send("downloadUpdate");
 };
+
+const restart = () => {
+  ipcRenderer.send("quitAndInstall");
+}
 
 // timer
 let { timers } = useTimer();
