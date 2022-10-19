@@ -368,12 +368,8 @@ ipcMain.on('checkforupdate', (event) => {
   autoUpdater.checkForUpdatesAndNotify()
 })
 
-ipcMain.on('downloadUpdate', (event) => {
-  autoUpdater.downloadUpdate().then(console.log)
-})
-
 ipcMain.on('quitAndInstall', (event) => {
-  autoUpdater.quitAndInstall().then(console.log)
+  autoUpdater.quitAndInstall()
 })
 
 ipcMain.on('addCountDown', (event, args) => {

@@ -28,17 +28,13 @@
 
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.downloaded"
           @click="restart">
-          更新完毕, 点击重启应用
+          重启安装v{{ versionInfo.latestVersion }} ({{
+          versionInfo.releaseDate
+          }})
         </span>
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
           {{ versionInfo.status }}
         </span>
-        <a style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.latestVersion"
-          @click="gotoLatestVertion">
-          下载更新: v{{ versionInfo.latestVersion }} ({{
-          versionInfo.releaseDate
-          }})
-        </a>
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
@@ -335,7 +331,7 @@ onMounted(() => {
     }
 
     if (type === "download-progress") {
-      versionInfo.status = value.percent + '%';
+      versionInfo.status = '下载中' + Math.round(value.percent) + '%';
     }
 
 
@@ -348,10 +344,6 @@ onMounted(() => {
     versionInfo.curVersion = version;
   });
 });
-
-const gotoLatestVertion = () => {
-  ipcRenderer.send("downloadUpdate");
-};
 
 const restart = () => {
   ipcRenderer.send("quitAndInstall");
