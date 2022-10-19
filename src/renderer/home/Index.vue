@@ -23,7 +23,7 @@
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
         <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3">v{{ versionInfo.curVersion
         }}</span>
-        <RefreshSvg @click="checkForUpdate" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
+        <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer" />
 
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.downloaded"
