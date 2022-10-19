@@ -1,7 +1,7 @@
 <template>
   <div class="h-full">
     <div class="dragable h-10 w-full flex items-center" :style="{ backgroundColor: bgColor }" @dblclick="fullscreen">
-      <div style="backgroundColor: var(--bg-0)"
+      <div style="backgroundColor: var(--color-2)"
         class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden">
         <div class="w-3 h-3 rounded-lg m-1 float-left" :style="{ backgroundColor: bgColor }" />
         <div class="w-px h-2.5 float-left ml-2 mr-0.5" style="backgroundColor: var(--bg-2);margin-top: 5px" />
