@@ -28,6 +28,7 @@
         ></div>
         <ArrowUpSvg
           @click.prevent.stop="toTop(sticky?.id)"
+          style="fill: var(--color-0);"
           class="inline-block group-hover:opacity-100 absolute top-3 right-2 opacity-0"
         />
       </div>
