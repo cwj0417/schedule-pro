@@ -21,9 +21,6 @@
         <div class="cursor-pointer ml-3">
           <TrashSvg @click="deleteSticky" class="inline-block" fill="#333333" />
         </div>
-        <div class="cursor-pointer ml-3">
-          <RetractSvg @click="retract" class="inline-block" />
-        </div>
       </div>
     </div>
     <div class="p-2" style="height: calc(100% - 2.5rem)" :style="{ backgroundColor: bgColor + '66' }">
@@ -36,7 +33,6 @@
 import { onMounted, onUnmounted, ref } from "vue";
 import { useUserData } from "../composition";
 import TrashSvg from "@/assets/svg/trash.svg";
-import RetractSvg from "@/assets/svg/retract.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
 
@@ -117,9 +113,9 @@ onUnmounted(() => {
     .removeEventListener("mouseleave", clickThoughMouseLeave);
 });
 
-const retract = () => {
-  ipcRenderer.send("retractSticky", id);
-};
+// const retract = () => {
+//   ipcRenderer.send("retractSticky", id);
+// };
 const deleteSticky = () => {
   ipcRenderer.send("deleteSticky", id);
 };

@@ -460,11 +460,11 @@ ipcMain.on('sortStickies', (event, sorted) => {
   })
 })
 
-ipcMain.on('retractSticky', (event, stickyId) => {
-  stickiesConfig.value[stickyId].expended = false
-  stickyWindows[stickyId].close()
-  delete stickyWindows[stickyId]
-})
+// ipcMain.on('retractSticky', (event, stickyId) => {
+//   stickiesConfig.value[stickyId].expended = false
+//   stickyWindows[stickyId].close()
+//   delete stickyWindows[stickyId]
+// })
 
 ipcMain.on('changeStickyColor', (event, { stickyId, color }) => {
   stickiesConfig.value[stickyId].backgroundColor = color
