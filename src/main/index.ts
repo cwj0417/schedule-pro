@@ -86,7 +86,7 @@ const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
       order: 0,
-      backgroundColor: '#FCF4A7',
+      backgroundColor: 1,
       width: stickyMinFrame.width,
       height: stickyMinFrame.height,
       x: 0,

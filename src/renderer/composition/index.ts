@@ -31,22 +31,22 @@ const useTimer = () => {
     const fetchTimers = () => {
         if (timerHandler) clearInterval(timerHandler)
         ipcRenderer
-        .invoke("getNotificationQ")
-        .then((messageQ: notification[]) => {
-            const render = () => {
-                timers.value = messageQ
-                    .map((item) => ({
-                        id: item.id,
-                        content: item.content,
-                        last: Math.round((item.end - item.createTime) / 1000),
-                        percent: (item.end - Date.now()) / (item.end - item.createTime),
-                        remain: Math.round((item.end - Date.now()) / 1000),
-                    }))
-                    .filter((i) => i.remain > 0);
-            };
-            timerHandler = setInterval(render, 1000);
-            render();
-        });
+            .invoke("getNotificationQ")
+            .then((messageQ: notification[]) => {
+                const render = () => {
+                    timers.value = messageQ
+                        .map((item) => ({
+                            id: item.id,
+                            content: item.content,
+                            last: Math.round((item.end - item.createTime) / 1000),
+                            percent: (item.end - Date.now()) / (item.end - item.createTime),
+                            remain: Math.round((item.end - Date.now()) / 1000),
+                        }))
+                        .filter((i) => i.remain > 0);
+                };
+                timerHandler = setInterval(render, 1000);
+                render();
+            });
     }
     onMounted(() => {
         fetchTimers()
@@ -60,7 +60,12 @@ const useTimer = () => {
     }
 }
 
+const getBg = (idOrCustom: string) => {
+    return idOrCustom.length === 1 ? `var(--sticky-${idOrCustom})` : idOrCustom
+}
+
 export {
     useUserData,
     useTimer,
+    getBg,
 }

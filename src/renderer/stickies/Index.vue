@@ -1,13 +1,13 @@
 <template>
   <div class="h-full">
     <div class="dragable h-10 w-full flex items-center" :style="{ backgroundColor: bgColor }" @dblclick="fullscreen">
-      <div style="backgroundColor: var(--color-2)"
+      <div style="backgroundColor: #eee"
         class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden">
         <div class="w-3 h-3 rounded-lg m-1 float-left" :style="{ backgroundColor: bgColor }" />
         <div class="w-px h-2.5 float-left ml-2 mr-0.5" style="backgroundColor: var(--bg-2);margin-top: 5px" />
-        <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left" v-for="color in colors"
-          :class="{ 'ring-1 ring-offset-1': color === bgColor }" :key="color" style="--tw-ring-color: var(--color-3)"
-          :style="{ backgroundColor: color }" @click="changeColor(color)" />
+        <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left" v-for="color in 9" :key="color"
+          style="--tw-ring-color: var(--color-3)" :style="`backgroundColor: var(--sticky-${color})`"
+          @click="changeColor(color)" />
       </div>
       <div class="flex-grow"></div>
       <div class="h-5 pr-5 flex leading-4">
@@ -23,15 +23,16 @@
         </div>
       </div>
     </div>
-    <div class="p-2" style="height: calc(100% - 2.5rem)" :style="{ backgroundColor: bgColor + '66' }">
+    <div class="p-2" style="height: calc(100% - 2.5rem); color: var(--color-0)"
+      :style="`background: linear-gradient(${bgColor}, var(--bg-0))`">
       <textarea autofocus class="non-border w-full h-full" cols="30" rows="10" :value="data?.value.content"
-        @input="(e) => (data.value.content = e.target.value)"></textarea>
+        @input="(e) => (data.value.content = e.target!.value)"></textarea>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from "vue";
-import { useUserData } from "../composition";
+import { useUserData, getBg } from "../composition";
 import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
@@ -41,17 +42,6 @@ const getquery = () => {
   return matched ? [matched[1], matched[2]] : [];
 };
 
-const colors = [
-  "#F7F7AD",
-  "#FFD45D",
-  "#AAE29B",
-  "#95E3C7",
-  "#9AC3FF",
-  "#C3ECFF",
-  "#BAC7FF",
-  "#FFB0AF",
-  "#FFDCFE",
-];
 const { ipcRenderer, onMessage } = window.apis;
 const [id, bg] = getquery();
 let data = ref<any>(null);
@@ -77,11 +67,11 @@ const clickThoughMouseLeave = () => {
 onMounted(() => {
   onMessage(({ type, value }: any) => {
     if (type === "changebg") {
-      bgColor.value = value;
+      bgColor.value = getBg(value);
     }
   });
   if (id) {
-    bgColor.value = bg;
+    bgColor.value = getBg(bg);
     data.value = useUserData(
       "sticky" + id,
       {
@@ -119,10 +109,10 @@ onUnmounted(() => {
 const deleteSticky = () => {
   ipcRenderer.send("deleteSticky", id);
 };
-const changeColor = (color: string) => {
+const changeColor = (color: number) => {
   ipcRenderer.send("changeStickyColor", {
     stickyId: id,
-    color,
+    color: color.toString(),
   });
 };
 const fullscreen = () => {
