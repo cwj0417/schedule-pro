@@ -307,6 +307,7 @@ const versionInfo = reactive({
 const checkForUpdate = () => {
   if (!versionInfo.checkingForUpdate) {
     console.log('send check update')
+    versionInfo.checkingForUpdate = true;
     ipcRenderer.send("checkforupdate");
   }
 };
