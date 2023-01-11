@@ -245,6 +245,10 @@ function createStickies(id = Date.now()) {
         delete stickyWindows[id]
         if (stickiesConfig.value[id].title) {
           stickiesConfig.value[id].expended = false
+          mainWindow!.webContents.send('message', {
+            type: 'activesticky',
+            value: null
+          })
         } else {
           delete stickiesConfig.value[id]
           unlinkSync(join(userPath, `sticky${id}.json`))
@@ -258,6 +262,18 @@ function createStickies(id = Date.now()) {
   sticky.on('move', () => {
     setPosition()
   })
+  sticky.on('focus', () => {
+    mainWindow!.webContents.send('message', {
+      type: 'activesticky',
+      value: id
+    })
+  })
+  sticky.on('blur', () => {
+    mainWindow!.webContents.send('message', {
+      type: 'activesticky',
+      value: null
+    })
+  })
   stickyWindows[id] = sticky
 
 }
@@ -269,6 +285,25 @@ function openStickies() {
       createStickies(+matched[1])
     }
   })
+}
+
+function switchToSticky(next: boolean) {
+  const keys = Object.entries(toRaw(stickiesConfig.value)).sort((a: any, b: any) => a[1].order - b[1].order).map(i => i[0]).filter(i => stickyWindows[i])
+  let index = null
+  for (let i = 0; i < keys.length; i++) {
+    if (stickyWindows[+keys[i]].isFocused()) {
+      index = i;
+      break;
+    }
+  }
+  if (index === null) {
+    index = next ? 0 : keys.length - 1
+  } else {
+    index = next ? index + 1 : index - 1
+    if (index === -1) index = keys.length - 1
+    if (index === keys.length) index = 0
+  }
+  stickyWindows[+keys[+index]].focus()
 }
 
 app.whenReady().then(() => {
@@ -312,6 +347,18 @@ const template: MenuItemConstructorOptions[] = [
   {
     label: 'File',
     submenu: [{
+      label: 'find prev active sticky',
+      accelerator: 'CmdOrCtrl+[',
+      click: () => {
+        switchToSticky(false)
+      },
+    },{
+      label: 'find next active sticky',
+      accelerator: 'CmdOrCtrl+]',
+      click: () => {
+        switchToSticky(true)
+      },
+    },{
       label: 'create stickies',
       accelerator: 'CmdOrCtrl+N',
       click: () => {

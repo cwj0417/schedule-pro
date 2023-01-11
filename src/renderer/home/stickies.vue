@@ -7,6 +7,7 @@
         class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group"
         style="borderColor: var(--bg-2)" :style="{
           background: sticky?.expended ? `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
+          boxShadow: +activeKey === +sticky.id ? `inset 0px 0px 5px 5px ${getBg(sticky?.backgroundColor)}` : '',
         }">
         <search-result :value="sticky?.title || '未命名便签'" :search="search" />
         <div class="w-2 h-2 rounded-md absolute top-4 right-3 opacity-100 group-hover:opacity-0" :style="{
@@ -32,11 +33,15 @@ const props = defineProps(['search']);
 
 const { ipcRenderer, onMessage } = window.apis;
 let stickies = ref<any[]>([]);
+let activeKey = ref<any>(0);
 
 onMounted(() => {
   onMessage(({ type, value }: any) => {
     if (type === "stickesConfigChange") {
       stickies.value = value;
+    }
+    if (type === "activesticky") {
+      activeKey.value = value
     }
   });
   ipcRenderer.send("getStickiesConfig");
