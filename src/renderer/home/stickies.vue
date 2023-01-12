@@ -4,10 +4,11 @@
     item-key="id" class="divide-y" tag="transition-group" :component-data="{ name: 'animate-list', tag: 'div' }">
     <template #item="{ element: sticky }">
       <div @click="openSticky(sticky?.id)"
-        class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group"
-        style="borderColor: var(--bg-2)" :style="{
+        class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group transition-all"
+        style="borderColor: var(--bg-2);transformOrigin: left;" :style="{
           background: sticky?.expended ? `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           boxShadow: +activeKey === +sticky.id ? `inset 0px 0px 5px 5px ${getBg(sticky?.backgroundColor)}` : '',
+          transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
         }">
         <search-result :value="sticky?.title || '未命名便签'" :search="search" />
         <div class="w-2 h-2 rounded-md absolute top-4 right-3 opacity-100 group-hover:opacity-0" :style="{
@@ -32,8 +33,10 @@ import { getBg } from "../composition";
 const props = defineProps(['search']);
 
 const { ipcRenderer, onMessage } = window.apis;
-let stickies = ref<any[]>([]);
-let activeKey = ref<any>(0);
+const stickies = ref<any[]>([]);
+const activeKey = ref<any>(0);
+const isFinding = ref<boolean>(false);
+const findKey = ref<number | boolean>(false);
 
 onMounted(() => {
   onMessage(({ type, value }: any) => {
@@ -45,6 +48,43 @@ onMounted(() => {
     }
   });
   ipcRenderer.send("getStickiesConfig");
+  window.addEventListener('keydown', (e) => {
+    const expended = (i: any) => i.expended
+    if (!stickies.value.find(expended)) {
+      return
+    }
+    if (e.key === 'Control') {
+      isFinding.value = true
+    }
+    if (e.key === 'Tab') {
+      if (findKey.value === false) {
+        findKey.value = stickies.value.filter(expended)[0].id
+      } else {
+        let index = stickies.value.findIndex(i => i.id === findKey.value)
+        function findNext() {
+          if (index === stickies.value.length - 1) {
+            index = stickies.value.findIndex(expended)
+          } else {
+            index++;
+          }
+          if (!stickies.value[index].expended) {
+            findNext()
+          }
+        }
+        findNext()
+        findKey.value = stickies.value[index].id
+      }
+    }
+  })
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'Control') {
+      isFinding.value = false
+      if (findKey.value !== false) {
+        openSticky(findKey.value.toString())
+      }
+      findKey.value = false
+    }
+  })
 });
 
 const openSticky = (id: string) => ipcRenderer.send("openSticky", id);
