@@ -416,6 +416,8 @@ ipcMain.on('checkforupdate', (event) => {
 })
 
 ipcMain.on('quitAndInstall', (event) => {
+  // If application quit was initiated by autoUpdater.quitAndInstall(), then before-quit is emitted after emitting close event on all windows and closing them.
+  isQuiting = true
   autoUpdater.quitAndInstall()
 })
 
