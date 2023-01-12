@@ -352,13 +352,13 @@ const template: MenuItemConstructorOptions[] = [
       click: () => {
         switchToSticky(false)
       },
-    },{
+    }, {
       label: 'find next active sticky',
       accelerator: 'CmdOrCtrl+]',
       click: () => {
         switchToSticky(true)
       },
-    },{
+    }, {
       label: 'create stickies',
       accelerator: 'CmdOrCtrl+N',
       click: () => {
@@ -534,9 +534,11 @@ ipcMain.on('deleteSticky', (event, stickyId) => {
 
 const removeSticky = (stickyId: number) => {
   stickyWindows[stickyId].close()
-  delete stickiesConfig.value[stickyId]
-  delete stickyWindows[stickyId]
-  unlinkSync(join(userPath, `sticky${stickyId}.json`))
+  setTimeout(() => { // prevent sticky close event not accessing to stickiesConfig
+    delete stickiesConfig.value[stickyId]
+    delete stickyWindows[stickyId]
+    unlinkSync(join(userPath, `sticky${stickyId}.json`))
+  }, 350)
 }
 
 // autoUpdater.checkForUpdatesAndNotify()
