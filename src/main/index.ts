@@ -269,7 +269,7 @@ function createStickies(id = Date.now()) {
     })
   })
   sticky.on('blur', () => {
-    mainWindow!.webContents.send('message', {
+    mainWindow?.webContents.send('message', {
       type: 'activesticky',
       value: null
     })
