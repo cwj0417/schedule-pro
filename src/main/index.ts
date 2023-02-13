@@ -29,23 +29,23 @@ const stickyMinFrame = {
 }
 
 autoUpdater.on('checking-for-update', () => {
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'checking-for-update',
   });
 })
 autoUpdater.on('update-available', (info: UpdateInfo) => {
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'update-available',
     value: info,
   });
 })
 autoUpdater.on('update-not-available', (info) => {
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'update-not-available',
   });
 })
 autoUpdater.on('error', (err) => {
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'update-error',
     value: err,
   });
@@ -54,13 +54,13 @@ autoUpdater.on('download-progress', (progressObj) => {
   // let log_message = "Download speed: " + progressObj.bytesPerSecond;
   // log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
   // log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'download-progress',
     value: progressObj,
   });
 })
 autoUpdater.on('update-downloaded', (info) => {
-  mainWindow!.webContents.send('message', {
+  mainWindow?.webContents.send('message', {
     type: 'update-downloaded',
     value: info,
   });
@@ -175,7 +175,7 @@ const windowConf: {
 function createWindow(type: keyof typeof windowConf = 'main') {
 
   if (mainWindow) {
-    if (mainWindow!.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
+    if (mainWindow?.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
     mainWindow!.show()
   } else {
     mainWindow = new BrowserWindow({
@@ -245,7 +245,7 @@ function createStickies(id = Date.now()) {
         delete stickyWindows[id]
         if (stickiesConfig.value[id].title) {
           stickiesConfig.value[id].expended = false
-          mainWindow!.webContents.send('message', {
+          mainWindow?.webContents.send('message', {
             type: 'activesticky',
             value: null
           })
@@ -263,7 +263,7 @@ function createStickies(id = Date.now()) {
     setPosition()
   })
   sticky.on('focus', () => {
-    mainWindow!.webContents.send('message', {
+    mainWindow?.webContents.send('message', {
       type: 'activesticky',
       value: id
     })
