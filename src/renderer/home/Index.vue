@@ -26,7 +26,7 @@
         <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer" />
 
-        <div style="color: var(--color-2); backgroundColor: var(--bg-0);" class="text-xs mt-1 relative w-40 z-10 p-2" v-if="versionInfo.downloaded">
+        <div style="color: var(--color-2); backgroundColor: var(--bg-0);" class="text-xs mt-1 relative w-40 z-10 p-2 shadow-md" v-if="versionInfo.downloaded">
           <div v-html="versionInfo.releaseNotes"></div>
           <span @click="restart" class="cursor-pointer mt-2 inline-block" style="color: var(--color-0);">点击安装</span>
         </div>
