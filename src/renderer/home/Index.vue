@@ -21,17 +21,15 @@
         </span>
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
-        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3">v{{ versionInfo.curVersion
+        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3" v-if="!versionInfo.downloaded">v{{ versionInfo.curVersion
         }}</span>
         <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
           class="mt-1 mr-2 cursor-pointer" />
 
-        <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-if="versionInfo.downloaded"
-          @click="restart">
-          重启安装v{{ versionInfo.latestVersion }} ({{
-          versionInfo.releaseDate
-          }})
-        </span>
+        <div style="color: var(--color-2); backgroundColor: var(--bg-0);" class="text-xs mt-1 relative w-40 z-10 p-2" v-if="versionInfo.downloaded">
+          <div v-html="versionInfo.releaseNotes"></div>
+          <span @click="restart" class="cursor-pointer mt-2 inline-block" style="color: var(--color-0);">点击安装</span>
+        </div>
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
           {{ versionInfo.status }}
         </span>
@@ -302,6 +300,7 @@ const versionInfo = reactive({
   releaseDate: "",
   status: "",
   downloaded: false,
+  releaseNotes: '',
 });
 
 const checkForUpdate = () => {
@@ -336,6 +335,8 @@ onMounted(() => {
 
     if (type === "update-downloaded") {
       versionInfo.downloaded = true;
+      versionInfo.latestVersion = value;
+      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\[feat\]/g, '功能:').replace('[fix]', '修复:')
     }
 
   });
