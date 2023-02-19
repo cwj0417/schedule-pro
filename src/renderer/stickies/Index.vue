@@ -23,10 +23,8 @@
         </div>
       </div>
     </div>
-    <div class="p-2" style="height: calc(100% - 2.5rem); color: var(--color-0)"
+    <div id="code-mirror" class="p-2" style="height: calc(100% - 2.5rem); color: var(--color-0)"
       :style="`background: linear-gradient(${bgColor}, var(--bg-0))`">
-      <textarea autofocus class="non-border w-full h-full" cols="30" rows="10" :value="data?.value.content"
-        @input="(e) => (data.value.content = e.target!.value)"></textarea>
     </div>
   </div>
 </template>
@@ -36,6 +34,7 @@ import { useUserData, getBg } from "../composition";
 import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
+import { useEditor } from '../composition/editor';
 
 const getquery = () => {
   const matched = location.href.match(/\?id=([^&]+)&bg=(.+)/);
@@ -44,11 +43,28 @@ const getquery = () => {
 
 const { ipcRenderer, onMessage } = window.apis;
 const [id, bg] = getquery();
-let data = ref<any>(null);
 let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
 let isTransparent = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
+
+if (id) {
+  bgColor.value = getBg(bg);
+  let data = useUserData(
+    "sticky" + id,
+    {
+      content: "",
+    },
+    (val: any) => {
+      if (timerHandler) clearTimeout(timerHandler);
+      timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
+        key: id,
+        val: val.content,
+      });
+    }
+  );
+  useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
+}
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
@@ -70,22 +86,6 @@ onMounted(() => {
       bgColor.value = getBg(value);
     }
   });
-  if (id) {
-    bgColor.value = getBg(bg);
-    data.value = useUserData(
-      "sticky" + id,
-      {
-        content: "",
-      },
-      (val: any) => {
-        if (timerHandler) clearTimeout(timerHandler);
-        timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
-          key: id,
-          val: val.content,
-        });
-      }
-    );
-  }
   document
     .getElementsByClassName("dragable")[0]
     .addEventListener("mouseenter", clickThoughMouseEnter);
