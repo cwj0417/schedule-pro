@@ -41,7 +41,7 @@
     <div class="w-full flex space-x-5 page-body">
       <div style="width: calc(75% - 0.625rem)">
         <div :style="`height: calc(100% - ${timers.length ? '148' : '51'}px)`" class="flex space-x-5">
-          <div class="h-full" style="transition: all .5s" :class="{
+          <div class="h-full" style="transition: all .5s;max-width: calc(100% - 200px);" :class="{
             'flex-grow': !searchScheduleOrInspiration(inspiration).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
           }">
             <div class="text-sm space-x-2">
@@ -77,7 +77,7 @@
               <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
             </div>
           </div>
-          <div class="h-full" style="transition: all .5s"
+          <div class="h-full" style="transition: all .5s;max-width: calc(100% - 200px);"
             :style="{ height: timers.length ? '100%' : 'calc(100% + 51px)' }" :class="{
               'flex-grow': !searchScheduleOrInspiration(schedule?.[getTs()]).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
             }">
