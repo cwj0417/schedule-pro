@@ -2,7 +2,7 @@
   <div class="wrap">
     <div class="page-title">
       <div class="absolute left-3 top-3 px-2 py-1 h-10 rounded-md" :style="{
-        borderWidth: searchContent ? '2px': '',
+        borderWidth: searchContent ? '2px' : '',
         borderColor: searchContent ? 'var(--theme-2)' : ''
       }">
         <input type="text" class="outline-none caret-transparent cursor-default bg-transparent" ref="searchInput"
@@ -21,12 +21,15 @@
         </span>
       </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5">
-        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3" v-if="!versionInfo.downloaded">v{{ versionInfo.curVersion
-        }}</span>
-        <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded" :class="{ 'animate-spin': versionInfo.checkingForUpdate }"
-          class="mt-1 mr-2 cursor-pointer" />
+        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3"
+          v-if="!versionInfo.downloaded">v{{
+            versionInfo.curVersion
+          }}</span>
+        <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded"
+          :class="{ 'animate-spin': versionInfo.checkingForUpdate }" class="mt-1 mr-2 cursor-pointer" />
 
-        <div style="color: var(--color-2); backgroundColor: var(--bg-0);" class="text-xs mt-1 relative w-40 z-10 p-2 shadow-md" v-if="versionInfo.downloaded">
+        <div style="color: var(--color-2); backgroundColor: var(--bg-0);"
+          class="text-xs mt-1 relative w-40 z-10 p-2 shadow-md" v-if="versionInfo.downloaded">
           <div v-html="versionInfo.releaseNotes"></div>
           <span @click="restart" class="cursor-pointer mt-2 inline-block" style="color: var(--color-0);">点击安装</span>
         </div>
@@ -37,56 +40,22 @@
     </div>
     <div class="w-full flex space-x-5 page-body">
       <div style="width: calc(75% - 0.625rem)">
-        <div class="h-32">
-          <div class="text-sm space-x-2">
-            <CountdownSvg class="inline-block" />
-            <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
-            <keyboard @esc="
-              keydown({
-                keyCode: 27,
-              })
-            " :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')" :value="
-              data.editing === 'timer' ? editingAccelerator : config.timer
-            " />
-          </div>
-          <div class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2">
-            <div v-if="!timers.length" class="content-block w-full flex-none h-20 rounded-lg shadow-md overflow-hidden">
-              <empty />
-            </div>
-            <div class="content-block w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden" v-for="timer of timers"
-              :key="timer.id">
-              <div class="w-44 h-2">
-                <div class="h-full" style="backgroundColor: var(--theme-0);"
-                  :style="{ width: timer.percent * 100 + '%' }"></div>
-              </div>
-              <div style="color: var(--color-2)" class="my-1 h-4 text-center text-xs">{{ formatCountdown(timer.remain)
-              }}
-              </div>
-              <div style="color: var(--color-0)"
-                class="text-sm text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis">
-                {{ timer.content }}</div>
-            </div>
-          </div>
-        </div>
-        <div style="height: calc(100% - 148px)" class="flex space-x-5 mt-5">
-          <div class="h-full" style="width: calc(50% - 0.625rem)">
+        <div :style="`height: calc(100% - ${timers.length ? '148' : '51'}px)`" class="flex space-x-5">
+          <div class="h-full" style="transition: all .5s" :class="{
+            'flex-grow': !searchScheduleOrInspiration(inspiration).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
+          }">
             <div class="text-sm space-x-2">
               <ScheduleSvg class="inline-block" />
-              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日待办</span>
-              <keyboard @esc="
-                keydown({
-                  keyCode: 27,
-                })
-              " :active="
-                data.editing === 'schedule' && !editingAccelerator.length
-              " @setShortcut="edit('schedule')" :value="
-                data.editing === 'schedule'
-                  ? editingAccelerator
-                  : config.schedule
-              " />
+              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
+              <keyboard @esc="keydown({
+                keyCode: 27,
+              })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
+                :value="data.editing === 'schedule'
+                ? editingAccelerator
+                : config.schedule" />
             </div>
             <div style="height: calc(100% - 44px);"
-              :style="{borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)'}"
+              :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
               class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
               <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
                 item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
@@ -108,24 +77,22 @@
               <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
             </div>
           </div>
-          <div class="h-full" style="width: calc(50% - 0.625rem)">
+          <div class="h-full" style="transition: all .5s"
+            :style="{ height: timers.length ? '100%' : 'calc(100% + 51px)' }" :class="{
+              'flex-grow': !searchScheduleOrInspiration(schedule?.[getTs()]).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
+            }">
             <div class="text-sm space-x-2">
               <InspirationSvg class="inline-block" />
               <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
-              <keyboard @esc="
-                keydown({
-                  keyCode: 27,
-                })
-              " :active="
-                data.editing === 'inspiration' && !editingAccelerator.length
-              " @setShortcut="edit('inspiration')" :value="
-                data.editing === 'inspiration'
-                  ? editingAccelerator
-                  : config.inspiration
-              " />
+              <keyboard @esc="keydown({
+                keyCode: 27,
+              })" :active="data.editing === 'inspiration' && !editingAccelerator.length"
+                @setShortcut="edit('inspiration')" :value="data.editing === 'inspiration'
+                ? editingAccelerator
+                : config.inspiration" />
             </div>
             <div style="height: calc(100% - 44px);"
-              :style="{borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)'}"
+              :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
               class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
               <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
                 item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
@@ -148,11 +115,37 @@
             </div>
           </div>
         </div>
+
+        <div :class="timers.length ? 'h-32' : 'h-8'" class="mt-5">
+          <div class="text-sm space-x-2">
+            <CountdownSvg class="inline-block" />
+            <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
+            <keyboard @esc="keydown({
+              keyCode: 27,
+            })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
+              :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
+          </div>
+          <div v-if="timers.length" class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2">
+            <div class="content-block w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden" v-for="timer of timers"
+              :key="timer.id">
+              <div class="w-44 h-2">
+                <div class="h-full" style="backgroundColor: var(--theme-0);"
+                  :style="{ width: timer.percent * 100 + '%' }"></div>
+              </div>
+              <div style="color: var(--color-2)" class="my-1 h-4 text-center text-xs">{{
+                formatCountdown(timer.remain)
+              }}
+              </div>
+              <div style="color: var(--color-0)"
+                class="text-sm text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                {{ timer.content }}</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div style="width: calc(25% - 0.625rem)">
         <div class="text-sm space-x-2">
           <StickySvg class="inline-block" />
-
           <span>便签</span>
           <keyboard :disabled="true" :value="['metaKey', 'n']" />
         </div>

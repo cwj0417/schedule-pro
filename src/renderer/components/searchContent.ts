@@ -1,5 +1,5 @@
 export const useSearchContent = (input: any, field: any) => (stickies: any[]) => {
-    if (!stickies?.length) return stickies;
+    if (!stickies?.length) return [];
     if (!input.value) return stickies;
     return stickies.filter(sticky => getHighlightedText(sticky[field], input.value));
   }

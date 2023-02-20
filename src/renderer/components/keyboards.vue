@@ -1,7 +1,7 @@
 <template>
   <span
     v-if="active"
-    class="text-sm font-normal w-42 inline-block"
+    class="text-sm font-normal inline-block"
     style="height: 25px; line-height: 25px; color: var(--theme-0)"
   >
     <span>请设置快捷键</span>
@@ -10,7 +10,7 @@
   <span
     v-else
     style="color: var(--color-2)"
-    :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-context-menu w-36'"
+    :class="disabled ? 'cursor-not-allowed w-auto' : 'cursor-context-menu'"
     class="text-base font-normal inline-block"
     @dblclick="!disabled && $emit('setShortcut')"
   >
