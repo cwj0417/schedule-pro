@@ -86,7 +86,7 @@ const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
     stickiesConfig.value[id] = {
       order: 0,
-      backgroundColor: Math.ceil(Math.random()* 9).toString(),
+      backgroundColor: Math.ceil(Math.random() * 9).toString(),
       width: stickyMinFrame.width,
       height: stickyMinFrame.height,
       x: 0,
@@ -539,7 +539,9 @@ const removeSticky = (stickyId: number) => {
   setTimeout(() => { // prevent sticky close event not accessing to stickiesConfig
     delete stickiesConfig.value[stickyId]
     delete stickyWindows[stickyId]
-    unlinkSync(join(userPath, `sticky${stickyId}.json`))
+    try { // prevent manually delete a non-content-sticky after newing
+      unlinkSync(join(userPath, `sticky${stickyId}.json`))
+    } catch (e) { }
   }, 350)
 }
 
