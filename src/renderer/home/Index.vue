@@ -31,7 +31,7 @@
         <div style="color: var(--color-2); backgroundColor: var(--bg-0);"
           class="text-xs mt-1 relative w-40 z-10 p-2 shadow-md" v-if="versionInfo.downloaded">
           <div v-html="versionInfo.releaseNotes"></div>
-          <span @click="restart" class="cursor-pointer mt-2 inline-block" style="color: var(--color-0);">点击安装</span>
+          <span @click="restart" class="cursor-pointer inline-block" style="color: var(--color-0);">点击安装</span>
         </div>
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
           {{ versionInfo.status }}
@@ -329,7 +329,7 @@ onMounted(() => {
     if (type === "update-downloaded") {
       versionInfo.downloaded = true;
       versionInfo.latestVersion = value;
-      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\[feat\]/g, '功能:').replace('[fix]', '修复:')
+      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p><hr class='my-2'/>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\<p(\>[^\<]+\<\/p\>)/, '<p style="color: var(--color-0);padding-bottom: 5px;" $1').replace(/\[feat\]/g, '功能:').replace('[fix]', '修复:') + `<hr class='my-2'/>`;
     }
 
   });
