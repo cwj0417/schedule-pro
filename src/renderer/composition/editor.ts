@@ -37,7 +37,7 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
                 state: startState,
                 parent: dom(),
             })
-        })
+        }, 50) // fix not got init doc value aftre hmr, because editor is not double-way binding.
     })
 }
 
