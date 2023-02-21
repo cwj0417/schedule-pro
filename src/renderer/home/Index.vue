@@ -61,6 +61,11 @@
                 item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
                 @update:modelValue="handleScheduleUpdate($event)" tag="transition-group"
                 :component-data="{ name: 'animate-list', tag: 'div' }">
+                <template #header>
+                  <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
+                  <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
+                    class="w-full h-10 border-dashed border-black border-2"></div>
+                </template>
                 <template #item="{ element: item, index }">
                   <div :class="{
                     'stripped': index % 2 === 1,
@@ -74,7 +79,6 @@
                   </div>
                 </template>
               </draggable>
-              <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
             </div>
           </div>
           <div class="h-full" style="transition: width .5s;max-width: calc(100% - 200px);" :style="{
@@ -98,6 +102,11 @@
                 item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
                 @update:modelValue="handleInspirationUpdate($event)" tag="transition-group"
                 :component-data="{ name: 'animate-list', tag: 'div' }">
+                <template #header>
+                  <empty v-if="!searchScheduleOrInspiration(inspiration).length && !isDragging" />
+                  <div v-if="!searchScheduleOrInspiration(inspiration).length && isDragging"
+                    class="w-full h-10 border-dashed border-black border-2"></div>
+                </template>
                 <template #item="{ element: item, index }">
                   <div :class="{
                     'stripped': index % 2 === 1,
@@ -111,7 +120,6 @@
                   </div>
                 </template>
               </draggable>
-              <empty v-if="!searchScheduleOrInspiration(inspiration).length" />
             </div>
           </div>
         </div>
