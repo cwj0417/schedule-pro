@@ -23,7 +23,7 @@
         </div>
       </div>
     </div>
-    <div id="code-mirror" class="p-2" style="height: calc(100% - 2.5rem); color: var(--color-0)"
+    <div id="code-mirror" class="p-2 text-sm" style="height: calc(100% - 2.5rem); color: var(--color-0)"
       :style="`background: ${bgColor}`">
     </div>
   </div>
