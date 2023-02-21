@@ -11,7 +11,7 @@
       <div class="flex w-full justify-center">
         <img v-if="!isDark" class="h-6 mr-3 mt-1" src="@/assets/logo.png" />
         <img v-else class="h-6 mr-3 mt-1" src="@/assets/logoblack.png" />
-        <span class="w-44">
+        <span>
           <keyboard @esc="
             keydown({
               keyCode: 27,
