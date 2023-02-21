@@ -36,7 +36,7 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
             new EditorView({
                 state: startState,
                 parent: dom(),
-            })
+            }).focus()
         }, 50) // fix not got init doc value aftre hmr, because editor is not double-way binding.
     })
 }
