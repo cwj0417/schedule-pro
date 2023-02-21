@@ -442,7 +442,7 @@ ipcMain.on('addCountDown', (event, args) => {
 })
 
 ipcMain.on('hideWindow', () => {
-  BrowserWindow.getFocusedWindow()?.hide()
+  BrowserWindow.getFocusedWindow()?.close()
 })
 
 ipcMain.on('toggleFullscreen', () => {
