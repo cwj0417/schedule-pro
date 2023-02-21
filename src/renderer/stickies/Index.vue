@@ -24,7 +24,7 @@
       </div>
     </div>
     <div id="code-mirror" class="p-2" style="height: calc(100% - 2.5rem); color: var(--color-0)"
-      :style="`background: linear-gradient(${bgColor}, var(--bg-0))`">
+      :style="`background: ${bgColor}`">
     </div>
   </div>
 </template>
