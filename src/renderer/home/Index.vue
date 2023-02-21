@@ -41,8 +41,8 @@
     <div class="w-full flex space-x-5 page-body">
       <div style="width: calc(75% - 0.625rem)">
         <div :style="`height: calc(100% - ${timers.length ? '148' : '51'}px)`" class="flex space-x-5">
-          <div class="h-full" style="transition: all .5s;max-width: calc(100% - 200px);" :class="{
-            'flex-grow': !searchScheduleOrInspiration(inspiration).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
+          <div class="h-full" style="transition: width .5s" :style="{
+            width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '11rem' : 'calc(100% - 12.5rem)'
           }">
             <div class="text-sm space-x-2">
               <ScheduleSvg class="inline-block" />
@@ -77,10 +77,10 @@
               <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
             </div>
           </div>
-          <div class="h-full" style="transition: all .5s;max-width: calc(100% - 200px);"
-            :style="{ height: timers.length ? '100%' : 'calc(100% + 51px)' }" :class="{
-              'flex-grow': !searchScheduleOrInspiration(schedule?.[getTs()]).length || (searchScheduleOrInspiration(inspiration).length && searchScheduleOrInspiration(schedule?.[getTs()]).length)
-            }">
+          <div class="h-full" style="transition: width .5s;max-width: calc(100% - 200px);" :style="{
+            height: timers.length ? '100%' : 'calc(100% + 51px)',
+            width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 12.5rem)' : '11rem'
+          }">
             <div class="text-sm space-x-2">
               <InspirationSvg class="inline-block" />
               <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
