@@ -39,115 +39,100 @@
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
-      <div style="width: calc(75% - 0.625rem)">
-        <div :style="`height: calc(100% - ${timers.length ? '148' : '51'}px)`" class="flex space-x-5">
-          <div class="h-full" style="transition: width .5s" :style="{
-            width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '11rem' : 'calc(100% - 12.5rem)'
-          }">
-            <div class="text-sm space-x-2">
-              <ScheduleSvg class="inline-block" />
-              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
-              <keyboard @esc="keydown({
-                keyCode: 27,
-              })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
-                :value="data.editing === 'schedule'
-                ? editingAccelerator
-                : config.schedule" />
-            </div>
-            <div style="height: calc(100% - 44px);"
-              :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
-              class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
-              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
-                item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
-                @update:modelValue="handleScheduleUpdate($event)" tag="transition-group"
-                :component-data="{ name: 'animate-list', tag: 'div' }">
-                <template #header>
-                  <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
-                  <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
-                    class="w-full h-10 border-dashed border-black border-2"></div>
-                </template>
-                <template #item="{ element: item, index }">
-                  <div :class="{
-                    'stripped': index % 2 === 1,
-                    'item-done': item.done,
-                  }" class="w-full h-10 p-2 flex leading-6">
-                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                      style="width: calc(100% - 24px)">
-                      <search-result :search="searchContent" :value="item.content" />
-                    </span>
-                  </div>
-                </template>
-              </draggable>
-            </div>
+      <div style="width: calc(75% - 0.625rem)" class="flex space-x-5">
+        <div class="h-full" style="transition: width .5s;" :style="{
+          width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '11rem' : 'calc(100% - 12.5rem)'
+        }">
+          <div class="text-sm space-x-2">
+            <ScheduleSvg class="inline-block" />
+            <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
+            <keyboard @esc="keydown({
+              keyCode: 27,
+            })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
+              :value="data.editing === 'schedule'
+              ? editingAccelerator
+              : config.schedule" />
           </div>
-          <div class="h-full" style="transition: width .5s;max-width: calc(100% - 200px);" :style="{
-            height: timers.length ? '100%' : 'calc(100% + 51px)',
-            width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 12.5rem)' : '11rem'
-          }">
-            <div class="text-sm space-x-2">
-              <InspirationSvg class="inline-block" />
-              <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
+          <div style="height: calc(100% - 95px);"
+            :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
+            class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+            <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
+              item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
+              @update:modelValue="handleScheduleUpdate($event)" tag="transition-group"
+              :component-data="{ name: 'animate-list', tag: 'div' }">
+              <template #header>
+                <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
+                <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
+                  class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
+              </template>
+              <template #item="{ element: item, index }">
+                <div :class="{
+                  'stripped': index % 2 === 1,
+                  'item-done': item.done,
+                }" class="w-full h-10 p-2 flex leading-6">
+                  <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+                  <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
+                    style="width: calc(100% - 24px)">
+                    <search-result :search="searchContent" :value="item.content" />
+                  </span>
+                </div>
+              </template>
+            </draggable>
+          </div>
+          <div class="h-8 mt-5">
+            <div v-if="!timers.length" class="text-sm space-x-2">
+              <CountdownSvg class="inline-block" />
+              <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
               <keyboard @esc="keydown({
                 keyCode: 27,
-              })" :active="data.editing === 'inspiration' && !editingAccelerator.length"
-                @setShortcut="edit('inspiration')" :value="data.editing === 'inspiration'
-                ? editingAccelerator
-                : config.inspiration" />
+              })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
+                :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
             </div>
-            <div style="height: calc(100% - 44px);"
-              :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
-              class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
-              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
-                item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
-                @update:modelValue="handleInspirationUpdate($event)" tag="transition-group"
-                :component-data="{ name: 'animate-list', tag: 'div' }">
-                <template #header>
-                  <empty v-if="!searchScheduleOrInspiration(inspiration).length && !isDragging" />
-                  <div v-if="!searchScheduleOrInspiration(inspiration).length && isDragging"
-                    class="w-full h-10 border-dashed border-black border-2"></div>
-                </template>
-                <template #item="{ element: item, index }">
-                  <div :class="{
-                    'stripped': index % 2 === 1,
-                    'item-done': item.done,
-                  }" class="w-full h-10 p-2 flex leading-6">
-                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                      style="width: calc(100% - 24px)">
-                      <search-result :search="searchContent" :value="item.content" />
-                    </span>
-                  </div>
-                </template>
-              </draggable>
+            <div v-else class="text-sm space-x-2 cursor-pointer h-full rounded-xl border-2 p-1" @click="location.replace('#/timer')"
+              style="color: var(--color-0); border-color: var(--theme-1)"
+              :style="`background: linear-gradient(90deg, var(--theme-2), var(--theme-4) ${timers[0].percent * 100 + '%'}, transparent 0);`">
+              {{ timers[0].content }}
             </div>
           </div>
         </div>
-
-        <div :class="timers.length ? 'h-32' : 'h-8'" class="mt-5">
+        <div class="h-full" style="transition: width .5s;" :style="{
+          width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 12.5rem)' : '11rem'
+        }">
           <div class="text-sm space-x-2">
-            <CountdownSvg class="inline-block" />
-            <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
+            <InspirationSvg class="inline-block" />
+            <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
             <keyboard @esc="keydown({
               keyCode: 27,
-            })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
-              :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
+            })" :active="data.editing === 'inspiration' && !editingAccelerator.length"
+              @setShortcut="edit('inspiration')" :value="data.editing === 'inspiration'
+              ? editingAccelerator
+              : config.inspiration" />
           </div>
-          <div v-if="timers.length" class="h-auto flex-grow flex overflow-x-auto space-x-5 mt-3 pb-2">
-            <div class="content-block w-44 flex-none h-20 rounded-lg shadow-md overflow-hidden" v-for="timer of timers"
-              :key="timer.id">
-              <div class="w-44 h-2">
-                <div class="h-full" style="backgroundColor: var(--theme-0);"
-                  :style="{ width: timer.percent * 100 + '%' }"></div>
-              </div>
-              <div style="color: var(--color-2)" class="my-1 h-4 text-center text-xs">{{
-                formatCountdown(timer.remain)
-              }}
-              </div>
-              <div style="color: var(--color-0)"
-                class="text-sm text-center p-2 h-11 overflow-hidden whitespace-nowrap overflow-ellipsis">
-                {{ timer.content }}</div>
-            </div>
+          <div style="height: calc(100% - 44px);"
+            :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
+            class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+            <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
+              item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
+              @update:modelValue="handleInspirationUpdate($event)" tag="transition-group"
+              :component-data="{ name: 'animate-list', tag: 'div' }">
+              <template #header>
+                <empty v-if="!searchScheduleOrInspiration(inspiration).length && !isDragging" />
+                <div v-if="!searchScheduleOrInspiration(inspiration).length && isDragging"
+                  class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
+              </template>
+              <template #item="{ element: item, index }">
+                <div :class="{
+                  'stripped': index % 2 === 1,
+                  'item-done': item.done,
+                }" class="w-full h-10 p-2 flex leading-6">
+                  <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+                  <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
+                    style="width: calc(100% - 24px)">
+                    <search-result :search="searchContent" :value="item.content" />
+                  </span>
+                </div>
+              </template>
+            </draggable>
           </div>
         </div>
       </div>
@@ -337,7 +322,7 @@ onMounted(() => {
     if (type === "update-downloaded") {
       versionInfo.downloaded = true;
       versionInfo.latestVersion = value;
-      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p><hr class='my-2'/>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\<p(\>[^\<]+\<\/p\>)/, '<p style="color: var(--color-0);padding-bottom: 5px;" $1').replace(/\[feat\]/g, '功能:').replace('[fix]', '修复:') + `<hr class='my-2'/>`;
+      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p><hr class='my-2'/>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\<p(\>[^\<]+\<\/p\>)/, '<p style="color: var(--color-0);padding-bottom: 5px;" $1') + `<hr class='my-2'/>`;
     }
 
   });
