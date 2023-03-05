@@ -1,14 +1,35 @@
 import { onMounted } from "vue";
-import { EditorState } from "@codemirror/state"
+import { EditorSelection, EditorState } from "@codemirror/state"
 import {
-    EditorView, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap
+    EditorView, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap, KeyBinding
 } from "@codemirror/view"
 import { markdown } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from '@codemirror/language';
-import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
+import { history, historyKeymap } from '@codemirror/commands';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
+
+const bold: KeyBinding = {
+    key: "Mod-b",
+    run: (view: EditorView) => {
+        view.dispatch(view.state.changeByRange(range => {
+            let content = view.state.doc.sliceString(range.from, range.to)
+            const originLenth = content.length;
+            const isBold = /^\*\*.*\*\*$/.test(content);
+            if (isBold) {
+                content = content.replace(/^\*\*(.*)\*\*$/, '$1');
+            } else {
+                content = `**${content.replace(/^\**([^\*]*)\**$/g, '$1')}**`;
+            }
+            return {
+                changes: [{ from: range.from, to: range.to, insert: content }],
+                range: EditorSelection.range(range.from, range.to - originLenth + content.length),
+            }
+        }))
+        return true;
+    }
+}
 
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement) => {
     let debounce: NodeJS.Timeout
@@ -33,11 +54,11 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
                     highlightSelectionMatches(),
                     keymap.of([
                         ...closeBracketsKeymap,
-                        ...defaultKeymap,
                         ...searchKeymap,
                         ...historyKeymap,
                         ...foldKeymap,
                         ...completionKeymap,
+                        bold,
                     ]),
                     markdown({ codeLanguages: languages }),
                     EditorView.updateListener.of(function (e: any) {
