@@ -222,6 +222,7 @@ function createStickies(id = Date.now()) {
     webPreferences: {
       preload: mainPreload,
       sandbox: false,
+      webSecurity: false,
     },
     show: false
   })

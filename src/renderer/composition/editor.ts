@@ -1,7 +1,15 @@
 import { onMounted } from "vue";
 import { EditorSelection, EditorState } from "@codemirror/state"
 import {
-    EditorView, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap, KeyBinding
+    EditorView,
+    highlightSpecialChars,
+    drawSelection,
+    dropCursor,
+    rectangularSelection,
+    crosshairCursor,
+    highlightActiveLine,
+    keymap,
+    KeyBinding,
 } from "@codemirror/view"
 import { markdown } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
@@ -9,6 +17,7 @@ import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatchi
 import { history, historyKeymap } from '@codemirror/commands';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
+import { useImgDnPPlugin } from "./editor/imgdnp";
 
 const bold: KeyBinding = {
     key: "Mod-b",
@@ -33,6 +42,7 @@ const bold: KeyBinding = {
 
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement) => {
     let debounce: NodeJS.Timeout
+    const ImageDropAndPaste = useImgDnPPlugin()
     onMounted(() => {
         setTimeout(() => {
             let startState = EditorState.create({
@@ -64,7 +74,8 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
                     EditorView.updateListener.of(function (e: any) {
                         clearTimeout(debounce)
                         debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
-                    })
+                    }),
+                    ImageDropAndPaste,
                 ]
             })
             new EditorView({
