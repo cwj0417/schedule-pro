@@ -6,8 +6,7 @@
       <div @click="openSticky(sticky?.id)"
         class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group transition-all"
         style="borderColor: var(--bg-2);transformOrigin: left;" :style="{
-          background: sticky?.expended ? `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
-          boxShadow: +activeKey === +sticky.id ? `inset 0px 0px 5px 5px ${getBg(sticky?.backgroundColor)}` : '',
+          background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
         }">
         <search-result :value="sticky?.title || '未命名便签'" :search="search" />
