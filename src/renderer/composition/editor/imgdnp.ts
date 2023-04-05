@@ -18,7 +18,7 @@ export const useImgDnPPlugin = () => {
         run: (view: EditorView) => {
             const anchor = view.state.selection.main.anchor
             const pictureRegex = /!\[([^\]]+)\]\(([^\)]+)\)$/;
-            const isMatched = view.state.doc.text.join('-').slice(0, anchor).match(pictureRegex)
+            const isMatched = [...view.state.doc].join('').slice(0, anchor).match(pictureRegex)
             if (isMatched) {
                 const [string, , url] = isMatched;
                 view.dispatch({
@@ -67,7 +67,7 @@ export const useImgDnPPlugin = () => {
     }
 
     const createImage = (view: EditorView) => {
-        const text = (view.state.doc as any).text.join('-'); // join '-' for doc range contains \n.
+        const text = [...view.state.doc].join('')
         const pictureRegex = /!\[([^\]]+)\]\(([^\)]+)\)/g;
         const matched = [];
         let isMatched: boolean | null | RegExpExecArray = true;
@@ -113,7 +113,7 @@ export const useImgDnPPlugin = () => {
                 saveImageToCache(file, (filename) => {
                     view.dispatch({
                         changes: {
-                            from: event.target.cmView.posAtEnd,
+                            from: view.state.selection.main.anchor,
                             insert: `\n![${file.name}](file://${filename})`
                         }
                     })
