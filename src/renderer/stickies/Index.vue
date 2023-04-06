@@ -2,7 +2,7 @@
   <div class="h-full">
     <div class="dragable h-10 w-full flex items-center" :style="{ backgroundColor: bgColor }" @dblclick="fullscreen">
       <div style="backgroundColor: #eee"
-        class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden">
+        class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden nodragable">
         <div class="w-3 h-3 rounded-lg m-1 float-left" :style="{ backgroundColor: bgColor }" />
         <div class="w-px h-2.5 float-left ml-2 mr-0.5" style="backgroundColor: var(--bg-2);margin-top: 5px" />
         <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left" v-for="color in 9" :key="color"
@@ -10,7 +10,7 @@
           @click="changeColor(color)" />
       </div>
       <div class="flex-grow"></div>
-      <div class="h-5 pr-5 flex leading-4">
+      <div class="h-5 pr-5 flex leading-4 nodragable">
         <div class="cursor-pointer ml-3" @click="togglePin">
           <ArrowupSvg class="inline-block" :fill="isPin ? '#333333' : '#999999'" />
         </div>

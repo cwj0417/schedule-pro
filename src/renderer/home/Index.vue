@@ -8,10 +8,10 @@
         <input type="text" class="outline-none caret-transparent cursor-default bg-transparent" ref="searchInput"
           v-model="searchContent" @keydown.esc="searchContent = ''" />
       </div>
-      <div class="flex w-full justify-center">
-        <img v-if="!isDark" class="h-6 mr-3 mt-1" src="@/assets/logo.png" />
-        <img v-else class="h-6 mr-3 mt-1" src="@/assets/logoblack.png" />
-        <span>
+      <div class="flex justify-center w-64 absolute left-1/3">
+        <img v-if="!isDark" class="h-6 mr-3 mt-1" src="@/assets/logo.png" draggable="false" />
+        <img v-else class="h-6 mr-3 mt-1" src="@/assets/logoblack.png" draggable="false" />
+        <span class="nodragable">
           <keyboard @esc="
             keydown({
               keyCode: 27,
@@ -20,11 +20,10 @@
             :value="data.editing === 'main' ? editingAccelerator : config.main" />
         </span>
       </div>
-      <div class="flex leading-7 ml-5 absolute right-5 top-5">
-        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3"
-          v-if="!versionInfo.downloaded">v{{
-            versionInfo.curVersion
-          }}</span>
+      <div class="flex leading-7 ml-5 absolute right-5 top-5 nodragable">
+        <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3" v-if="!versionInfo.downloaded">v{{
+          versionInfo.curVersion
+        }}</span>
         <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded"
           :class="{ 'animate-spin': versionInfo.checkingForUpdate }" class="mt-1 mr-2 cursor-pointer" />
 
@@ -50,11 +49,10 @@
               keyCode: 27,
             })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
               :value="data.editing === 'schedule'
-              ? editingAccelerator
-              : config.schedule" />
+                ? editingAccelerator
+                : config.schedule" />
           </div>
-          <div style="height: calc(100% - 95px);"
-            :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
+          <div style="height: calc(100% - 95px);" :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
             class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
             <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
               item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
@@ -88,8 +86,8 @@
               })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
                 :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
             </div>
-            <div v-else class="text-sm space-x-2 cursor-pointer h-full rounded-xl border-2 p-1" @click="location.replace('#/timer')"
-              style="color: var(--color-0); border-color: var(--theme-1)"
+            <div v-else class="text-sm space-x-2 cursor-pointer h-full rounded-xl border-2 p-1"
+              @click="location.replace('#/timer')" style="color: var(--color-0); border-color: var(--theme-1)"
               :style="`background: linear-gradient(90deg, var(--theme-2), var(--theme-4) ${timers[0].percent * 100 + '%'}, transparent 0);`">
               {{ timers[0].content }}
             </div>
@@ -105,11 +103,10 @@
               keyCode: 27,
             })" :active="data.editing === 'inspiration' && !editingAccelerator.length"
               @setShortcut="edit('inspiration')" :value="data.editing === 'inspiration'
-              ? editingAccelerator
-              : config.inspiration" />
+                ? editingAccelerator
+                : config.inspiration" />
           </div>
-          <div style="height: calc(100% - 44px);"
-            :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
+          <div style="height: calc(100% - 44px);" :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
             class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
             <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
               item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
