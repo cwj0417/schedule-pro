@@ -303,7 +303,6 @@ onMounted(() => {
       versionInfo.releaseDate = new Date(
         value.releaseDate
       ).toLocaleDateString();
-      versionInfo.checkingForUpdate = false;
     }
     if (type === "update-not-available" || type === "update-error") {
       versionInfo.status = value;
