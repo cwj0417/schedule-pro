@@ -304,7 +304,7 @@ function switchToSticky(next: boolean) {
     if (index === -1) index = keys.length - 1
     if (index === keys.length) index = 0
   }
-  stickyWindows[+keys[+index]].focus()
+  keys.length && stickyWindows[+keys[+index]].focus()
 }
 
 app.whenReady().then(() => {
