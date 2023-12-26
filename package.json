@@ -42,7 +42,7 @@
     "@codemirror/state": "^6.2.0",
     "@codemirror/view": "^6.9.1",
     "@vueuse/core": "^9.3.0",
-    "vue": "3.3.13",
+    "vue": "3.2.25",
     "vue-router": "^4.0.8",
     "vuedraggable": "^4.1.0"
   }
