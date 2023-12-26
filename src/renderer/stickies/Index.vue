@@ -48,23 +48,9 @@ let isPin = ref<boolean>(false);
 let isTransparent = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
 
-if (id) {
-  bgColor.value = getBg(bg);
-  let data = useUserData(
-    "sticky" + id,
-    {
-      content: "",
-    },
-    (val: any) => {
-      if (timerHandler) clearTimeout(timerHandler);
-      timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
-        key: id,
-        val: val.content,
-      });
-    }
-  );
-  useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
-}
+let data: any;
+
+useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
@@ -81,6 +67,22 @@ const clickThoughMouseLeave = () => {
 };
 
 onMounted(() => {
+  if (id) {
+    bgColor.value = getBg(bg);
+    data = useUserData(
+      "sticky" + id,
+      {
+        content: "",
+      },
+      (val: any) => {
+        if (timerHandler) clearTimeout(timerHandler);
+        timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
+          key: id,
+          val: val.content,
+        });
+      }
+    );
+  }
   onMessage(({ type, value }: any) => {
     if (type === "changebg") {
       bgColor.value = getBg(value);
