@@ -217,11 +217,11 @@ setTimeout(() => {
   ];
   config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
 });
-const { ipcRenderer, onMessage, platform } = window.apis;
+const { invoke, send, onMessage, platform } = window.apis;
 
 const edit = (type: string) => {
   data.editing = type;
-  ipcRenderer.send("removeShortCut", {
+  send("removeShortCut", {
     key: toRaw(config.value[type]) ?? [],
   });
   document.addEventListener("keydown", keydown);
@@ -251,7 +251,7 @@ const keydown = (event: any) => {
       ? toRaw(config.value[data.editing])
       : getAccelerator(event).concat(key.value);
   config.value[data.editing] = shortcutContent;
-  ipcRenderer.send("setShortCut", {
+  send("setShortCut", {
     window: data.editing,
     key: shortcutContent,
   });
@@ -289,7 +289,7 @@ const versionInfo = reactive({
 const checkForUpdate = () => {
   if (!versionInfo.checkingForUpdate) {
     versionInfo.checkingForUpdate = true;
-    ipcRenderer.send("checkforupdate");
+    send("checkforupdate");
   }
 };
 
@@ -322,13 +322,13 @@ onMounted(() => {
     }
 
   });
-  ipcRenderer.invoke("getVersion").then((version: string) => {
+  invoke("getVersion").then((version: string) => {
     versionInfo.curVersion = version;
   });
 });
 
 const restart = () => {
-  ipcRenderer.send("quitAndInstall");
+  send("quitAndInstall");
 }
 
 // timer

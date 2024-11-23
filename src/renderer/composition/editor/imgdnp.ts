@@ -1,4 +1,4 @@
-const { fs, join, ipcRenderer, Buffer } = (window as any).apis
+const { fs, join, invoke, Buffer } = (window as any).apis
 import { onMounted } from 'vue';
 import {
     EditorView,
@@ -135,7 +135,7 @@ export const useImgDnPPlugin = () => {
         }
     })];
     onMounted(() => {
-        ipcRenderer.invoke('getUserPath')
+        invoke('getUserPath')
             .then((path: string) => {
                 userPath = path
                 if (!fs.existsSync(join(path, 'imgcache'))) {

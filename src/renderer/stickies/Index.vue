@@ -41,7 +41,7 @@ const getquery = () => {
   return matched ? [matched[1], matched[2]] : [];
 };
 
-const { ipcRenderer, onMessage } = window.apis;
+const { send, onMessage } = window.apis;
 const [id, bg] = getquery();
 let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
@@ -54,13 +54,13 @@ useEditor(() => data.value.content, v => data.value.content = v, () => document.
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
-    ipcRenderer.send("set-ignore-mouse-events", false);
+    send("set-ignore-mouse-events", false);
   }
 };
 
 const clickThoughMouseLeave = () => {
   if (isTransparent.value) {
-    ipcRenderer.send("set-ignore-mouse-events", true, {
+    send("set-ignore-mouse-events", true, {
       forward: true,
     });
   }
@@ -76,7 +76,7 @@ onMounted(() => {
       },
       (val: any) => {
         if (timerHandler) clearTimeout(timerHandler);
-        timerHandler = setTimeout(ipcRenderer.send, val.content ? 350 : 0, "setStickyTitle", {
+        timerHandler = setTimeout(send, val.content ? 350 : 0, "setStickyTitle", {
           key: id,
           val: val.content,
         });
@@ -106,29 +106,29 @@ onUnmounted(() => {
 });
 
 // const retract = () => {
-//   ipcRenderer.send("retractSticky", id);
+//   send("retractSticky", id);
 // };
 const deleteSticky = () => {
-  ipcRenderer.send("deleteSticky", id);
+  send("deleteSticky", id);
 };
 const changeColor = (color: number) => {
-  ipcRenderer.send("changeStickyColor", {
+  send("changeStickyColor", {
     stickyId: id,
     color: color.toString(),
   });
 };
 const fullscreen = () => {
-  ipcRenderer.send("toggleFullscreen");
+  send("toggleFullscreen");
   isPin.value = false;
-  ipcRenderer.send("setTransparent", false);
+  send("setTransparent", false);
   isTransparent.value = false;
 };
 const toggleTransparent = () => {
-  ipcRenderer.send("setTransparent", !isTransparent.value);
+  send("setTransparent", !isTransparent.value);
   isTransparent.value = !isTransparent.value;
 };
 const togglePin = () => {
-  ipcRenderer.send("setPin", !isPin.value);
+  send("setPin", !isPin.value);
   isPin.value = !isPin.value;
 };
 </script>

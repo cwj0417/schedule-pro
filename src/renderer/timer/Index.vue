@@ -63,24 +63,24 @@ import empty from "../components/empty.vue";
 const contentinput = ref<string>("");
 const countdown = ref<number>(5);
 
-const { ipcRenderer } = window.apis;
+const { send } = window.apis;
 
 const handleEnter = () => {
   const content = contentinput.value;
   const cd = countdown.value;
   if (content && cd) {
-    ipcRenderer.send("addCountDown", {
+    send("addCountDown", {
       cd,
       content,
     });
     contentinput.value = "";
     fetchTimers();
-    ipcRenderer.send("hideWindow");
+    send("hideWindow");
   }
 };
 
 const removeCountDown = (id: number) => {
-  ipcRenderer.send("removeCountDown", id);
+  send("removeCountDown", id);
   fetchTimers();
 };
 

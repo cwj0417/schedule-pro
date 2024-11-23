@@ -10,7 +10,8 @@ electron.contextBridge.exposeInMainWorld('apis', {
     fs,
     join: path.join,
     Buffer,
-    ipcRenderer: electron.ipcRenderer,
+    invoke: electron.ipcRenderer.invoke,
+    send: electron.ipcRenderer.send,
     openUrl: electron.shell.openExternal,
     platform: process.platform,
     onMessage: (fn: any) => {

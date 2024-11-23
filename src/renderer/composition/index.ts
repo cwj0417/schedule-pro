@@ -2,11 +2,11 @@ import { watch, ref, toRaw, onMounted, onUnmounted } from 'vue'
 
 import { notification } from "../../type";
 
-const { fs, join, ipcRenderer } = window.apis as any
+const { fs, join, invoke } = window.apis as any
 
 const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     let userData = ref<any>(init)
-    ipcRenderer.invoke('getUserPath')
+    invoke('getUserPath')
         .then((userpath: string) => {
             const confPath = join(userpath, `${name}.json`)
             if (fs.existsSync(confPath)) {
@@ -30,8 +30,7 @@ const useTimer = () => {
     let timerHandler: NodeJS.Timeout | null = null;
     const fetchTimers = () => {
         if (timerHandler) clearInterval(timerHandler)
-        ipcRenderer
-            .invoke("getNotificationQ")
+        invoke("getNotificationQ")
             .then((messageQ: notification[]) => {
                 const render = () => {
                     timers.value = messageQ

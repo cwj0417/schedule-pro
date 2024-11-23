@@ -31,7 +31,7 @@ import { getBg } from "../composition";
 
 const props = defineProps(['search']);
 
-const { ipcRenderer, onMessage } = window.apis;
+const { send, onMessage } = window.apis;
 const stickies = ref<any[]>([]);
 const activeKey = ref<any>(0);
 const isFinding = ref<boolean>(false);
@@ -46,7 +46,7 @@ onMounted(() => {
       activeKey.value = value
     }
   });
-  ipcRenderer.send("getStickiesConfig");
+  send("getStickiesConfig");
   window.addEventListener('keydown', (e) => {
     const expended = (i: any) => i.expended
     if (!stickies.value.find(expended)) {
@@ -86,13 +86,13 @@ onMounted(() => {
   })
 });
 
-const openSticky = (id: string) => ipcRenderer.send("openSticky", id);
+const openSticky = (id: string) => send("openSticky", id);
 
-const toTop = (id: string) => ipcRenderer.send("toTop", id);
+const toTop = (id: string) => send("toTop", id);
 
 const sortSticky = (value: any[]) => {
   if (props.search) return;
-  ipcRenderer.send(
+  send(
     "sortStickies",
     value.map((i) => toRaw(i))
   );
