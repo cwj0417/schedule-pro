@@ -1,6 +1,6 @@
 {
   "name": "schedule-pro",
-  "version": "1.12.4",
+  "version": "1.12.5",
   "description": "manage schedule for daily production",
   "main": "main/index.js",
   "scripts": {
@@ -33,14 +33,14 @@
     "vue-tsc": "^0.40.13"
   },
   "dependencies": {
-    "@codemirror/autocomplete": "^6.4.2",
-    "@codemirror/commands": "^6.2.1",
-    "@codemirror/lang-markdown": "^6.1.0",
-    "@codemirror/language": "^6.6.0",
-    "@codemirror/language-data": "^6.1.0",
-    "@codemirror/search": "^6.2.3",
-    "@codemirror/state": "^6.2.0",
-    "@codemirror/view": "^6.9.1",
+    "@codemirror/autocomplete": "6.4.2",
+    "@codemirror/commands": "6.2.1",
+    "@codemirror/lang-markdown": "6.1.0",
+    "@codemirror/language": "6.6.0",
+    "@codemirror/language-data": "6.1.0",
+    "@codemirror/search": "6.2.3",
+    "@codemirror/state": "6.2.0",
+    "@codemirror/view": "6.9.1",
     "@vueuse/core": "^9.3.0",
     "vue": "3.2.25",
     "vue-router": "^4.0.8",
