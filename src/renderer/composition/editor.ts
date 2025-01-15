@@ -72,6 +72,7 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
                     ]),
                     markdown({ codeLanguages: languages }),
                     EditorView.updateListener.of(function (e: any) {
+                        console.log(e)
                         clearTimeout(debounce)
                         debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
                     }),
