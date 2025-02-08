@@ -9,7 +9,6 @@ import {
     crosshairCursor,
     highlightActiveLine,
     keymap,
-    KeyBinding,
 } from "@codemirror/view"
 import { markdown } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
@@ -18,27 +17,8 @@ import { history, historyKeymap } from '@codemirror/commands';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
 import { useImgDnPPlugin } from "./editor/imgdnp";
-
-const bold: KeyBinding = {
-    key: "Mod-b",
-    run: (view: EditorView) => {
-        view.dispatch(view.state.changeByRange(range => {
-            let content = view.state.doc.sliceString(range.from, range.to)
-            const originLenth = content.length;
-            const isBold = /^\*\*.*\*\*$/.test(content);
-            if (isBold) {
-                content = content.replace(/^\*\*(.*)\*\*$/, '$1');
-            } else {
-                content = `**${content.replace(/^\**([^\*]*)\**$/g, '$1')}**`;
-            }
-            return {
-                changes: [{ from: range.from, to: range.to, insert: content }],
-                range: EditorSelection.range(range.from, range.to - originLenth + content.length),
-            }
-        }))
-        return true;
-    }
-}
+import { bold } from "./editor/bold";
+import { blockbg } from "./editor/blockbg";
 
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement) => {
     let debounce: NodeJS.Timeout
@@ -72,11 +52,11 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
                     ]),
                     markdown({ codeLanguages: languages }),
                     EditorView.updateListener.of(function (e: any) {
-                        console.log(e)
                         clearTimeout(debounce)
                         debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
                     }),
                     ImageDropAndPaste,
+                    blockbg,
                 ]
             })
             new EditorView({
