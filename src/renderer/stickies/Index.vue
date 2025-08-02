@@ -5,7 +5,8 @@
         class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden nodragable shadow-sm shadow-gray-400">
         <div class="w-3 h-3 rounded-lg m-1 float-left shadow-sm shadow-gray-400"
           :style="{ backgroundColor: bgColor }" />
-        <div class="w-px h-2.5 float-left ml-2 mr-0.5 shadow-sm shadow-gray-400" style="backgroundColor: var(--color-2);margin-top: 5px" />
+        <div class="w-px h-2.5 float-left ml-2 mr-0.5 shadow-sm shadow-gray-400"
+          style="backgroundColor: var(--color-2);margin-top: 5px" />
         <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left shadow-sm shadow-gray-400"
           v-for="color in 9" :key="color" style="--tw-ring-color: var(--color-3)"
           :style="`backgroundColor: var(--sticky-${color})`" @click="changeColor(color)" />
@@ -51,8 +52,6 @@ let timerHandler: NodeJS.Timeout | null = null;
 
 let data: any;
 
-useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
-
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
     send("set-ignore-mouse-events", false);
@@ -81,6 +80,9 @@ onMounted(() => {
           key: id,
           val: val.content,
         });
+      },
+      () => {
+        useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
       }
     );
   }

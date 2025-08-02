@@ -4,7 +4,7 @@ import { notification } from "../../type";
 
 const { fs, join, invoke } = window.apis as any
 
-const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
+const useUserData = (name = 'main', init = {}, extraEffect: any = null, gotData: any = () => { }) => {
     let userData = ref<any>(init)
     invoke('getUserPath')
         .then((userpath: string) => {
@@ -12,8 +12,10 @@ const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
             if (fs.existsSync(confPath)) {
                 userData.value = JSON.parse(fs.readFileSync(confPath, { encoding: 'utf-8' }))
                 // console.log('got userdata', name, toRaw(userData.value))
+                gotData();
             } else {
                 fs.writeFileSync(confPath, JSON.stringify(init))
+                gotData();
             }
             watch(userData, val => {
                 // console.log('set userdata', name, toRaw(val))

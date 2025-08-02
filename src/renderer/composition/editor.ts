@@ -23,48 +23,44 @@ import { blockbg } from "./editor/blockbg";
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement) => {
     let debounce: NodeJS.Timeout
     const ImageDropAndPaste = useImgDnPPlugin()
-    onMounted(() => {
-        setTimeout(() => {
-            let startState = EditorState.create({
-                doc: init(),
-                extensions: [
-                    highlightSpecialChars(),
-                    history(),
-                    drawSelection(),
-                    dropCursor(),
-                    EditorState.allowMultipleSelections.of(true),
-                    indentOnInput(),
-                    syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-                    bracketMatching(),
-                    closeBrackets(),
-                    autocompletion(),
-                    rectangularSelection(),
-                    crosshairCursor(),
-                    highlightActiveLine(),
-                    highlightSelectionMatches(),
-                    keymap.of([
-                        ...closeBracketsKeymap,
-                        ...searchKeymap,
-                        ...historyKeymap,
-                        ...foldKeymap,
-                        ...completionKeymap,
-                        bold,
-                    ]),
-                    markdown({ codeLanguages: languages }),
-                    EditorView.updateListener.of(function (e: any) {
-                        clearTimeout(debounce)
-                        debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
-                    }),
-                    ImageDropAndPaste,
-                    blockbg,
-                ]
-            })
-            new EditorView({
-                state: startState,
-                parent: dom(),
-            }).focus()
-        }, 50) // fix not got init doc value aftre hmr, because editor is not double-way binding.
+    let startState = EditorState.create({
+        doc: init(),
+        extensions: [
+            highlightSpecialChars(),
+            history(),
+            drawSelection(),
+            dropCursor(),
+            EditorState.allowMultipleSelections.of(true),
+            indentOnInput(),
+            syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+            bracketMatching(),
+            closeBrackets(),
+            autocompletion(),
+            rectangularSelection(),
+            crosshairCursor(),
+            highlightActiveLine(),
+            highlightSelectionMatches(),
+            keymap.of([
+                ...closeBracketsKeymap,
+                ...searchKeymap,
+                ...historyKeymap,
+                ...foldKeymap,
+                ...completionKeymap,
+                bold,
+            ]),
+            markdown({ codeLanguages: languages }),
+            EditorView.updateListener.of(function (e: any) {
+                clearTimeout(debounce)
+                debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
+            }),
+            ImageDropAndPaste,
+            blockbg,
+        ]
     })
+    new EditorView({
+        state: startState,
+        parent: dom(),
+    }).focus()
 }
 
 export { useEditor }
