@@ -116,9 +116,9 @@
                 </div>
 
                 <!-- 数据管理 -->
-                <div class="flex backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
+                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
-                    <div class="flex flex-grow items-center gap-4">
+                    <div class="flex items-center gap-4 mb-4">
                         <div
                             class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -130,11 +130,60 @@
                             </svg>
                         </div>
                         <div class="flex-1">
-                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">数据导出/导入</h2>
-                            <p class="text-xs" style="color: var(--color-2);">备份和恢复您的数据</p>
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">数据管理</h2>
+                            <p class="text-xs" style="color: var(--color-2);">备份、恢复和管理您的数据</p>
                         </div>
                     </div>
-                    <div class="flex flex-row gap-2 justify-end items-center ml-auto mt-2">
+                    
+                    <!-- 自动备份设置 -->
+                    <div class="flex items-center justify-between p-3 rounded-lg mb-4" 
+                         style="background: var(--bg-1); border: 1px solid var(--border-1);">
+                        <div class="flex items-center gap-3">
+                            <div>
+                                <p class="text-sm font-medium" style="color: var(--color-0);">自动备份</p>
+                                <p class="text-xs" style="color: var(--color-2);">每日自动备份数据到本地</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <button 
+                                @click="toggleAutoBackup"
+                                class="relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none"
+                                :style="autoBackup ? 
+                                    'background: var(--theme-0);' : 
+                                    'background: var(--border-1);'">
+                                <div 
+                                    class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200"
+                                    :style="autoBackup ? 'left: 1.25rem;' : 'left: 0.125rem;'">
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="flex flex-wrap gap-2">
+                        <button @click="createBackup"
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 backup-btn"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                <polyline points="17,21 17,13 7,13 7,21"/>
+                                <polyline points="7,3 7,8 15,8"/>
+                            </svg>
+                            <span class="text-xs font-medium">立即备份</span>
+                        </button>
+                        <button @click="restoreData"
+                            :disabled="!backupInfo.hasBackup"
+                            :class="[
+                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 restore-btn',
+                                !backupInfo.hasBackup ? 'opacity-50 cursor-not-allowed' : ''
+                            ]"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1,4 1,10 7,10"/>
+                                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                            </svg>
+                            <span class="text-xs font-medium">恢复数据</span>
+                        </button>
                         <button @click="exportData"
                             class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 export-btn"
                             style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
@@ -155,6 +204,16 @@
                             </svg>
                             <span class="text-xs font-medium">导入</span>
                         </button>
+                    </div>
+                    
+                    <!-- 备份状态信息 -->
+                    <div v-if="backupInfo.lastBackupTime" class="mt-3 p-3 rounded-lg" 
+                         style="background: var(--bg-1); border: 1px solid var(--border-1);">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs" style="color: var(--color-2);">
+                                上次备份：{{ formatBackupTime(backupInfo.lastBackupTime) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -216,6 +275,14 @@ const { send, invoke, onMessage } = window.apis
 
 const themeMode = ref('system')
 const currentVersion = ref('')
+const autoBackup = ref(false)
+
+// 备份信息
+const backupInfo = reactive({
+    hasBackup: false,
+    lastBackupTime: null as number | null,
+    autoBackup: false
+})
 
 // 版本信息对象，参考home页面
 const versionInfo = reactive({
@@ -270,6 +337,90 @@ const importData = async () => {
         }
     } catch (error) {
         alert('数据导入失败')
+    }
+}
+
+const createBackup = async () => {
+    try {
+        // 调用主进程的创建备份方法
+        const result = await invoke('createBackup')
+        if (result) {
+            alert('备份创建成功')
+            // 刷新备份状态
+            await loadBackupStatus()
+        }
+    } catch (error) {
+        alert('备份创建失败')
+    }
+}
+
+const restoreData = async () => {
+    try {
+        if (!backupInfo.hasBackup) {
+            alert('没有可用的备份文件')
+            return
+        }
+        
+        const confirmed = confirm('恢复数据将覆盖当前所有数据，应用将重启。确定要继续吗？')
+        if (!confirmed) return
+        
+        // 调用主进程的恢复数据方法
+        const result = await invoke('restoreData')
+        if (result.success) {
+            alert('数据恢复成功，应用即将重启')
+        } else {
+            alert('数据恢复失败: ' + result.message)
+        }
+    } catch (error) {
+        alert('数据恢复失败')
+    }
+}
+
+const loadBackupStatus = async () => {
+    try {
+        const status = await invoke('checkBackupStatus')
+        backupInfo.hasBackup = status.hasBackup
+        backupInfo.lastBackupTime = status.lastBackupTime
+        backupInfo.autoBackup = status.autoBackup
+        autoBackup.value = status.autoBackup
+    } catch (error) {
+        console.error('获取备份状态失败:', error)
+    }
+}
+
+const formatBackupTime = (timestamp: number | null) => {
+    if (!timestamp) return '无'
+    
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffHours < 1) {
+        return '刚刚'
+    } else if (diffHours < 24) {
+        return `${diffHours}小时前`
+    } else if (diffDays < 7) {
+        return `${diffDays}天前`
+    } else {
+        return date.toLocaleDateString()
+    }
+}
+
+const toggleAutoBackup = async () => {
+    const newValue = !autoBackup.value
+    autoBackup.value = newValue
+    backupInfo.autoBackup = newValue
+    
+    try {
+        // 调用主进程保存自动备份设置
+        await invoke('setAutoBackup', newValue)
+    } catch (error) {
+        console.error('设置自动备份失败:', error)
+        // 恢复原状态
+        autoBackup.value = !newValue
+        backupInfo.autoBackup = !newValue
     }
 }
 
@@ -337,6 +488,13 @@ onMounted(async () => {
     } catch (error) {
         console.error('获取主题设置失败:', error)
     }
+
+    // 获取自动备份设置和备份状态
+    try {
+        await loadBackupStatus()
+    } catch (error) {
+        console.error('获取备份设置失败:', error)
+    }
 })
 </script>
 
@@ -380,6 +538,18 @@ onMounted(async () => {
 
 .success-btn:hover {
     background: var(--success-2) !important;
+}
+
+.backup-btn:hover {
+    border-color: var(--warning-0) !important;
+    background: var(--warning-1) !important;
+    color: var(--warning-2) !important;
+}
+
+.restore-btn:hover:not(:disabled) {
+    border-color: var(--info-0) !important;
+    background: var(--info-1) !important;
+    color: var(--info-2) !important;
 }
 
 /* 主题按钮hover效果 */

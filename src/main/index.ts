@@ -350,6 +350,11 @@ app.whenReady().then(() => {
       createWindow(windowName as any)
     })
   }
+  
+  // 检查并启动自动备份
+  if (userSettings.value.autoBackup) {
+    setupAutoBackup()
+  }
 })
 
 app.on('activate', () => {
@@ -358,6 +363,7 @@ app.on('activate', () => {
 
 app.on('before-quit', () => {
   isQuiting = true
+  clearAutoBackup()
 })
 
 app.on('window-all-closed', () => {
@@ -468,7 +474,9 @@ ipcMain.on('quitAndInstall', (event) => {
 
 // 设置相关的 IPC 处理器
 let userSettings = useUserData('settings', {
-  theme: 'system'
+  theme: 'system',
+  autoBackup: true,  // 默认开启自动备份
+  lastBackupTime: null
 })
 
 ipcMain.handle('exportData', async () => {
@@ -480,7 +488,7 @@ ipcMain.handle('exportData', async () => {
     if (!result.canceled && result.filePaths.length > 0) {
       const path = require('path')
       const fse = require('fs-extra')
-      const targetDir = path.join(result.filePaths[0], 'appdata')
+      const targetDir = path.join(result.filePaths[0], 'schedule-pro-appdata')
       // 创建 appdata 文件夹（如果不存在）
       fse.ensureDirSync(targetDir)
       // 复制 userPath 内容到目标 appdata 文件夹
@@ -518,6 +526,188 @@ ipcMain.handle('importData', async () => {
     return false
   }
 })
+
+ipcMain.handle('createBackup', async () => {
+  return await performBackup()
+})
+
+ipcMain.handle('restoreData', async () => {
+  try {
+    const path = require('path')
+    const fse = require('fs-extra')
+    
+    const backupDir = path.join(app.getPath('userData'), 'backup')
+    
+    // 检查备份文件夹是否存在
+    if (!fse.existsSync(backupDir)) {
+      return { success: false, message: '没有找到备份文件夹' }
+    }
+    
+    // 检查备份文件夹是否为空
+    const backupFiles = fse.readdirSync(backupDir)
+    if (backupFiles.length === 0) {
+      return { success: false, message: '备份文件夹为空' }
+    }
+    
+    // 保存当前的备份时间和自动备份设置
+    const currentBackupTime = userSettings.value.lastBackupTime
+    const currentAutoBackup = userSettings.value.autoBackup
+    
+    // 清空 userPath 文件夹
+    fse.emptyDirSync(userPath)
+    
+    // 复制备份到 userPath
+    fse.copySync(backupDir, userPath)
+    
+    // 恢复备份时间和自动备份设置
+    userSettings.value.lastBackupTime = currentBackupTime
+    userSettings.value.autoBackup = currentAutoBackup
+    
+    // 自动重启应用
+    app.relaunch()
+    app.exit(0)
+    
+    return { success: true }
+  } catch (error) {
+    console.error('恢复数据失败:', error)
+    return { success: false, message: '恢复数据失败: ' + String(error) }
+  }
+})
+
+ipcMain.handle('checkBackupStatus', () => {
+  try {
+    const path = require('path')
+    const fse = require('fs-extra')
+    
+    const backupDir = path.join(app.getPath('userData'), 'backup')
+    
+    // 检查备份文件夹是否存在且不为空
+    const hasBackup = fse.existsSync(backupDir) && 
+                     fse.readdirSync(backupDir).length > 0
+    
+    return {
+      hasBackup,
+      lastBackupTime: userSettings.value.lastBackupTime,
+      autoBackup: userSettings.value.autoBackup
+    }
+  } catch (error) {
+    console.error('检查备份状态失败:', error)
+    return {
+      hasBackup: false,
+      lastBackupTime: null,
+      autoBackup: userSettings.value.autoBackup
+    }
+  }
+})
+
+ipcMain.handle('setAutoBackup', async (event, enabled: boolean) => {
+  try {
+    userSettings.value.autoBackup = enabled
+    
+    // 如果启用自动备份，设置定时器
+    if (enabled) {
+      setupAutoBackup()
+    } else {
+      // 清除自动备份定时器
+      clearAutoBackup()
+    }
+    
+    return true
+  } catch (error) {
+    console.error('设置自动备份失败:', error)
+    return false
+  }
+})
+
+ipcMain.handle('getAutoBackup', () => {
+  return userSettings.value.autoBackup || false
+})
+
+// 自动备份相关变量
+let autoBackupInterval: NodeJS.Timeout | null = null
+
+const performBackup = async () => {
+  try {
+    const path = require('path')
+    const fse = require('fs-extra')
+    
+    const backupDir = path.join(app.getPath('userData'), 'backup')
+    
+    // 如果备份目录存在，先清空
+    if (fse.existsSync(backupDir)) {
+      fse.emptyDirSync(backupDir)
+    } else {
+      fse.ensureDirSync(backupDir)
+    }
+    
+    // 复制当前数据到备份目录
+    fse.copySync(userPath, backupDir)
+    
+    // 记录备份时间
+    userSettings.value.lastBackupTime = Date.now()
+    
+    return true
+  } catch (error) {
+    console.error('执行备份失败:', error)
+    return false
+  }
+}
+
+const checkIfShouldBackup = async () => {
+  try {
+    const path = require('path')
+    const fse = require('fs-extra')
+    
+    const backupDir = path.join(app.getPath('userData'), 'backup')
+    
+    // 检查是否有备份
+    const hasBackup = fse.existsSync(backupDir) && 
+                     fse.readdirSync(backupDir).length > 0
+    
+    // 如果没有任何备份，需要立即备份
+    if (!hasBackup) {
+      return true
+    }
+    
+    // 检查上次备份时间
+    const lastBackupTime = userSettings.value.lastBackupTime
+    if (!lastBackupTime) {
+      return true
+    }
+    
+    // 检查是否超过24小时
+    const now = Date.now()
+    const timeDiff = now - lastBackupTime
+    const twentyFourHours = 24 * 60 * 60 * 1000
+    
+    return timeDiff > twentyFourHours
+  } catch (error) {
+    console.error('检查备份条件失败:', error)
+    return false
+  }
+}
+
+const setupAutoBackup = () => {
+  // 清除现有的定时器
+  clearAutoBackup()
+  
+  // 每12小时检查一次是否需要备份（第一次在12小时后执行）
+  autoBackupInterval = setInterval(async () => {
+    if (userSettings.value.autoBackup) {
+      const shouldBackup = await checkIfShouldBackup()
+      if (shouldBackup) {
+        await performBackup()
+      }
+    }
+  }, 12 * 60 * 60 * 1000) // 每12小时检查一次
+}
+
+const clearAutoBackup = () => {
+  if (autoBackupInterval) {
+    clearInterval(autoBackupInterval)
+    autoBackupInterval = null
+  }
+}
 
 ipcMain.on('setTheme', (event, theme: string) => {
   userSettings.value.theme = theme
@@ -579,8 +769,8 @@ ipcMain.on('setTransparent', (event, isTransparent) => {
   }
 })
 
-ipcMain.on('set-ignore-mouse-events', (event, ...args) => {
-  BrowserWindow.fromWebContents(event?.sender)?.setIgnoreMouseEvents(...args)
+ipcMain.on('set-ignore-mouse-events', (event, ignore: boolean, options?: any) => {
+  BrowserWindow.fromWebContents(event?.sender)?.setIgnoreMouseEvents(ignore, options)
 })
 
 ipcMain.on('removeCountDown', (event, id) => {
