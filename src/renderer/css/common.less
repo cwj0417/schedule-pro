@@ -3,7 +3,9 @@
   background-color: var(--bg-0);
   color: var(--color-0);
   .page-title {
-    @apply w-full h-16 leading-8 py-4 dragable text-center font-bold tracking-wide;
+    @apply w-full h-16 leading-8 py-4 text-center font-bold tracking-wide;
+    -webkit-app-region: drag;
+    user-select: none;
     .back-home {
       @apply px-5 font-bold absolute left-0 top-4 cursor-pointer;
     }
@@ -24,7 +26,8 @@
         color: var(--color-1);
       }
       .content-input-btn {
-        @apply w-full h-6 leading-3 border p-1 rounded-md mt-1;
+        @apply w-full h-6 border p-1 rounded-md mt-1;
+        line-height: 0.75rem; /* 替代 leading-3 */
         border-color: var(--theme-3);
         color: var(--theme-4);
         &.active {
@@ -33,11 +36,16 @@
       }
     }
     .card {
-      @apply w-full h-5 mt-6 mb-3 border-l divide-x flex text-sm;
+      @apply w-full mt-6 mb-3 border-l flex text-sm;
+      height: 1.25rem; /* 替代 h-5 */
       color: var(--color-2);
       border-color: var(--color-3);
       div {
         @apply pl-5;
+        border-right: 1px solid var(--color-3);
+        &:last-child {
+          border-right: none;
+        }
       }
     }
     .todo-item-wrap {
