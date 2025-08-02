@@ -3,7 +3,10 @@ import { readFileSync, existsSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { watch, ref, toRaw } from 'vue'
 
-const userPath = app.getPath('userData')
+const userPath = join(app.getPath('userData'), 'appdata')
+if (!existsSync(userPath)) {
+    require('fs').mkdirSync(userPath, { recursive: true })
+}
 
 const keyMapToAccelerator = {
     altKey: 'Alt',

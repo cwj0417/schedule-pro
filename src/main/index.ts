@@ -6,6 +6,7 @@ import timerPage from '@/renderer/index.html#/timer'
 import schedulePage from '@/renderer/index.html#/schedule'
 import inspirationPage from '@/renderer/index.html#/inspiration'
 import stickiesPage from '@/renderer/index.html#/stickies'
+import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
 import { readdirSync, unlinkSync } from 'fs'
@@ -115,7 +116,7 @@ let mainWindowConfig: BrowserWindowConstructorOptions = {
 }
 
 const windowConf: {
-  [prop in 'main' | 'timer' | 'schedule' | 'inspiration']: {
+  [prop in 'main' | 'timer' | 'schedule' | 'inspiration' | 'settings']: {
     url: string,
     conf: BrowserWindowConstructorOptions
   }
@@ -169,10 +170,34 @@ const windowConf: {
         sandbox: false,
       }
     },
+  },
+  settings: {
+    url: settingsPage,
+    conf: {
+      width: 700,
+      height: 650,
+      frame: false,
+      webPreferences: {
+        preload: mainPreload,
+        sandbox: false,
+      }
+    },
   }
 }
 
 function createWindow(type: keyof typeof windowConf = 'main') {
+  // 对于设置窗口，总是创建新窗口
+  if (type === 'settings') {
+    const settingsWindow = new BrowserWindow({
+      ...windowConf[type].conf,
+      show: false,
+      parent: mainWindow || undefined,
+      modal: false,
+    })
+    settingsWindow.once('ready-to-show', settingsWindow.show)
+    settingsWindow.loadURL(windowConf[type].url)
+    return
+  }
 
   if (mainWindow) {
     if (mainWindow?.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
@@ -343,7 +368,26 @@ app.on('window-all-closed', () => {
 
 const template: MenuItemConstructorOptions[] = [
   {
-    role: 'appMenu'
+    label: app.getName(),
+    submenu: [
+      { role: 'about' },
+      { type: 'separator' },
+      {
+        label: 'settings',
+        accelerator: 'CmdOrCtrl+,',
+        click: () => {
+          createWindow('settings')
+        }
+      },
+      { type: 'separator' },
+      { role: 'services' },
+      { type: 'separator' },
+      { role: 'hide' },
+      { role: 'hideOthers' },
+      { role: 'unhide' },
+      { type: 'separator' },
+      { role: 'quit' }
+    ]
   },
   {
     label: 'File',
@@ -420,6 +464,75 @@ ipcMain.on('quitAndInstall', (event) => {
   // If application quit was initiated by autoUpdater.quitAndInstall(), then before-quit is emitted after emitting close event on all windows and closing them.
   isQuiting = true
   autoUpdater.quitAndInstall()
+})
+
+// 设置相关的 IPC 处理器
+let userSettings = useUserData('settings', {
+  theme: 'system'
+})
+
+ipcMain.handle('exportData', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow || BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0], {
+      title: '选择导出目标文件夹',
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (!result.canceled && result.filePaths.length > 0) {
+      const path = require('path')
+      const fse = require('fs-extra')
+      const targetDir = path.join(result.filePaths[0], 'appdata')
+      // 创建 appdata 文件夹（如果不存在）
+      fse.ensureDirSync(targetDir)
+      // 复制 userPath 内容到目标 appdata 文件夹
+      fse.copySync(userPath, targetDir)
+      return true
+    }
+    return false
+  } catch (error) {
+    console.error('导出数据失败:', error)
+    return false
+  }
+})
+
+ipcMain.handle('importData', async () => {
+  try {
+    const result = await dialog.showOpenDialog(mainWindow || BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0], {
+      title: '选择导入源文件夹',
+      properties: ['openDirectory']
+    })
+    if (!result.canceled && result.filePaths.length > 0) {
+      const fse = require('fs-extra')
+      const sourceDir = result.filePaths[0]
+      // 清空 userPath 文件夹
+      fse.emptyDirSync(userPath)
+      // 复制所选文件夹内容到 userPath
+      fse.copySync(sourceDir, userPath)
+      // 自动重启应用
+      app.relaunch()
+      app.exit(0)
+      return true
+    }
+    return false
+  } catch (error) {
+    console.error('导入数据失败:', error)
+    return false
+  }
+})
+
+ipcMain.on('setTheme', (event, theme: string) => {
+  userSettings.value.theme = theme
+  
+  // 通知所有窗口主题变更
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'themeChanged',
+      value: theme
+    })
+  })
+})
+
+ipcMain.handle('getTheme', () => {
+  return userSettings.value.theme
 })
 
 ipcMain.on('addCountDown', (event, args) => {

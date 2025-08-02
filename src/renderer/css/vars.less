@@ -1,52 +1,79 @@
-@media (prefers-color-scheme: dark) {
-  #app {
-    --bg-0: #2a2a2a;
-    --bg-1: #232323;
-    --bg-2: #2e2e2e;
-    --color-0: #e2e2e2;
-    --color-1: #999;
-    --color-2: #666;
-    --color-3: #333;
-    --theme-0: #3b82f6;
-    --theme-1: #266dc3;
-    --theme-2: #1d5593;
-    --theme-3: #1c5498;
-    --theme-4: #173c6d;
-    --theme-5: #2c3644;
-    --sticky-1: #41412c;
-    --sticky-2: #655424;
-    --sticky-3: #394c34;
-    --sticky-4: #365348;
-    --sticky-5: #354358;
-    --sticky-6: #415057;
-    --sticky-7: #3d4155;
-    --sticky-8: #513838;
-    --sticky-9: #383038;
-  }
+// 深色主题
+#app.dark,
+#app.theme-dark {
+  --bg-0: #1e1e1e;        // 主背景 (更深)
+  --bg-1: #2a2a2a;        // 卡片背景
+  --bg-2: #3a3a3a;        // 按钮背景
+  --bg-3: #4a4a4a;        // 悬停背景
+  --color-0: #ffffff;     // 主文字 (纯白)
+  --color-1: #e5e5e5;     // 副文字
+  --color-2: #a1a1a1;     // 辅助文字
+  --color-3: #6b7280;     // 禁用文字
+  --border-0: #404040;    // 主边框
+  --border-1: #525252;    // 副边框
+  --border-2: #737373;    // 悬停边框
+  --shadow-0: rgba(0, 0, 0, 0.3);    // 主阴影
+  --shadow-1: rgba(0, 0, 0, 0.2);    // 副阴影
+  --theme-0: #3b82f6;     // 主题色
+  --theme-1: #60a5fa;     // 主题浅色
+  --theme-2: #1d4ed8;     // 主题深色
+  --success-0: #10b981;   // 成功色
+  --success-1: #34d399;   // 成功浅色
+  --success-2: #065f46;   // 成功深色
+  --warning-0: #f59e0b;   // 警告色
+  --warning-1: #fbbf24;   // 警告浅色
+  --error-0: #ef4444;     // 错误色
+  --error-1: #f87171;     // 错误浅色
+  --backdrop: rgba(0, 0, 0, 0.4);    // 背景遮罩
+  --glass-bg: rgba(42, 42, 42, 0.8); // 毛玻璃背景
+  --glass-border: rgba(255, 255, 255, 0.1); // 毛玻璃边框
+  --sticky-1: #41412c;
+  --sticky-2: #655424;
+  --sticky-3: #394c34;
+  --sticky-4: #365348;
+  --sticky-5: #354358;
+  --sticky-6: #415057;
+  --sticky-7: #3d4155;
+  --sticky-8: #513838;
+  --sticky-9: #383038;
 }
-@media not (prefers-color-scheme: dark) {
-  #app {
-    --bg-0: #fff;
-    --bg-1: #f3f4f6;
-    --bg-2: #ebebec;
-    --color-0: #000;
-    --color-1: #4b5563;
-    --color-2: #9ca3af;
-    --color-3: #e5e7eb;
-    --theme-0: #3b82f6;
-    --theme-1: #60a5fa;
-    --theme-2: #93c5fd;
-    --theme-3: #bfdbfe;
-    --theme-4: #dbeafe;
-    --theme-5: #eff6ff;
-    --sticky-1: #f7f7ad;
-    --sticky-2: #ffd45d;
-    --sticky-3: #aae29b;
-    --sticky-4: #95e3c7;
-    --sticky-5: #9ac3ff;
-    --sticky-6: #c3ecff;
-    --sticky-7: #bac7ff;
-    --sticky-8: #ffb0af;
-    --sticky-9: #ffdcfe;
-  }
+
+// 浅色主题
+#app.light,
+#app.theme-light {
+  --bg-0: #ffffff;        // 主背景
+  --bg-1: #f8fafc;        // 卡片背景 
+  --bg-2: #f1f5f9;        // 按钮背景
+  --bg-3: #e2e8f0;        // 悬停背景
+  --color-0: #0f172a;     // 主文字
+  --color-1: #334155;     // 副文字
+  --color-2: #64748b;     // 辅助文字
+  --color-3: #94a3b8;     // 禁用文字
+  --border-0: #e2e8f0;    // 主边框
+  --border-1: #cbd5e1;    // 副边框
+  --border-2: #94a3b8;    // 悬停边框
+  --shadow-0: rgba(0, 0, 0, 0.1);    // 主阴影
+  --shadow-1: rgba(0, 0, 0, 0.05);   // 副阴影
+  --theme-0: #3b82f6;     // 主题色
+  --theme-1: #60a5fa;     // 主题浅色
+  --theme-2: #1d4ed8;     // 主题深色
+  --success-0: #10b981;   // 成功色
+  --success-1: #34d399;   // 成功浅色
+  --success-2: #065f46;   // 成功深色
+  --warning-0: #f59e0b;   // 警告色
+  --warning-1: #fbbf24;   // 警告浅色
+  --error-0: #ef4444;     // 错误色
+  --error-1: #f87171;     // 错误浅色
+  --backdrop: rgba(0, 0, 0, 0.2);    // 背景遮罩
+  --glass-bg: rgba(255, 255, 255, 0.8); // 毛玻璃背景
+  --glass-border: rgba(255, 255, 255, 0.2); // 毛玻璃边框
+  --sticky-1: #f7f7ad;
+  --sticky-2: #ffd45d;
+  --sticky-3: #aae29b;
+  --sticky-4: #95e3c7;
+  --sticky-5: #9ac3ff;
+  --sticky-6: #c3ecff;
+  --sticky-7: #bac7ff;
+  --sticky-8: #ffb0af;
+  --sticky-9: #ffdcfe;
 }

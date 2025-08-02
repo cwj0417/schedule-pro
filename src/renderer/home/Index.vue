@@ -154,8 +154,8 @@ import {
   onMounted,
   ref,
   onUnmounted,
+  computed,
 } from "vue";
-import { usePreferredDark } from "@vueuse/core";
 import empty from "../components/empty.vue";
 import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
@@ -171,7 +171,18 @@ import ScheduleSvg from "@/assets/svg/schedule.svg";
 import InspirationSvg from "@/assets/svg/inspiration.svg";
 import RefreshSvg from "@/assets/svg/refresh.svg";
 
-const isDark = usePreferredDark();
+// 全局主题状态管理
+const themeState = reactive({
+  currentTheme: 'system'
+})
+
+// 计算当前是否为深色模式
+const isDark = computed(() => {
+  if (themeState.currentTheme === 'dark') return true
+  if (themeState.currentTheme === 'light') return false
+  // system theme
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+})
 
 // global search
 
@@ -217,6 +228,17 @@ setTimeout(() => {
   ];
   config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
 });
+declare global {
+  interface Window {
+    apis: {
+      send: (channel: string, ...args: any[]) => void
+      invoke: (channel: string, ...args: any[]) => Promise<any>
+      onMessage: (callback: (message: any) => void) => void
+      platform: string
+    }
+  }
+}
+
 const { invoke, send, onMessage, platform } = window.apis;
 
 const edit = (type: string) => {
@@ -314,16 +336,29 @@ onMounted(() => {
       versionInfo.status = '下载中' + Math.round(value.percent) + '%';
     }
 
-
     if (type === "update-downloaded") {
       versionInfo.downloaded = true;
       versionInfo.latestVersion = value;
       versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p><hr class='my-2'/>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\<p(\>[^\<]+\<\/p\>)/, '<p style="color: var(--color-0);padding-bottom: 5px;" $1') + `<hr class='my-2'/>`;
     }
 
+    // 监听主题变化
+    if (type === 'themeChanged') {
+      themeState.currentTheme = value;
+    }
   });
+  
   invoke("getVersion").then((version: string) => {
     versionInfo.curVersion = version;
+  });
+  
+  // 初始化主题状态
+  invoke("getTheme").then((theme: string) => {
+    if (theme) {
+      themeState.currentTheme = theme;
+    }
+  }).catch((error) => {
+    console.error('获取主题设置失败:', error);
   });
 });
 
