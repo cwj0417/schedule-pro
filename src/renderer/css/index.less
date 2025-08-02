@@ -18,13 +18,22 @@ body {
   width: 100%;
 }
 
-.nodragable {
-  -webkit-app-region: no-drag;
-}
+@layer utilities {
+  .nodragable {
+    -webkit-app-region: no-drag;
+  }
 
-.dragable {
-  -webkit-app-region: drag;
-  user-select: none;
+  .dragable {
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  .kbd {
+    @apply border p-1 font-light rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-md;
+    background-color: var(--bg-1);
+    border-color: var(--theme-0);
+    color: var(--theme-0);
+  }
 }
 
 ::-webkit-scrollbar {
@@ -48,13 +57,6 @@ input::-webkit-inner-spin-button {
 .animate-list-leave-to {
   opacity: 0;
   transform: translateX(200px);
-}
-
-.kbd {
-  @apply border p-1 font-light rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-md;
-  background-color: var(--bg-1);
-  border-color: var(--theme-0);
-  color: var(--theme-0);
 }
 
 .cm-editor {
