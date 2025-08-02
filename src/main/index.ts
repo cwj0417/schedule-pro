@@ -30,41 +30,53 @@ const stickyMinFrame = {
 }
 
 autoUpdater.on('checking-for-update', () => {
-  mainWindow?.webContents.send('message', {
-    type: 'checking-for-update',
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'checking-for-update',
+    })
+  })
 })
 autoUpdater.on('update-available', (info: UpdateInfo) => {
-  mainWindow?.webContents.send('message', {
-    type: 'update-available',
-    value: info,
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'update-available',
+      value: info,
+    })
+  })
 })
 autoUpdater.on('update-not-available', (info) => {
-  mainWindow?.webContents.send('message', {
-    type: 'update-not-available',
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'update-not-available',
+    })
+  })
 })
 autoUpdater.on('error', (err) => {
-  mainWindow?.webContents.send('message', {
-    type: 'update-error',
-    value: err,
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'update-error',
+      value: err,
+    })
+  })
 })
 autoUpdater.on('download-progress', (progressObj) => {
   // let log_message = "Download speed: " + progressObj.bytesPerSecond;
   // log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
   // log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  mainWindow?.webContents.send('message', {
-    type: 'download-progress',
-    value: progressObj,
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'download-progress',
+      value: progressObj,
+    })
+  })
 })
 autoUpdater.on('update-downloaded', (info) => {
-  mainWindow?.webContents.send('message', {
-    type: 'update-downloaded',
-    value: info,
-  });
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'update-downloaded',
+      value: info,
+    })
+  })
 });
 
 const { TouchBarLabel, TouchBarButton, TouchBarSpacer, TouchBarColorPicker } = TouchBar
