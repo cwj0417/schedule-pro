@@ -20,7 +20,7 @@
         
         <!-- 应用更新 -->
         <div class="flex backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card" style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
-          <div class="flex flex-grow items-center gap-4">
+          <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
               <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12,6 16,12 8,12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -35,46 +35,61 @@
             </div>
           </div>
           
-          <div class="flex justify-end mt-2">
-            <button @click="checkForUpdates" :disabled="versionInfo.checkingForUpdate" v-if="!versionInfo.downloaded"
-              class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 update-btn" 
-              style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
-              <svg v-if="versionInfo.checkingForUpdate" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12a9 9 0 11-6.219-8.56"/>
-              </svg>
-              <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.35 0 4.48.9 6.07 2.38"/>
-                <path d="M17 8l4-4-4-4"/>
-              </svg>
-              <span class="text-xs font-medium">{{ versionInfo.checkingForUpdate ? '检查中' : '检查更新' }}</span>
-            </button>
-            
-            <!-- 下载完成状态 -->
-            <div v-if="versionInfo.downloaded" class="px-4 py-2 rounded-lg border-2" style="background: var(--success-1); border-color: var(--success-0); color: var(--success-2);">
-              <div class="flex items-center gap-2 mb-2">
+          <div class="flex flex-grow pl-4 flex-row gap-4 justify-end items-center ml-auto mt-2">
+            <div class="flex flex-row gap-2 flex-grow justify-end">
+              <!-- 检查更新按钮 -->
+              <button v-if="!versionInfo.checkingForUpdate && !versionInfo.status && !versionInfo.downloaded" 
+                @click="checkForUpdates"
+                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 update-btn" 
+                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22,4 12,14.01 9,11.01"/>
+                  <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.35 0 4.48.9 6.07 2.38"/>
+                  <path d="M17 8l4-4-4-4"/>
                 </svg>
-                <span class="text-xs font-medium">更新已下载</span>
-              </div>
-              <div class="text-xs mb-2" v-if="versionInfo.releaseNotes" v-html="versionInfo.releaseNotes" style="color: var(--color-2);"></div>
-              <button @click="restart" class="px-3 py-1 text-white text-xs rounded transition-colors success-btn" style="background: var(--success-0);">
-                点击安装
+                <span class="text-xs font-medium">检查更新</span>
               </button>
-            </div>
-          </div>
-          
-          <!-- 更新状态信息 -->
-          <div v-if="versionInfo.status && !versionInfo.downloaded" class="mt-3">
-            <div class="p-3 border rounded-lg flex items-center gap-2 text-xs" style="background: var(--theme-5); border-color: var(--theme-3); color: var(--theme-0);">
-              <svg v-if="versionInfo.status.includes('下载中')" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12a9 9 0 11-6.219-8.56"/>
-              </svg>
-              <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              <span>{{ versionInfo.status }}</span>
+              
+              <!-- 检查中状态 -->
+              <button v-if="versionInfo.checkingForUpdate" 
+                disabled
+                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 disabled:opacity-75 disabled:cursor-not-allowed flex items-center gap-2" 
+                style="border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0);">
+                <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                <span class="text-xs font-medium">检查中</span>
+              </button>
+              
+              <!-- 状态信息显示 -->
+              <button v-if="versionInfo.status && !versionInfo.downloaded && !versionInfo.checkingForUpdate" 
+                disabled
+                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 disabled:opacity-100 disabled:cursor-default flex items-center gap-2" 
+                style="border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0);">
+                <svg v-if="versionInfo.status.includes('下载中')" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+                <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-xs font-medium">{{ versionInfo.status }}</span>
+              </button>
+              
+              <!-- 下载完成状态 -->
+              <div v-if="versionInfo.downloaded" class="flex-grow">
+                <div class="px-4 py-2 rounded-lg border-2" style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                  <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22,4 12,14.01 9,11.01"/>
+                    </svg>
+                    <span class="text-xs font-medium">更新已下载</span>
+                  </div>
+                  <div class="text-xs mb-2" v-if="versionInfo.releaseNotes" v-html="versionInfo.releaseNotes" style="color: var(--color-2);"></div>
+                  <button @click="restart" class="px-3 py-1 text-white text-xs rounded transition-colors success-btn" style="background: var(--success-0);">
+                    点击安装
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
