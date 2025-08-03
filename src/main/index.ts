@@ -23,6 +23,7 @@ autoUpdater.logger = log;
 log.info('App starting...');
 
 let mainWindow: BrowserWindow | null = null
+let settingsWindow: BrowserWindow | null = null
 
 const stickyMinFrame = {
   width: 400,
@@ -198,15 +199,27 @@ const windowConf: {
 }
 
 function createWindow(type: keyof typeof windowConf = 'main') {
-  // 对于设置窗口，总是创建新窗口
+  // 对于设置窗口，检查是否已经存在
   if (type === 'settings') {
-    const settingsWindow = new BrowserWindow({
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      // 如果设置窗口已经存在，则聚焦到它
+      settingsWindow.focus()
+      return
+    }
+    
+    settingsWindow = new BrowserWindow({
       ...windowConf[type].conf,
       show: false,
       parent: mainWindow || undefined,
       modal: false,
     })
-    settingsWindow.once('ready-to-show', settingsWindow.show)
+    
+    // 当设置窗口关闭时，清空引用
+    settingsWindow.on('closed', () => {
+      settingsWindow = null
+    })
+    
+    settingsWindow.once('ready-to-show', () => settingsWindow?.show())
     settingsWindow.loadURL(windowConf[type].url)
     return
   }
