@@ -919,3 +919,11 @@ ipcMain.handle('getSelectedAIProvider', () => {
     return 'openai'
   }
 })
+
+ipcMain.on('createStickyWithContent', (event, args: { id: number, content: string }) => {
+  const { id, content } = args
+  ensureIdInStickiesConfig(id)
+  const stickyData = useUserData('sticky' + id, { content: '' })
+  stickyData.value.content = content
+  createStickies(id)
+})

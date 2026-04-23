@@ -13,6 +13,15 @@
       </div>
       <div class="flex-grow"></div>
       <div class="h-5 pr-5 flex leading-4 nodragable">
+        <div class="cursor-pointer ml-3" @click="generateBlog" :class="{ 'opacity-50': isGenerating }">
+          <svg v-if="isGenerating" class="inline-block animate-spin" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 11-6.219-8.56" />
+          </svg>
+          <svg v-else class="inline-block" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </div>
+        <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
         <div class="cursor-pointer ml-3" @click="togglePin">
           <ArrowupSvg class="inline-block" :fill="isPin ? '#333333' : '#999999'" />
         </div>
@@ -29,6 +38,20 @@
       :style="`background: ${bgColor}`">
     </div>
   </div>
+  <SelectModal
+    :visible="showProviderModal"
+    title="选择AI提供商"
+    :options="providerOptions"
+    @confirm="onProviderConfirm"
+    @cancel="onProviderCancel"
+  />
+  <SelectModal
+    :visible="showModelModal"
+    title="选择具体模型"
+    :options="modelOptions"
+    @confirm="onModelConfirm"
+    @cancel="onModelCancel"
+  />
 </template>
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from "vue";
@@ -37,6 +60,8 @@ import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
 import { useEditor } from '../composition/editor';
+import { generateBlogContent, getConfiguredProviders, ConfiguredProvider } from '../utils/aiService';
+import SelectModal from '../components/SelectModal.vue';
 
 const getquery = () => {
   const matched = location.href.match(/\?id=([^&]+)&bg=(.+)/);
@@ -48,9 +73,17 @@ const [id, bg] = getquery();
 let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
 let isTransparent = ref<boolean>(false);
+let isGenerating = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
 
 let data: any;
+
+const showProviderModal = ref(false);
+const showModelModal = ref(false);
+const providerOptions = ref<{value: string, label: string}[]>([]);
+const modelOptions = ref<{value: string, label: string}[]>([]);
+let pendingProviderValue: string = '';
+let pendingContent: string = '';
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
@@ -133,6 +166,91 @@ const toggleTransparent = () => {
 const togglePin = () => {
   send("setPin", !isPin.value);
   isPin.value = !isPin.value;
+};
+
+const generateBlog = async () => {
+  if (isGenerating.value) return;
+
+  const content = data?.value?.content;
+  if (!content || content.trim() === '') {
+    alert('请先在便签中输入内容');
+    return;
+  }
+
+  const providers = await getConfiguredProviders();
+  if (providers.length === 0) {
+    alert('请先在设置中配置至少一个AI提供商的API Token');
+    return;
+  }
+
+  pendingContent = content;
+
+  if (providers.length === 1) {
+      pendingProviderValue = providers[0].value;
+      modelOptions.value = providers[0].models.map((m: any) => ({
+        value: m.id,
+        label: `${m.name} (${providers[0].label})`
+      }));
+    showModelModal.value = true;
+  } else {
+    providerOptions.value = providers.map(p => ({ value: p.value, label: p.label }));
+    showProviderModal.value = true;
+  }
+};
+
+const onProviderConfirm = (value: string) => {
+  showProviderModal.value = false;
+  pendingProviderValue = value;
+
+  const providers = providerOptions.value;
+  const selectedProvider = providers.find(p => p.value === value);
+  if (!selectedProvider) return;
+
+  getConfiguredProviders().then(providerList => {
+    const fullProvider = providerList.find(p => p.value === value);
+    if (fullProvider && fullProvider.models.length > 1) {
+      modelOptions.value = fullProvider.models.map((m: any) => ({
+        value: m.id,
+        label: `${m.name} (${fullProvider.label})`
+      }));
+      showModelModal.value = true;
+    } else if (fullProvider) {
+      doGenerateBlog(fullProvider.value, fullProvider.models[0]?.id);
+    }
+  });
+};
+
+const onProviderCancel = () => {
+  showProviderModal.value = false;
+};
+
+const onModelConfirm = (value: string) => {
+  showModelModal.value = false;
+  doGenerateBlog(pendingProviderValue, value);
+};
+
+const onModelCancel = () => {
+  showModelModal.value = false;
+};
+
+const doGenerateBlog = async (providerValue: string, modelId: string) => {
+  if (!pendingContent || !providerValue || !modelId) return;
+
+  isGenerating.value = true;
+
+  try {
+    const blogContent = await generateBlogContent(pendingContent, providerValue, modelId);
+
+    const newStickyId = Date.now();
+    send('createStickyWithContent', {
+      id: newStickyId,
+      content: blogContent
+    });
+  } catch (error: any) {
+    alert(error.message || '生成博客失败');
+  } finally {
+    isGenerating.value = false;
+  }
 };
 </script>
 <style lang="less">
