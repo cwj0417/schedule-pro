@@ -881,3 +881,41 @@ let notificationQ: notification[] = []
 let notificationHandlers: {
   [id: number]: NodeJS.Timeout
 } = {}
+
+// AI 设置相关
+let aiSettings = useUserData('aiSettings', {
+  selectedProvider: 'openai',
+  tokens: {}
+})
+
+ipcMain.handle('setAIToken', (event, args: { provider: string, token: string }) => {
+  try {
+    if (!aiSettings.value.tokens) {
+      aiSettings.value.tokens = {}
+    }
+    aiSettings.value.tokens[args.provider] = args.token
+    aiSettings.value.selectedProvider = args.provider
+    return true
+  } catch (error) {
+    console.error('保存AI token失败:', error)
+    return false
+  }
+})
+
+ipcMain.handle('getAIToken', (event, provider: string) => {
+  try {
+    return aiSettings.value.tokens?.[provider] || ''
+  } catch (error) {
+    console.error('获取AI token失败:', error)
+    return ''
+  }
+})
+
+ipcMain.handle('getSelectedAIProvider', () => {
+  try {
+    return aiSettings.value.selectedProvider || 'openai'
+  } catch (error) {
+    console.error('获取选定的AI提供商失败:', error)
+    return 'openai'
+  }
+})

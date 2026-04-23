@@ -217,6 +217,74 @@
                     </div>
                 </div>
 
+                <!-- AI 设置 -->
+                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">AI 模型设置</h2>
+                            <p class="text-xs" style="color: var(--color-2);">配置大模型提供商和 API Token</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 提供商选择 -->
+                    <div class="flex flex-col gap-4">
+                        <!-- 提供商选择 -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-medium" style="color: var(--color-1);">模型提供商</label>
+                            <select v-model="selectedProvider" @change="onProviderChange"
+                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
+                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                                <option v-for="provider in providers" :key="provider.value" :value="provider.value">
+                                    {{ provider.label }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <!-- Token 输入 -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium" style="color: var(--color-1);">API Token</label>
+                                <button @click="toggleTokenVisibility"
+                                    class="text-xs px-2 py-1 rounded transition-all duration-200"
+                                    style="color: var(--color-2); background: var(--bg-1); border: 1px solid var(--border-1);">
+                                    {{ showToken ? '隐藏' : '显示' }}
+                                </button>
+                            </div>
+                            <input :type="showToken ? 'text' : 'password'" v-model="tokenInput"
+                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
+                                :style="{
+                                    'border-color': tokenInput ? 'var(--theme-0)' : 'var(--border-1)',
+                                    'background': 'var(--bg-0)',
+                                    'color': 'var(--color-1)'
+                                }"
+                                placeholder="请输入 API Token">
+                        </div>
+                        
+                        <!-- 保存按钮 -->
+                        <button @click="saveToken"
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center justify-center gap-2 save-token-btn"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            <span class="text-xs font-medium">保存设置</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 外观设置 -->
                 <div class="flex backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
@@ -300,6 +368,53 @@ const themes = [
     { value: 'light', label: '白色主题' },
     { value: 'dark', label: '黑色主题' }
 ]
+
+// AI 模型提供商列表
+const providers = [
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'google', label: 'Google AI' },
+    { value: 'bigmodel', label: '字节跳动大模型' },
+    { value: 'baidu', label: '百度文心一言' },
+    { value: 'ali', label: '阿里云通义千问' },
+    { value: 'azure', label: 'Azure OpenAI' }
+]
+
+// AI 设置相关变量
+const selectedProvider = ref('openai')
+const tokenInput = ref('')
+const showToken = ref(false)
+
+// 切换提供商
+const onProviderChange = async () => {
+    // 加载对应提供商的token
+    try {
+        const savedToken = await invoke('getAIToken', selectedProvider.value)
+        tokenInput.value = savedToken || ''
+    } catch (error) {
+        console.error('获取token失败:', error)
+        tokenInput.value = ''
+    }
+}
+
+// 切换token可见性
+const toggleTokenVisibility = () => {
+    showToken.value = !showToken.value
+}
+
+// 保存token
+const saveToken = async () => {
+    try {
+        await invoke('setAIToken', {
+            provider: selectedProvider.value,
+            token: tokenInput.value
+        })
+        alert('保存成功')
+    } catch (error) {
+        console.error('保存token失败:', error)
+        alert('保存失败')
+    }
+}
 
 const closeWindow = () => {
     send('hideWindow')
@@ -494,6 +609,18 @@ onMounted(async () => {
         await loadBackupStatus()
     } catch (error) {
         console.error('获取备份设置失败:', error)
+    }
+
+    // 加载AI设置
+    try {
+        const savedProvider = await invoke('getSelectedAIProvider')
+        if (savedProvider) {
+            selectedProvider.value = savedProvider
+        }
+        // 加载对应提供商的token
+        await onProviderChange()
+    } catch (error) {
+        console.error('加载AI设置失败:', error)
     }
 })
 </script>
