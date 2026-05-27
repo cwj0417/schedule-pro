@@ -22,11 +22,13 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: 'OpenAI',
     apiEndpoint: 'https://api.openai.com/v1/chat/completions',
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o' },
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-      { id: 'gpt-4', name: 'GPT-4' },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
+      { id: 'gpt-5.5', name: 'GPT-5.5' },
+      { id: 'gpt-5.5-instant', name: 'GPT-5.5 Instant' },
+      { id: 'gpt-5.4', name: 'GPT-5.4' },
+      { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini' },
+      { id: 'gpt-5.3-instant', name: 'GPT-5.3 Instant' },
+      { id: 'o3', name: 'o3' },
+      { id: 'o4-mini', name: 'o4-mini' }
     ]
   },
   {
@@ -34,24 +36,21 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: 'Anthropic',
     apiEndpoint: 'https://api.anthropic.com/v1/messages',
     models: [
-      { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
-      { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
-      { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
-      { id: 'claude-3-haiku-20240229', name: 'Claude 3 Haiku' }
+      { id: 'claude-opus-4-7', name: 'Claude Opus 4.7' },
+      { id: 'claude-sonnet-4-6', name: 'Claude Sonnet 4.6' },
+      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5' }
     ]
   },
   {
     value: 'bigmodel',
-    label: '字节跳动大模型',
+    label: '智谱 BigModel',
     apiEndpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
     models: [
-      { id: 'glm-4-plus', name: 'GLM-4 Plus' },
-      { id: 'glm-4-flash', name: 'GLM-4 Flash' },
-      { id: 'glm-4', name: 'GLM-4' },
-      { id: 'glm-4-airx', name: 'GLM-4 AirX' },
-      { id: 'glm-4-air', name: 'GLM-4 Air' },
-      { id: 'glm-3-turbo', name: 'GLM-3 Turbo' }
+      { id: 'glm-5.1', name: 'GLM-5.1' },
+      { id: 'glm-5-turbo', name: 'GLM-5 Turbo' },
+      { id: 'glm-5', name: 'GLM-5' },
+      { id: 'glm-4.7', name: 'GLM-4.7' },
+      { id: 'glm-4.7-flash', name: 'GLM-4.7 Flash' }
     ]
   },
   {
@@ -59,11 +58,9 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: '百度文心一言',
     apiEndpoint: 'https://qianfan.baidubce.com/v2/chat/completions',
     models: [
-      { id: 'ernie-4.0-8k-latest', name: '文心一言 4.0 8K' },
-      { id: 'ernie-4.0-8k', name: '文心一言 4.0' },
-      { id: 'ernie-3.5-8k', name: '文心一言 3.5 8K' },
-      { id: 'ernie-speed-8k', name: 'ernie-speed-8K' },
-      { id: 'ernie-lite-8k', name: 'ernie-lite-8K' }
+      { id: 'ernie-5.1', name: '文心 5.1' },
+      { id: 'ernie-5.0', name: '文心 5.0' },
+      { id: 'ernie-4.0-8k-latest', name: '文心 4.0 8K' }
     ]
   },
   {
@@ -71,9 +68,9 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: '阿里云通义千问',
     apiEndpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
     models: [
-      { id: 'qwen-max', name: 'Qwen Max' },
-      { id: 'qwen-plus', name: 'Qwen Plus' },
-      { id: 'qwen-turbo', name: 'Qwen Turbo' },
+      { id: 'qwen3.7-max', name: 'Qwen3.7 Max' },
+      { id: 'qwen3.6-plus', name: 'Qwen3.6 Plus' },
+      { id: 'qwen3.6-flash', name: 'Qwen3.6 Flash' },
       { id: 'qwen-long', name: 'Qwen Long' }
     ]
   },
@@ -82,11 +79,11 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: 'Google AI',
     apiEndpoint: 'https://generativelanguage.googleapis.com/v1beta/models',
     models: [
-      { id: 'gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash' },
-      { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
-      { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
-      { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash 8B' },
-      { id: 'gemini-pro', name: 'Gemini Pro' }
+      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash' },
+      { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro' },
+      { id: 'gemini-3-flash', name: 'Gemini 3 Flash' },
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+      { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' }
     ]
   },
   {
@@ -94,10 +91,20 @@ export const AI_PROVIDERS: AIProvider[] = [
     label: 'Azure OpenAI',
     apiEndpoint: '',
     models: [
-      { id: 'gpt-4o', name: 'GPT-4o' },
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-      { id: 'gpt-35-turbo', name: 'GPT-3.5 Turbo' }
+      { id: 'gpt-5.5', name: 'GPT-5.5' },
+      { id: 'gpt-5.4', name: 'GPT-5.4' },
+      { id: 'gpt-5.3-instant', name: 'GPT-5.3 Instant' },
+      { id: 'gpt-4.1', name: 'GPT-4.1' }
+    ]
+  },
+  {
+    value: 'deepseek',
+    label: 'DeepSeek',
+    apiEndpoint: 'https://api.deepseek.com/chat/completions',
+    models: [
+      { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro' },
+      { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash' },
+      { id: 'deepseek-r1', name: 'DeepSeek R1' }
     ]
   }
 ]
@@ -151,7 +158,13 @@ export async function getConfiguredProviders(): Promise<ConfiguredProvider[]> {
   }
 }
 
-export async function generateBlogContent(content: string, providerValue?: string, modelId?: string): Promise<string> {
+export interface GenerateOptions {
+  optimizeTitle?: boolean
+  addDessert?: boolean
+  isOutline?: boolean
+}
+
+export async function generateBlogContent(content: string, providerValue?: string, modelId?: string, options?: GenerateOptions): Promise<string> {
   let config: { provider: string; token: string } | null
   
   if (providerValue) {
@@ -182,16 +195,45 @@ export async function generateBlogContent(content: string, providerValue?: strin
     throw new Error('未找到可用模型')
   }
 
-  const prompt = `请根据以下内容生成一篇博客文章，要求：
-1. 结构清晰，有标题和段落
-2. 内容丰富，补充相关背景知识
-3. 语言通顺流畅
-4. 适合技术博客风格
+  let prompt: string
+
+  if (options?.isOutline) {
+    prompt = `请整理以下内容为清晰的提纲。这些内容可能是零碎的、临时记录下来的思路，请：
+1. 提取核心观点和关键思路
+2. 按逻辑顺序组织成结构化的提纲
+3. 使用层级结构（主标题、子标题、要点）
+4. 去除重复内容，合并相似观点
+5. 保持原意，但使表达更清晰有条理
+6. 使用简洁的中文表达
+
+原始内容：
+${content}
+
+整理后的提纲：`
+  } else {
+    const requirements: string[] = [
+      '结构清晰，有标题和段落',
+      '内容丰富，补充相关背景知识',
+      '语言通顺流畅',
+      '适合技术博客风格'
+    ]
+
+    if (options?.optimizeTitle) {
+      requirements.push('生成一个吸引人、有创意的标题，能够引起读者兴趣')
+    }
+
+    if (options?.addDessert) {
+      requirements.push('在文章适当位置加入"甜点"内容：包括幽默的比喻、轻松的笑话或非技术性的趣闻，让读者在阅读过程中能够放松提神')
+    }
+
+    prompt = `请根据以下内容生成一篇博客文章，要求：
+${requirements.map((req, i) => `${i + 1}. ${req}`).join('\n')}
 
 内容：
 ${content}
 
 生成的博客：`
+  }
 
   switch (config.provider) {
     case 'openai':
@@ -206,6 +248,8 @@ ${content}
       return await callAli(config.token, provider.apiEndpoint!, prompt, selectedModel)
     case 'google':
       return await callGoogle(config.token, provider.apiEndpoint!, prompt, selectedModel)
+    case 'deepseek':
+      return await callOpenAI(config.token, provider.apiEndpoint!, prompt, selectedModel)
     case 'azure':
       throw new Error('Azure OpenAI 需要配置endpoint，请稍后支持')
     default:
@@ -221,7 +265,7 @@ async function callOpenAI(token: string, endpoint: string, prompt: string, model
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-      model: modelId || 'gpt-3.5-turbo',
+      model: modelId || 'gpt-5.3-instant',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7
     })
@@ -244,7 +288,7 @@ async function callAnthropic(token: string, prompt: string, modelId?: string): P
       'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
-      model: modelId || 'claude-3-sonnet-20240229',
+      model: modelId || 'claude-sonnet-4-6',
       max_tokens: 4096,
       messages: [{ role: 'user', content: prompt }]
     })
@@ -266,7 +310,7 @@ async function callBigModel(token: string, endpoint: string, prompt: string, mod
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-      model: modelId || 'glm-4',
+      model: modelId || 'glm-5.1',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7
     })
@@ -288,7 +332,7 @@ async function callBaidu(token: string, prompt: string, modelId?: string): Promi
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-      model: modelId || 'ernie-4.0-8k-latest',
+      model: modelId || 'ernie-5.1',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7
     })
@@ -311,7 +355,7 @@ async function callAli(token: string, endpoint: string, prompt: string, modelId?
       'X-DashScope-SSE': 'disable'
     },
     body: JSON.stringify({
-      model: modelId || 'qwen-turbo',
+      model: modelId || 'qwen3.6-flash',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.7
     })
@@ -326,7 +370,7 @@ async function callAli(token: string, endpoint: string, prompt: string, modelId?
 }
 
 async function callGoogle(token: string, endpoint: string, prompt: string, modelId?: string): Promise<string> {
-  const model = modelId || 'gemini-1.5-flash'
+  const model = modelId || 'gemini-2.5-flash'
   const response = await fetch(`${endpoint}/${model}:generateContent?key=${token}`, {
     method: 'POST',
     headers: {

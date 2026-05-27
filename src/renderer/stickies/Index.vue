@@ -12,14 +12,44 @@
           :style="`backgroundColor: var(--sticky-${color})`" @click="changeColor(color)" />
       </div>
       <div class="flex-grow"></div>
-      <div class="h-5 pr-5 flex leading-4 nodragable">
-        <div class="cursor-pointer ml-3" @click="generateBlog" :class="{ 'opacity-50': isGenerating }">
-          <svg v-if="isGenerating" class="inline-block animate-spin" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 11-6.219-8.56" />
-          </svg>
-          <svg v-else class="inline-block" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
+      <div class="h-5 pr-5 flex leading-4 nodragable items-center">
+        <div class="relative">
+          <div class="cursor-pointer ml-3" @click="showGenerateMenu = !showGenerateMenu" :class="{ 'opacity-50': isGenerating }">
+            <svg v-if="isGenerating" class="inline-block animate-spin" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 11-6.219-8.56" />
+            </svg>
+            <svg v-else class="inline-block" width="13px" height="13px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <div v-if="showGenerateMenu" class="absolute top-6 right-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 z-50 w-56">
+            <div class="mb-3 pb-2 border-b border-gray-200">
+              <button
+                @click="generateOutline"
+                class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm"
+                :disabled="isGenerating"
+              >
+                整理提纲
+              </button>
+              <div class="mt-2 space-y-2">
+                <label class="flex items-center text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                  <input type="checkbox" v-model="optimizeTitle" class="mr-2" />
+                  <span>优化吸引人的标题</span>
+                </label>
+                <label class="flex items-center text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                  <input type="checkbox" v-model="addDessert" class="mr-2" />
+                  <span>增加文章甜点</span>
+                </label>
+              </div>
+              <button
+                @click="generateBlog"
+                class="w-full mt-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                :disabled="isGenerating"
+              >
+                生成 Post
+              </button>
+            </div>
+          </div>
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
         <div class="cursor-pointer ml-3" @click="togglePin">
@@ -74,6 +104,9 @@ let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
 let isTransparent = ref<boolean>(false);
 let isGenerating = ref<boolean>(false);
+let optimizeTitle = ref<boolean>(false);
+let addDessert = ref<boolean>(false);
+let showGenerateMenu = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
 
 let data: any;
@@ -84,6 +117,8 @@ const providerOptions = ref<{value: string, label: string}[]>([]);
 const modelOptions = ref<{value: string, label: string}[]>([]);
 let pendingProviderValue: string = '';
 let pendingContent: string = '';
+let isOutlineMode: boolean = false;
+let editorView: any = null;
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
@@ -115,7 +150,7 @@ onMounted(() => {
         });
       },
       () => {
-        useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
+        editorView = useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
       }
     );
   }
@@ -170,10 +205,19 @@ const togglePin = () => {
 
 const generateBlog = async () => {
   if (isGenerating.value) return;
+  showGenerateMenu.value = false;
 
-  const content = data?.value?.content;
+  let content = '';
+  if (editorView) {
+    const selection = editorView.state.selection.main;
+    const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
+    content = selectedText.trim() || data?.value?.content;
+  } else {
+    content = data?.value?.content;
+  }
+
   if (!content || content.trim() === '') {
-    alert('请先在便签中输入内容');
+    alert('请先在便签中输入内容或选中文本');
     return;
   }
 
@@ -184,6 +228,47 @@ const generateBlog = async () => {
   }
 
   pendingContent = content;
+  isOutlineMode = false;
+
+  if (providers.length === 1) {
+      pendingProviderValue = providers[0].value;
+      modelOptions.value = providers[0].models.map((m: any) => ({
+        value: m.id,
+        label: `${m.name} (${providers[0].label})`
+      }));
+    showModelModal.value = true;
+  } else {
+    providerOptions.value = providers.map(p => ({ value: p.value, label: p.label }));
+    showProviderModal.value = true;
+  }
+};
+
+const generateOutline = async () => {
+  if (isGenerating.value) return;
+  showGenerateMenu.value = false;
+
+  let content = '';
+  if (editorView) {
+    const selection = editorView.state.selection.main;
+    const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
+    content = selectedText.trim() || data?.value?.content;
+  } else {
+    content = data?.value?.content;
+  }
+
+  if (!content || content.trim() === '') {
+    alert('请先在便签中输入内容或选中文本');
+    return;
+  }
+
+  const providers = await getConfiguredProviders();
+  if (providers.length === 0) {
+    alert('请先在设置中配置至少一个AI提供商的API Token');
+    return;
+  }
+
+  pendingContent = content;
+  isOutlineMode = true;
 
   if (providers.length === 1) {
       pendingProviderValue = providers[0].value;
@@ -239,7 +324,11 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   isGenerating.value = true;
 
   try {
-    const blogContent = await generateBlogContent(pendingContent, providerValue, modelId);
+    const options = isOutlineMode
+      ? { isOutline: true }
+      : { optimizeTitle: optimizeTitle.value, addDessert: addDessert.value };
+
+    const blogContent = await generateBlogContent(pendingContent, providerValue, modelId, options);
 
     const newStickyId = Date.now();
     send('createStickyWithContent', {
@@ -247,7 +336,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
       content: blogContent
     });
   } catch (error: any) {
-    alert(error.message || '生成博客失败');
+    alert(error.message || (isOutlineMode ? '整理提纲失败' : '生成博客失败'));
   } finally {
     isGenerating.value = false;
   }

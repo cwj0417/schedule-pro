@@ -20,7 +20,7 @@ import { useImgDnPPlugin } from "./editor/imgdnp";
 import { bold } from "./editor/bold";
 import { blockbg } from "./editor/blockbg";
 
-const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement) => {
+const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement): EditorView => {
     let debounce: NodeJS.Timeout
     const ImageDropAndPaste = useImgDnPPlugin()
     let startState = EditorState.create({
@@ -57,10 +57,12 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
             blockbg,
         ]
     })
-    new EditorView({
+    const view = new EditorView({
         state: startState,
         parent: dom(),
-    }).focus()
+    })
+    view.focus()
+    return view
 }
 
 export { useEditor }
