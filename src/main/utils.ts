@@ -33,11 +33,11 @@ const useUserData = (name = 'main', init = {}, extraEffect: any = null) => {
     } else {
         writeFileSync(confPath, JSON.stringify(init))
     }
-    watch(userData.value, val => {
+    watch(userData, val => {
         // console.log('set userdata', name, toRaw(val))
         writeFileSync(confPath, JSON.stringify(val))
         extraEffect?.(toRaw(val))
-    })
+    }, { deep: true })
 
     return userData
 }

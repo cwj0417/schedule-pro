@@ -9,8 +9,8 @@ import stickiesPage from '@/renderer/index.html#/stickies'
 import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
-import { readdirSync, unlinkSync } from 'fs'
-import { join } from 'path'
+import { readdirSync, unlinkSync, readFileSync, writeFileSync } from 'fs'
+import { join, dirname } from 'path'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
 import { notification } from "../type"
@@ -794,6 +794,18 @@ ipcMain.on('setTransparent', (event, isTransparent) => {
   }
 })
 
+ipcMain.on('resizeStickyForFileMode', (event, isFileMode) => {
+  const curWindow = BrowserWindow.fromWebContents(event.sender)
+  if (curWindow) {
+    const [width, height] = curWindow.getSize()
+    if (isFileMode) {
+      if (width < 700) curWindow.setSize(700, Math.max(height, 500))
+    } else {
+      if (width > stickyMinFrame.width) curWindow.setSize(stickyMinFrame.width, stickyMinFrame.height)
+    }
+  }
+})
+
 ipcMain.on('set-ignore-mouse-events', (event, ignore: boolean, options?: any) => {
   BrowserWindow.fromWebContents(event?.sender)?.setIgnoreMouseEvents(ignore, options)
 })
@@ -806,7 +818,13 @@ ipcMain.on('removeCountDown', (event, id) => {
 
 ipcMain.on('setStickyTitle', (event, args) => {
   if (stickiesConfig.value[args.key]) {
-    stickiesConfig.value[args.key].title = args.val.match(/\s?([^\n]+)/)?.[1] ?? ''
+    const val = args.val || ''
+    // 文件模式占位符直接作为 title 保存，不做正则截取
+    if (val.startsWith('[file]')) {
+      stickiesConfig.value[args.key].title = val
+    } else {
+      stickiesConfig.value[args.key].title = val.match(/\s?([^\n]+)/)?.[1] ?? ''
+    }
   }
 })
 
@@ -822,6 +840,17 @@ ipcMain.on('openSticky', (event, stickyId) => {
     stickiesConfig.value[stickyId].expended = true
     createStickies(stickyId)
   }
+})
+
+ipcMain.handle('findStickyByFilePath', (event, filePath: string) => {
+  const FILE_PREFIX = '[file]'
+  const target = FILE_PREFIX + filePath
+  for (const [id, conf] of Object.entries(toRaw(stickiesConfig.value))) {
+    if ((conf as any).title === target) {
+      return id
+    }
+  }
+  return null
 })
 
 const toTop = (stickyId: number) => {
@@ -888,6 +917,51 @@ let aiSettings = useUserData('aiSettings', {
   tokens: {}
 })
 
+let fileModeSettings = useUserData('fileModeSettings', {
+  paths: {} as { [filePath: string]: { name: string, command: string, params?: string[] }[] }
+})
+
+ipcMain.handle('getFileModeSettings', () => {
+  return JSON.parse(JSON.stringify(fileModeSettings.value.paths || {}))
+})
+
+ipcMain.on('setFileModeSettings', (event, paths: { [filePath: string]: { name: string, command: string }[] }) => {
+  fileModeSettings.value = { paths }
+})
+
+ipcMain.handle('ensureFilePathInSettings', (event, filePath: string) => {
+  if (!fileModeSettings.value.paths) fileModeSettings.value.paths = {}
+  if (!fileModeSettings.value.paths[filePath]) {
+    fileModeSettings.value.paths = { ...fileModeSettings.value.paths, [filePath]: [] }
+  }
+  return true
+})
+
+ipcMain.handle('executeFileModeCommand', async (event, command: string, filePath: string) => {
+  const { exec } = require('child_process')
+  const env = { ...process.env }
+  if (filePath) env.FILE_PATH = filePath
+  const folder = filePath ? dirname(filePath) : undefined
+  return new Promise((resolve, reject) => {
+    exec(command, { cwd: folder, env, timeout: 30000 }, (error: any, stdout: string, stderr: string) => {
+      if (error) {
+        reject(new Error(JSON.stringify({ error: error.message, stderr, stdout })))
+      } else {
+        resolve({ stdout, stderr })
+      }
+    })
+  })
+})
+
+ipcMain.on('openSettingsWindow', () => {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus()
+    settingsWindow.webContents.send('message', { type: 'reloadFileModeSettings' })
+  } else {
+    createWindow('settings')
+  }
+})
+
 ipcMain.handle('setAIToken', (event, args: { provider: string, token: string }) => {
   try {
     if (!aiSettings.value.tokens) {
@@ -926,4 +1000,52 @@ ipcMain.on('createStickyWithContent', (event, args: { id: number, content: strin
   const stickyData = useUserData('sticky' + id, { content: '' })
   stickyData.value.content = content
   createStickies(id)
+})
+
+ipcMain.handle('showOpenFileDialog', async (event, options?: { title?: string, filters?: any[], defaultPath?: string }) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWindow || BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
+  const result = await dialog.showOpenDialog(win, {
+    title: options?.title || '选择文件',
+    properties: ['openFile'],
+    filters: options?.filters || [
+      { name: '文本文件', extensions: ['md', 'txt', 'json', 'js', 'ts', 'vue', 'html', 'css', 'less', 'scss', 'yaml', 'yml', 'xml', 'csv'] },
+      { name: '所有文件', extensions: ['*'] }
+    ],
+    ...options
+  })
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0]
+  }
+  return null
+})
+
+ipcMain.handle('showFolderDialog', async (event, options?: { title?: string }) => {
+  const win = BrowserWindow.fromWebContents(event.sender) || mainWindow || BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0]
+  const result = await dialog.showOpenDialog(win, {
+    title: options?.title || '选择文件夹',
+    properties: ['openDirectory']
+  })
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0]
+  }
+  return null
+})
+
+ipcMain.handle('readFileContent', async (event, filePath: string) => {
+  try {
+    return readFileSync(filePath, { encoding: 'utf-8' })
+  } catch (error) {
+    throw error
+  }
+})
+
+ipcMain.handle('writeFileContent', async (event, filePath: string, content: string) => {
+  try {
+    const fse = require('fs-extra')
+    fse.ensureDirSync(require('path').dirname(filePath))
+    writeFileSync(filePath, content, { encoding: 'utf-8' })
+    return true
+  } catch (error) {
+    throw error
+  }
 })

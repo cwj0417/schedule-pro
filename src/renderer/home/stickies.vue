@@ -9,7 +9,15 @@
           background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
         }">
-        <search-result :value="sticky?.title || '未命名便签'" :search="search" />
+        <template v-if="isFileSticky(sticky)">
+          <FileSvg class="inline-block mr-1.5 align-middle flex-shrink-0" width="14" height="14" style="color: #888" />
+          <span class="inline-block truncate align-middle" style="max-width: calc(100% - 24px)">
+            <search-result :value="getFileNameFromSticky(sticky)" :search="search" />
+          </span>
+        </template>
+        <template v-else>
+          <search-result :value="sticky?.title || '未命名便签'" :search="search" />
+        </template>
         <div class="w-2 h-2 rounded-md absolute top-4 right-3 opacity-100 group-hover:opacity-0" :style="{
           background: getBg(sticky?.backgroundColor),
         }"></div>
@@ -27,9 +35,31 @@ import draggable from "vuedraggable";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
 import ArrowUpSvg from "@/assets/svg/arrowup.svg";
+import FileSvg from "@/assets/svg/file.svg";
 import { getBg } from "../composition";
 
 const props = defineProps(['search']);
+
+const FILE_PREFIX = '[file]';
+
+const isFileSticky = (sticky: any): boolean => {
+  if (!sticky) return false;
+  const title = sticky.title || '';
+  return title.startsWith(FILE_PREFIX);
+};
+
+const extractFilePathFromTitle = (sticky: any): string => {
+  const title = sticky?.title || '';
+  if (!isFileSticky(sticky)) return '';
+  return title.slice(FILE_PREFIX.length);
+};
+
+const getFileNameFromSticky = (sticky: any): string => {
+  const path = extractFilePathFromTitle(sticky);
+  if (!path) return '文件便签';
+  const parts = path.replace(/\\/g, '/').split('/');
+  return parts[parts.length - 1] || '文件便签';
+};
 
 const { send, onMessage } = window.apis;
 const stickies = ref<any[]>([]);
@@ -41,6 +71,9 @@ onMounted(() => {
   onMessage(({ type, value }: any) => {
     if (type === "stickesConfigChange") {
       stickies.value = value;
+      value.forEach((s: any) => {
+        console.log('[DEBUG sticky]', s.id, 'title:', JSON.stringify(s.title), 'isFile:', s.title?.startsWith('[file]'))
+      });
     }
     if (type === "activesticky") {
       activeKey.value = value

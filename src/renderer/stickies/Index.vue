@@ -11,7 +11,18 @@
           v-for="color in 9" :key="color" style="--tw-ring-color: var(--color-3)"
           :style="`backgroundColor: var(--sticky-${color})`" @click="changeColor(color)" />
       </div>
-      <div class="flex-grow"></div>
+      <div class="flex-grow flex items-center justify-center gap-1.5 dragable">
+        <template v-if="isFileMode">
+          <span v-if="!filePath" class="text-xs cursor-pointer opacity-60 hover:opacity-100 nodragable" style="color: var(--color-0)" @click="selectFile">选择文件</span>
+          <template v-else>
+            <svg class="cursor-pointer opacity-50 hover:opacity-100 nodragable" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" @click="openFileModeSettings" title="编辑操作设置"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span class="text-xs truncate max-w-[200px] cursor-pointer opacity-70 hover:opacity-100 nodragable" style="color: var(--color-0)" :title="filePath" @click="selectFile">{{ fileName }}</span>
+            <template v-for="(op, i) in fileModeOperations" :key="i">
+              <span class="text-xs cursor-pointer opacity-50 hover:opacity-100 nodragable px-1.5 py-0.5 rounded" style="color: var(--color-0); background: var(--bg-2)" @click="executeOperation(op)" :title="op.command">{{ op.name }}</span>
+            </template>
+          </template>
+        </template>
+      </div>
       <div class="h-5 pr-5 flex leading-4 nodragable items-center">
         <div class="relative">
           <div class="cursor-pointer ml-3" @click="showGenerateMenu = !showGenerateMenu" :class="{ 'opacity-50': isGenerating }">
@@ -52,6 +63,10 @@
           </div>
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
+        <div v-if="!isFileMode" class="cursor-pointer ml-3" :class="{ 'opacity-30': !canToggleFileMode }" :title="!canToggleFileMode ? '仅空便签可切换文件模式' : '文件模式'" @click="toggleFileMode">
+          <FileSvg class="inline-block" style="color: #999" />
+        </div>
+        <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
         <div class="cursor-pointer ml-3" @click="togglePin">
           <ArrowupSvg class="inline-block" :fill="isPin ? '#333333' : '#999999'" />
         </div>
@@ -64,7 +79,10 @@
         </div>
       </div>
     </div>
-    <div id="code-mirror" class="p-2 text-sm" style="height: calc(100% - 2.5rem); color: var(--color-0)"
+    <div v-if="isFileMode && !filePath" class="flex items-center justify-center text-sm" style="height: calc(100% - 2.5rem); color: var(--color-2)" :style="`background: ${bgColor}`">
+      <span class="cursor-pointer opacity-60 hover:opacity-100" @click="selectFile">点击选择文件开始编辑</span>
+    </div>
+    <div v-else id="code-mirror" class="p-2 text-sm" style="height: calc(100% - 2.5rem); color: var(--color-0)"
       :style="`background: ${bgColor}`">
     </div>
   </div>
@@ -82,15 +100,36 @@
     @confirm="onModelConfirm"
     @cancel="onModelCancel"
   />
+  <!-- Toast -->
+  <Toast ref="toastRef" />
+
+  <!-- 参数收集对话框 -->
+  <div v-if="paramDialog.visible" class="fixed inset-0 z-[9998] flex items-center justify-center" style="background: rgba(0,0,0,0.3)">
+    <div class="rounded-lg shadow-xl p-4 w-72 nodragable" style="background: var(--bg-1); border: 1px solid var(--border-1);">
+      <div class="text-xs font-medium mb-3" style="color: var(--color-1);">{{ paramDialog.opName }} - {{ paramDialog.params[paramDialog.currentIndex] }}</div>
+      <input v-model="paramDialog.values[paramDialog.currentIndex]" @keydown.enter="onParamSubmit"
+        class="w-full px-3 py-2 rounded border text-xs focus:outline-none mb-3"
+        style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);"
+        :placeholder="paramDialog.params[paramDialog.currentIndex]" autofocus>
+      <div class="flex justify-end gap-2">
+        <button @click="onParamCancel" class="text-xs px-3 py-1.5 rounded" style="color: var(--color-2);">取消</button>
+        <button @click="onParamSubmit" class="text-xs px-3 py-1.5 rounded" style="color: var(--theme-0); background: var(--theme-5);">
+          {{ paramDialog.currentIndex < paramDialog.params.length - 1 ? '下一步' : '执行' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, computed, nextTick, shallowRef } from "vue";
 import { useUserData, getBg } from "../composition";
+import Toast from "../components/Toast.vue";
 import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
+import FileSvg from "@/assets/svg/file.svg";
 import { useEditor } from '../composition/editor';
-import { generateBlogContent, getConfiguredProviders, ConfiguredProvider } from '../utils/aiService';
+import { generateBlogContent, getConfiguredProviders } from '../utils/aiService';
 import SelectModal from '../components/SelectModal.vue';
 
 const getquery = () => {
@@ -98,7 +137,7 @@ const getquery = () => {
   return matched ? [matched[1], matched[2]] : [];
 };
 
-const { send, onMessage } = window.apis;
+const { send, onMessage, invoke } = window.apis;
 const [id, bg] = getquery();
 let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
@@ -109,7 +148,8 @@ let addDessert = ref<boolean>(false);
 let showGenerateMenu = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
 
-let data: any;
+let data = shallowRef<any>(null);
+let editorView: any = null;
 
 const showProviderModal = ref(false);
 const showModelModal = ref(false);
@@ -118,7 +158,95 @@ const modelOptions = ref<{value: string, label: string}[]>([]);
 let pendingProviderValue: string = '';
 let pendingContent: string = '';
 let isOutlineMode: boolean = false;
-let editorView: any = null;
+
+const isFileMode = ref(false);
+const filePath = ref('');
+const fileContent = ref(''); // 文件模式下编辑器的实际内容，与 data.value.content 分离
+const fileModeOperations = ref<{ name: string, command: string, params?: string[] }[]>([]);
+
+// 参数收集对话框状态
+const paramDialog = ref<{ visible: boolean; opName: string; params: string[]; values: string[]; currentIndex: number; command: string }>({
+  visible: false, opName: '', params: [], values: [], currentIndex: 0, command: ''
+});
+
+const fileName = computed(() => {
+  if (!filePath.value) return '';
+  const parts = filePath.value.replace(/\\/g, '/').split('/');
+  return parts[parts.length - 1] || '';
+});
+
+const openFileModeSettings = async () => {
+  if (filePath.value) {
+    const dirPath = filePath.value.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
+    await invoke('ensureFilePathInSettings', dirPath);
+  }
+  send('openSettingsWindow');
+};
+
+const executeOperation = async (op: { name: string, command: string, params?: string[] }) => {
+  const params = (op.params || []).filter(p => p.trim());
+  if (params.length === 0) {
+    doExecute(op.command, op.name);
+    return;
+  }
+  paramDialog.value = { visible: true, opName: op.name, params, values: new Array(params.length).fill(''), currentIndex: 0, command: op.command };
+};
+
+const onParamSubmit = () => {
+  const d = paramDialog.value;
+  if (d.currentIndex < d.params.length - 1) {
+    d.currentIndex++;
+  } else {
+    // 所有参数收集完毕，替换 $1, $2, $3...
+    let cmd = d.command;
+    d.values.forEach((v, i) => {
+      cmd = cmd.replace(new RegExp('\\$' + (i + 1), 'g'), v);
+    });
+    paramDialog.value.visible = false;
+    doExecute(cmd, d.opName);
+  }
+};
+
+const onParamCancel = () => {
+  paramDialog.value.visible = false;
+};
+
+const doExecute = async (command: string, opName: string) => {
+  try {
+    const result = await invoke('executeFileModeCommand', command, filePath.value) as any;
+    const output = (result.stdout || '').trim() || (result.stderr || '').trim() || '执行完成';
+    toastRef.value?.show(`${opName}: ${output}`);
+  } catch (err: any) {
+    console.error(`执行操作"${opName}"失败:`, err);
+    let errMsg = String(err.message || err);
+    try { const parsed = JSON.parse(errMsg); errMsg = [parsed.error, parsed.stderr].filter(Boolean).join('\n'); } catch {}
+    toastRef.value?.show(`${opName} 失败:\n${errMsg}`, 'error');
+  }
+};
+
+const toastRef = ref<InstanceType<typeof Toast> | null>(null);
+
+const canToggleFileMode = computed(() => {
+  if (isFileMode.value) return true;
+  if (!data.value) return false;
+  const content = data.value.value?.content || '';
+  return !content || content.trim() === '' || isFileContent(content);
+});
+
+const FILE_PREFIX = '[file]';
+
+const isFileContent = (content: string): boolean => {
+  return content.startsWith(FILE_PREFIX);
+};
+
+const extractFilePath = (content: string): string => {
+  if (!isFileContent(content)) return '';
+  return content.slice(FILE_PREFIX.length);
+};
+
+const formatFileContent = (path: string): string => {
+  return `${FILE_PREFIX}${path}`;
+};
 
 const clickThoughMouseEnter = () => {
   if (isTransparent.value) {
@@ -134,31 +262,158 @@ const clickThoughMouseLeave = () => {
   }
 };
 
+const saveToFile = () => {
+  if (!isFileMode.value || !filePath.value) return;
+  invoke('writeFileContent', filePath.value, fileContent.value).catch((err: any) => {
+    console.error('保存文件失败:', err);
+  });
+};
+
+const initEditor = () => {
+  if (editorView) {
+    editorView.destroy();
+    editorView = null;
+  }
+  const dom = document.getElementById('code-mirror');
+  if (!dom) return;
+
+  if (isFileMode.value && !filePath.value) {
+    // 文件模式下未选文件，不初始化编辑器
+    return;
+  }
+
+  if (isFileMode.value && filePath.value) {
+    invoke('readFileContent', filePath.value).then((content: string) => {
+      fileContent.value = content;
+      editorView = useEditor(() => fileContent.value, (v: string) => {
+        fileContent.value = v;
+        saveToFile();
+      }, () => document.getElementById('code-mirror')!);
+    }).catch((err: any) => {
+      console.error('读取文件失败:', err);
+      fileContent.value = `读取文件失败: ${err.message}`;
+      editorView = useEditor(() => fileContent.value, (v: string) => {
+        fileContent.value = v;
+      }, () => document.getElementById('code-mirror')!);
+    });
+  } else {
+    const initialContent = data.value?.value?.content || '';
+    editorView = useEditor(() => initialContent, (v: string) => {
+      data.value.value.content = v;
+      if (timerHandler) clearTimeout(timerHandler);
+      timerHandler = setTimeout(send, v ? 350 : 0, "setStickyTitle", {
+        key: id,
+        val: v,
+      });
+    }, () => dom);
+  }
+};
+
+const loadFileModeOperations = async () => {
+  try {
+    const paths = await invoke('getFileModeSettings');
+    const dirPath = filePath.value.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
+    if (dirPath && paths[dirPath]) {
+      fileModeOperations.value = paths[dirPath].filter((op: any) => op.name && op.command);
+    } else {
+      fileModeOperations.value = [];
+    }
+  } catch (e) {
+    console.error('加载文件模式操作失败:', e);
+  }
+};
+
+const toggleFileMode = async () => {
+  if (!canToggleFileMode.value) return;
+  isFileMode.value = !isFileMode.value;
+  send("resizeStickyForFileMode", isFileMode.value);
+
+  if (isFileMode.value) {
+    loadFileModeOperations();
+    if (filePath.value) {
+      initEditor();
+    }
+    // 没有filePath时不初始化编辑器，等待用户选择文件
+  } else {
+    exitFileMode();
+  }
+};
+
+const selectFile = async () => {
+  try {
+    const selectedPath = await invoke('showOpenFileDialog', {
+      title: '选择要关联的文件'
+    });
+    if (selectedPath) {
+      // 检查是否已有 sticky 关联了该文件
+      const existingStickyId = await invoke('findStickyByFilePath', selectedPath);
+      if (existingStickyId && String(existingStickyId) !== String(id)) {
+        // 已有其他 sticky 关联该文件，打开/聚焦它，并退出当前文件模式
+        send("openSticky", existingStickyId);
+        exitFileMode();
+        return;
+      }
+      filePath.value = selectedPath;
+      // JSON 中保存占位符，不触碰原文件
+      data.value.value.content = formatFileContent(selectedPath);
+      // 更新首页标题为占位符格式，以便首页识别文件模式
+      send("setStickyTitle", { key: id, val: formatFileContent(selectedPath) });
+      // 等待 Vue 重新渲染 DOM（filePath 变化导致 v-if 切换，code-mirror div 才会出现）
+      await nextTick();
+      initEditor();
+    }
+    // 取消选择时不退出文件模式，保持等待状态
+  } catch (error: any) {
+    console.error('选择文件失败:', error);
+  }
+};
+
+const exitFileMode = () => {
+  isFileMode.value = false;
+  filePath.value = '';
+  fileContent.value = '';
+  if (data.value?.value && isFileContent(data.value.value.content)) {
+    data.value.value.content = '';
+    send("setStickyTitle", { key: id, val: '' });
+  }
+  initEditor();
+};
+
 onMounted(() => {
   if (id) {
     bgColor.value = getBg(bg);
-    data = useUserData(
+    data.value = useUserData(
       "sticky" + id,
-      {
-        content: "",
-      },
+      { content: "" },
       (val: any) => {
-        if (timerHandler) clearTimeout(timerHandler);
-        timerHandler = setTimeout(send, val.content ? 350 : 0, "setStickyTitle", {
-          key: id,
-          val: val.content,
-        });
+        // 文件模式下 data.value.content 只是占位符，不需要额外操作
+        // 文件保存由编辑器 onchange → saveToFile 直接处理
+        if (!isFileMode.value && !isFileContent(val.content)) {
+          if (timerHandler) clearTimeout(timerHandler);
+          timerHandler = setTimeout(send, val.content ? 350 : 0, "setStickyTitle", {
+            key: id,
+            val: val.content,
+          });
+        }
       },
       () => {
-        editorView = useEditor(() => data.value.content, v => data.value.content = v, () => document.getElementById('code-mirror')!)
+        const savedContent = data.value.value.content || '';
+        if (isFileContent(savedContent)) {
+          isFileMode.value = true;
+          filePath.value = extractFilePath(savedContent);
+          loadFileModeOperations();
+        }
+        initEditor();
       }
     );
   }
+
   onMessage(({ type, value }: any) => {
     if (type === "changebg") {
       bgColor.value = getBg(value);
     }
   });
+
   document
     .getElementsByClassName("dragable")[0]
     .addEventListener("mouseenter", clickThoughMouseEnter);
@@ -174,11 +429,13 @@ onUnmounted(() => {
   document
     .getElementsByClassName("dragable")[0]
     .removeEventListener("mouseleave", clickThoughMouseLeave);
+
+  if (editorView) {
+    editorView.destroy();
+    editorView = null;
+  }
 });
 
-// const retract = () => {
-//   send("retractSticky", id);
-// };
 const deleteSticky = () => {
   send("deleteSticky", id);
 };
@@ -211,9 +468,9 @@ const generateBlog = async () => {
   if (editorView) {
     const selection = editorView.state.selection.main;
     const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
-    content = selectedText.trim() || data?.value?.content;
+    content = selectedText.trim() || (isFileMode.value ? fileContent.value : data.value?.value?.content);
   } else {
-    content = data?.value?.content;
+    content = isFileMode.value ? fileContent.value : data.value?.value?.content;
   }
 
   if (!content || content.trim() === '') {
@@ -251,9 +508,9 @@ const generateOutline = async () => {
   if (editorView) {
     const selection = editorView.state.selection.main;
     const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
-    content = selectedText.trim() || data?.value?.content;
+    content = selectedText.trim() || (isFileMode.value ? fileContent.value : data.value?.value?.content);
   } else {
-    content = data?.value?.content;
+    content = isFileMode.value ? fileContent.value : data.value?.value?.content;
   }
 
   if (!content || content.trim() === '') {

@@ -331,13 +331,106 @@
                     </div>
                 </div>
 
+                <!-- 文件模式操作设置 -->
+                <div id="file-mode-settings" class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">文件模式操作设置</h2>
+                            <p class="text-xs" style="color: var(--color-2);">为每个文件路径配置快捷操作命令</p>
+                        </div>
+                    </div>
+
+                    <!-- 按文件路径分组 -->
+                    <div v-for="(ops, fPath) in fileModePaths" :key="fPath" class="mb-4">
+                        <div class="flex items-center gap-2 mb-2 p-2 rounded-lg" style="background: var(--bg-1); border: 1px solid var(--border-1);">
+                            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-2)">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                            </svg>
+                            <span class="text-xs truncate flex-1" style="color: var(--color-1);" :title="fPath">{{ fPath.split('/').pop() || fPath.split('\\').pop() || fPath }}</span>
+                            <button @click="removeFilePath(String(fPath))"
+                                class="p-1 rounded transition-all duration-200 opacity-50 hover:opacity-100 flex-shrink-0"
+                                style="color: var(--error-0);" title="删除此文件路径">
+                                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- 操作列表 -->
+                        <div class="flex flex-col gap-1.5 ml-2">
+                            <div v-for="(op, index) in ops" :key="index"
+                                class="flex gap-2 items-start p-2 rounded-lg" style="background: var(--bg-0); border: 1px solid var(--border-1);">
+                                <div class="flex-1 flex flex-col gap-1.5">
+                                    <input v-model="op.name" type="text"
+                                        class="w-full px-2 py-1 rounded border transition-all duration-200 focus:outline-none text-xs"
+                                        style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);"
+                                        placeholder="操作名">
+                                    <input v-model="op.command" type="text"
+                                        class="w-full px-2 py-1 rounded border transition-all duration-200 focus:outline-none text-xs"
+                                        style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);"
+                                        placeholder="执行内容，可用 $FILE_PATH, $1, $2 等变量">
+                                    <!-- 参数列表 -->
+                                    <div v-for="(param, pIdx) in (op.params || [])" :key="pIdx"
+                                        class="flex gap-1 items-center">
+                                        <span class="text-xs flex-shrink-0 opacity-50" style="color: var(--color-2);">${{ pIdx + 1 }}</span>
+                                        <input :value="param" @input="op.params[pIdx] = $event.target.value; fileModePaths = { ...fileModePaths }" type="text"
+                                            class="flex-1 px-2 py-1 rounded border transition-all duration-200 focus:outline-none text-xs"
+                                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);"
+                                            placeholder="参数名">
+                                        <button @click="removeParam(String(fPath), index, pIdx)"
+                                            class="p-0.5 rounded transition-all duration-200 opacity-40 hover:opacity-100 flex-shrink-0"
+                                            style="color: var(--error-0);">
+                                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button @click="addParam(String(fPath), index)"
+                                        class="text-xs px-1.5 py-0.5 rounded transition-all duration-200 flex items-center gap-1 self-start opacity-60 hover:opacity-100"
+                                        style="color: var(--theme-0); background: var(--theme-5); border: 1px dashed var(--theme-0);">
+                                        + 参数
+                                    </button>
+                                </div>
+                                <button @click="removeOperation(String(fPath), index)"
+                                    class="p-1 rounded transition-all duration-200 opacity-50 hover:opacity-100"
+                                    style="color: var(--error-0);">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                </button>
+                            </div>
+                            <button @click="addOperation(String(fPath))"
+                                class="text-xs px-2 py-1 rounded transition-all duration-200 flex items-center gap-1 self-start"
+                                style="color: var(--theme-0); background: var(--theme-5); border: 1px solid var(--theme-0);">
+                                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                                新增操作
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="Object.keys(fileModePaths).length === 0" class="text-xs py-3 text-center mb-4" style="color: var(--color-2);">
+                        暂无文件路径，在文件模式便签中点击编辑图标添加
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, nextTick, watch } from 'vue'
 
 const { send, invoke, onMessage } = window.apis
 
@@ -373,17 +466,64 @@ const themes = [
 const providers = [
     { value: 'openai', label: 'OpenAI' },
     { value: 'anthropic', label: 'Anthropic' },
-    { value: 'google', label: 'Google AI' },
-    { value: 'bigmodel', label: '字节跳动大模型' },
+    { value: 'bigmodel', label: '智谱 BigModel' },
     { value: 'baidu', label: '百度文心一言' },
     { value: 'ali', label: '阿里云通义千问' },
-    { value: 'azure', label: 'Azure OpenAI' }
+    { value: 'google', label: 'Google AI' },
+    { value: 'azure', label: 'Azure OpenAI' },
+    { value: 'deepseek', label: 'DeepSeek' }
 ]
 
 // AI 设置相关变量
 const selectedProvider = ref('openai')
 const tokenInput = ref('')
 const showToken = ref(false)
+
+// 文件模式设置
+const fileModePaths = ref<{ [filePath: string]: { name: string, command: string, params: string[] }[] }>({})
+let fileModeLoaded = false
+
+// 即时保存文件模式设置
+let saveTimer: any = null
+watch(fileModePaths, () => {
+    if (!fileModeLoaded) return
+    clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+        send('setFileModeSettings', JSON.parse(JSON.stringify(fileModePaths.value)))
+    }, 500)
+}, { deep: true })
+
+const addOperation = (fPath: string) => {
+    const ops = [...(fileModePaths.value[fPath] || []), { name: '', command: '', params: [] as string[] }]
+    fileModePaths.value = { ...fileModePaths.value, [fPath]: ops }
+}
+
+const addParam = (fPath: string, opIndex: number) => {
+    const ops = [...(fileModePaths.value[fPath] || [])]
+    if (ops[opIndex]) {
+        ops[opIndex] = { ...ops[opIndex], params: [...(ops[opIndex].params || []), ''] }
+        fileModePaths.value = { ...fileModePaths.value, [fPath]: ops }
+    }
+}
+
+const removeParam = (fPath: string, opIndex: number, paramIndex: number) => {
+    const ops = [...(fileModePaths.value[fPath] || [])]
+    if (ops[opIndex]) {
+        const params = (ops[opIndex].params || []).filter((_, i) => i !== paramIndex)
+        ops[opIndex] = { ...ops[opIndex], params }
+        fileModePaths.value = { ...fileModePaths.value, [fPath]: ops }
+    }
+}
+
+const removeOperation = (fPath: string, index: number) => {
+    const ops = fileModePaths.value[fPath]?.filter((_, i) => i !== index) || []
+    fileModePaths.value = { ...fileModePaths.value, [fPath]: ops }
+}
+
+const removeFilePath = (fPath: string) => {
+    const { [fPath]: _, ...rest } = fileModePaths.value
+    fileModePaths.value = rest
+}
 
 // 切换提供商
 const onProviderChange = async () => {
@@ -552,7 +692,7 @@ const updateTheme = () => {
 
 onMounted(async () => {
     // 设置更新消息监听
-    onMessage(({ type, value }: any) => {
+    onMessage(async ({ type, value }: any) => {
         if (type === "checking-for-update") {
             console.log('正在检查更新...')
             versionInfo.checkingForUpdate = true
@@ -581,6 +721,19 @@ onMounted(async () => {
         // 监听全局主题变化
         if (type === 'themeChanged') {
             themeMode.value = value
+        }
+        // 监听文件模式设置刷新
+        if (type === 'reloadFileModeSettings') {
+            try {
+                const settings = await invoke('getFileModeSettings')
+                fileModeLoaded = true
+                fileModePaths.value = settings || {}
+                nextTick(() => {
+                    document.getElementById('file-mode-settings')?.scrollIntoView({ behavior: 'smooth' })
+                })
+            } catch (e) {
+                console.error('刷新文件模式设置失败:', e)
+            }
         }
     })
 
@@ -621,6 +774,22 @@ onMounted(async () => {
         await onProviderChange()
     } catch (error) {
         console.error('加载AI设置失败:', error)
+    }
+
+    // 加载文件模式设置
+    try {
+        const settings = await invoke('getFileModeSettings')
+        fileModePaths.value = settings || {}
+        fileModeLoaded = true
+    } catch (error) {
+        console.error('加载文件模式设置失败:', error)
+    }
+
+    // 如果URL中有hash，滚动到对应位置
+    if (window.location.hash === '#file-mode-settings') {
+        nextTick(() => {
+            document.getElementById('file-mode-settings')?.scrollIntoView({ behavior: 'smooth' })
+        })
     }
 })
 </script>
