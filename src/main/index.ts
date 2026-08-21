@@ -774,17 +774,17 @@ ipcMain.on('hideWindow', () => {
   BrowserWindow.getFocusedWindow()?.close()
 })
 
-ipcMain.on('toggleFullscreen', () => {
-  const curWindow = BrowserWindow.getFocusedWindow()
+ipcMain.on('toggleFullscreen', (event) => {
+  const curWindow = BrowserWindow.fromWebContents(event.sender)
   curWindow?.setSimpleFullScreen(!curWindow.isSimpleFullScreen())
 })
 
 ipcMain.on('setPin', (event, isPin) => {
-  BrowserWindow.getFocusedWindow()?.setAlwaysOnTop(isPin)
+  BrowserWindow.fromWebContents(event.sender)?.setAlwaysOnTop(isPin)
 })
 
 ipcMain.on('setTransparent', (event, isTransparent) => {
-  const curWindow = BrowserWindow.getFocusedWindow()
+  const curWindow = BrowserWindow.fromWebContents(event.sender)
   if (curWindow) {
     if (isTransparent) {
       curWindow.setOpacity(0.7)
@@ -1034,6 +1034,18 @@ ipcMain.handle('showFolderDialog', async (event, options?: { title?: string }) =
 ipcMain.handle('readFileContent', async (event, filePath: string) => {
   try {
     return readFileSync(filePath, { encoding: 'utf-8' })
+  } catch (error) {
+    throw error
+  }
+})
+
+ipcMain.handle('listFilesInDir', async (event, dirPath: string) => {
+  try {
+    const entries = readdirSync(dirPath, { withFileTypes: true })
+    return entries
+      .filter(e => e.isFile())
+      .map(e => ({ name: e.name, path: join(dirPath, e.name) }))
+      .sort((a, b) => a.name.localeCompare(b.name))
   } catch (error) {
     throw error
   }

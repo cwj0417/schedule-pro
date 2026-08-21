@@ -20,6 +20,22 @@ import { useImgDnPPlugin } from "./editor/imgdnp";
 import { bold } from "./editor/bold";
 import { blockbg } from "./editor/blockbg";
 
+// 让光标更明显:加粗到 3px 并使用亮色主题色
+const enhanceCaret = EditorView.theme({
+    "& .cm-cursor": {
+        borderLeftWidth: "3px",
+        borderLeftColor: "var(--theme-1)",
+        marginLeft: "-1.5px"
+    },
+    "& .cm-cursor-secondary": {
+        borderLeftWidth: "3px",
+        borderLeftColor: "var(--theme-0)"
+    },
+    "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
+        backgroundColor: "var(--theme-1) !important"
+    }
+})
+
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement): EditorView => {
     let debounce: NodeJS.Timeout
     const ImageDropAndPaste = useImgDnPPlugin()
@@ -40,6 +56,7 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
             crosshairCursor(),
             highlightActiveLine(),
             highlightSelectionMatches(),
+            enhanceCaret,
             keymap.of([
                 ...closeBracketsKeymap,
                 ...searchKeymap,

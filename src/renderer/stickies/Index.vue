@@ -15,10 +15,57 @@
         <template v-if="isFileMode">
           <span v-if="!filePath" class="text-xs cursor-pointer opacity-60 hover:opacity-100 nodragable" style="color: var(--color-0)" @click="selectFile">选择文件</span>
           <template v-else>
-            <svg class="cursor-pointer opacity-50 hover:opacity-100 nodragable" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" @click="openFileModeSettings" title="编辑操作设置"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            <span class="text-xs truncate max-w-[200px] cursor-pointer opacity-70 hover:opacity-100 nodragable" style="color: var(--color-0)" :title="filePath" @click="selectFile">{{ fileName }}</span>
+            <svg class="cursor-pointer opacity-50 hover:opacity-100 nodragable translate-y-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" @click="openFileModeSettings" title="编辑操作设置"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <div class="relative nodragable">
+              <span
+                class="text-xs cursor-pointer opacity-70 hover:opacity-100 inline-block"
+                style="color: var(--color-0)"
+                :title="filePath"
+                @click="toggleFileList"
+              >{{ fileName }}</span>
+              <div v-if="showFileList" class="fixed inset-0 z-40" @click="showFileList = false" @contextmenu.prevent="showFileList = false"></div>
+              <div v-if="showFileList" class="absolute top-full left-[-18px] mt-1 rounded-lg shadow-lg z-50 w-64 nodragable"
+                style="background: var(--bg-1); border: 1px solid var(--border-1);">
+                <div class="flex items-center gap-1 p-1.5" style="border-bottom: 1px solid var(--border-0);">
+                  <input
+                    ref="fileFilterInputRef"
+                    v-model="fileFilter"
+                    type="text"
+                    placeholder="输入关键字过滤..."
+                    @keydown.esc="showFileList = false"
+                    @click.stop
+                    class="flex-1 min-w-0 px-2 py-1 rounded text-xs focus:outline-none"
+                    style="background: var(--bg-0); color: var(--color-1); border: 1px solid var(--border-1);"
+                  />
+                  <svg class="cursor-pointer opacity-60 hover:opacity-100 flex-shrink-0"
+                    width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    @click.stop="selectFile" title="从系统中选择文件">
+                    <path d="M4 4h6l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                  </svg>
+                </div>
+                <div class="max-h-60 overflow-y-auto p-1">
+                  <div v-if="fileListLoading" class="text-xs text-center py-2 opacity-60" style="color: var(--color-2)">加载中...</div>
+                  <div v-else-if="filteredFileList.length === 0" class="text-xs text-center py-2 opacity-60" style="color: var(--color-2)">无匹配文件</div>
+                  <div
+                    v-for="file in filteredFileList"
+                    :key="file.path"
+                    @click.stop="switchToPath(file.path)"
+                    class="text-xs px-2 py-1 rounded cursor-pointer truncate"
+                    :style="{
+                      color: file.path === filePath ? 'var(--theme-0)' : 'var(--color-1)',
+                      background: file.path === filePath ? 'var(--bg-2)' : 'transparent'
+                    }"
+                    :title="file.path"
+                    @mouseenter="($event.target as HTMLElement).style.background = 'var(--bg-3)'"
+                    @mouseleave="($event.target as HTMLElement).style.background = file.path === filePath ? 'var(--bg-2)' : 'transparent'"
+                  >{{ file.name }}</div>
+                </div>
+              </div>
+            </div>
             <template v-for="(op, i) in fileModeOperations" :key="i">
-              <span class="text-xs cursor-pointer opacity-50 hover:opacity-100 nodragable px-1.5 py-0.5 rounded" style="color: var(--color-0); background: var(--bg-2)" @click="executeOperation(op)" :title="op.command">{{ op.name }}</span>
+              <div class="relative nodragable">
+                <span class="text-xs cursor-pointer opacity-50 hover:opacity-100 inline-block px-1.5 py-0 leading-4 rounded" style="color: var(--color-0); background: var(--bg-2)" @click="executeOperation(op)" :title="op.command">{{ op.name }}</span>
+              </div>
             </template>
           </template>
         </template>
@@ -33,29 +80,42 @@
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <div v-if="showGenerateMenu" class="absolute top-6 right-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 z-50 w-56">
-            <div class="mb-3 pb-2 border-b border-gray-200">
+          <div v-if="showGenerateMenu" class="absolute top-6 right-0 rounded-lg shadow-lg p-3 z-50 w-56"
+            style="background: var(--bg-1); border: 1px solid var(--border-1);">
+            <div class="mb-3 pb-2" style="border-bottom: 1px solid var(--border-0);">
               <button
                 @click="generateOutline"
-                class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm"
+                class="w-full text-left px-3 py-2 rounded text-sm"
+                style="color: var(--color-1);"
                 :disabled="isGenerating"
+                @mouseenter="$event.target.style.background = 'var(--bg-3)'"
+                @mouseleave="$event.target.style.background = 'transparent'"
               >
                 整理提纲
               </button>
               <div class="mt-2 space-y-2">
-                <label class="flex items-center text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <label class="flex items-center text-sm cursor-pointer p-1 rounded"
+                  style="color: var(--color-1);"
+                  @mouseenter="$event.currentTarget.style.background = 'var(--bg-3)'"
+                  @mouseleave="$event.currentTarget.style.background = 'transparent'">
                   <input type="checkbox" v-model="optimizeTitle" class="mr-2" />
                   <span>优化吸引人的标题</span>
                 </label>
-                <label class="flex items-center text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <label class="flex items-center text-sm cursor-pointer p-1 rounded"
+                  style="color: var(--color-1);"
+                  @mouseenter="$event.currentTarget.style.background = 'var(--bg-3)'"
+                  @mouseleave="$event.currentTarget.style.background = 'transparent'">
                   <input type="checkbox" v-model="addDessert" class="mr-2" />
                   <span>增加文章甜点</span>
                 </label>
               </div>
               <button
                 @click="generateBlog"
-                class="w-full mt-2 px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                class="w-full mt-2 px-3 py-2 rounded text-sm"
+                style="background: var(--theme-0); color: #fff;"
                 :disabled="isGenerating"
+                @mouseenter="$event.target.style.opacity = '0.9'"
+                @mouseleave="$event.target.style.opacity = '1'"
               >
                 生成 Post
               </button>
@@ -164,6 +224,13 @@ const filePath = ref('');
 const fileContent = ref(''); // 文件模式下编辑器的实际内容，与 data.value.content 分离
 const fileModeOperations = ref<{ name: string, command: string, params?: string[] }[]>([]);
 
+// 文件下拉框状态
+const showFileList = ref(false);
+const fileList = ref<{ name: string, path: string }[]>([]);
+const fileFilter = ref('');
+const fileListLoading = ref(false);
+const fileFilterInputRef = ref<HTMLInputElement | null>(null);
+
 // 参数收集对话框状态
 const paramDialog = ref<{ visible: boolean; opName: string; params: string[]; values: string[]; currentIndex: number; command: string }>({
   visible: false, opName: '', params: [], values: [], currentIndex: 0, command: ''
@@ -173,6 +240,12 @@ const fileName = computed(() => {
   if (!filePath.value) return '';
   const parts = filePath.value.replace(/\\/g, '/').split('/');
   return parts[parts.length - 1] || '';
+});
+
+const filteredFileList = computed(() => {
+  const keyword = fileFilter.value.trim().toLowerCase();
+  if (!keyword) return fileList.value;
+  return fileList.value.filter(f => f.name.toLowerCase().includes(keyword));
 });
 
 const openFileModeSettings = async () => {
@@ -345,27 +418,69 @@ const selectFile = async () => {
       title: '选择要关联的文件'
     });
     if (selectedPath) {
-      // 检查是否已有 sticky 关联了该文件
-      const existingStickyId = await invoke('findStickyByFilePath', selectedPath);
-      if (existingStickyId && String(existingStickyId) !== String(id)) {
-        // 已有其他 sticky 关联该文件，打开/聚焦它，并退出当前文件模式
-        send("openSticky", existingStickyId);
-        exitFileMode();
-        return;
-      }
-      filePath.value = selectedPath;
-      // JSON 中保存占位符，不触碰原文件
-      data.value.value.content = formatFileContent(selectedPath);
-      // 更新首页标题为占位符格式，以便首页识别文件模式
-      send("setStickyTitle", { key: id, val: formatFileContent(selectedPath) });
-      // 等待 Vue 重新渲染 DOM（filePath 变化导致 v-if 切换，code-mirror div 才会出现）
-      await nextTick();
-      initEditor();
+      await switchToPath(selectedPath);
     }
     // 取消选择时不退出文件模式，保持等待状态
   } catch (error: any) {
     console.error('选择文件失败:', error);
   }
+};
+
+const switchToPath = async (selectedPath: string) => {
+  showFileList.value = false;
+  if (!selectedPath || selectedPath === filePath.value) return;
+  // 检查是否已有 sticky 关联了该文件
+  const existingStickyId = await invoke('findStickyByFilePath', selectedPath);
+  if (existingStickyId && String(existingStickyId) !== String(id)) {
+    // 已有其他 sticky 关联该文件，打开/聚焦它，并退出当前文件模式
+    send("openSticky", existingStickyId);
+    exitFileMode();
+    return;
+  }
+  filePath.value = selectedPath;
+  // JSON 中保存占位符，不触碰原文件
+  data.value.value.content = formatFileContent(selectedPath);
+  // 更新首页标题为占位符格式，以便首页识别文件模式
+  send("setStickyTitle", { key: id, val: formatFileContent(selectedPath) });
+  // 等待 Vue 重新渲染 DOM（filePath 变化导致 v-if 切换，code-mirror div 才会出现）
+  await nextTick();
+  initEditor();
+  // 切换文件后刷新文件操作与下拉框列表（目录可能变化）
+  loadFileModeOperations();
+  loadFileList();
+};
+
+const loadFileList = async () => {
+  if (!filePath.value) {
+    fileList.value = [];
+    return;
+  }
+  const dirPath = filePath.value.replace(/\\/g, '/').split('/').slice(0, -1).join('/');
+  if (!dirPath) {
+    fileList.value = [];
+    return;
+  }
+  fileListLoading.value = true;
+  try {
+    fileList.value = await invoke('listFilesInDir', dirPath);
+  } catch (e: any) {
+    console.error('加载文件列表失败:', e);
+    fileList.value = [];
+  } finally {
+    fileListLoading.value = false;
+  }
+};
+
+const toggleFileList = async () => {
+  if (showFileList.value) {
+    showFileList.value = false;
+    return;
+  }
+  fileFilter.value = '';
+  await loadFileList();
+  showFileList.value = true;
+  await nextTick();
+  fileFilterInputRef.value?.focus();
 };
 
 const exitFileMode = () => {
@@ -445,7 +560,10 @@ const changeColor = (color: number) => {
     color: color.toString(),
   });
 };
-const fullscreen = () => {
+const fullscreen = (event: MouseEvent) => {
+  // 双击发生在可交互元素(.nodragable)上时不触发最大化
+  const target = event.target as HTMLElement | null;
+  if (target?.closest('.nodragable')) return;
   send("toggleFullscreen");
   isPin.value = false;
   send("setTransparent", false);
