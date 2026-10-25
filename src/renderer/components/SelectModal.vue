@@ -9,13 +9,14 @@
         <div
           v-for="(option, index) in options"
           :key="option.value"
-          class="option-item"
+          class="option-item hover-fill"
           :class="{ selected: selectedIndex === index }"
           @click="selectOption(index)"
           :style="{
             background: selectedIndex === index ? 'var(--theme-5)' : 'var(--bg-0)',
             borderColor: selectedIndex === index ? 'var(--theme-0)' : 'var(--border-1)',
-            color: 'var(--color-1)'
+            color: 'var(--color-1)',
+            '--hover-fill': 'var(--bg-2)'
           }"
         >
           <span class="option-index" :style="{ color: 'var(--color-2)' }">{{ index + 1 }}.</span>

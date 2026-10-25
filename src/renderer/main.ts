@@ -33,6 +33,26 @@ const router = createRouter({
 })
 
 const app = createApp(App)
+
+// 全局"从鼠标位置快速展开"的 hover 效果, 任何带 .hover-fill 的元素自动生效
+document.addEventListener('pointerover', (event) => {
+    const target = event.target as HTMLElement | null
+    const el = target && typeof target.closest === 'function' ? target.closest('.hover-fill') as HTMLElement | null : null
+    if (!el || el.contains(event.relatedTarget as Node)) return
+    // 已经在展开中就不再重新取点, 避免在元素内部移动时动画被反复重置
+    if (el.classList.contains('hover-fill-on')) return
+    const rect = el.getBoundingClientRect()
+    el.style.setProperty('--hover-x', `${event.clientX - rect.left}px`)
+    el.style.setProperty('--hover-y', `${event.clientY - rect.top}px`)
+    el.classList.add('hover-fill-on')
+})
+document.addEventListener('pointerout', (event) => {
+    const target = event.target as HTMLElement | null
+    const el = target && typeof target.closest === 'function' ? target.closest('.hover-fill') as HTMLElement | null : null
+    if (!el || el.contains(event.relatedTarget as Node)) return
+    el.classList.remove('hover-fill-on')
+})
+
 app.directive('focus', { // 因为场景比较单一, 先不考虑removeEventListener. 如果需要做, 可以先写个方法和变量, 方法是调用变量的. mounted设置变量, 以达到remove方法.
     mounted(el) {
         el.focus()

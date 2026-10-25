@@ -1,5 +1,5 @@
 <template>
-    <div class="todo-item-wrap group" :class="singleLine ? 'stripped' : ''">
+    <div class="todo-item-wrap hover-fill group" :class="singleLine ? 'stripped' : ''">
         <div class="todo-item" :class="{
           'item-done': item.done,
         }">

@@ -48,7 +48,7 @@
                     v-for="file in filteredFileList"
                     :key="file.path"
                     @click.stop="switchToPath(file.path)"
-                    class="file-list-item"
+                    class="file-list-item hover-fill"
                     :class="{ active: file.path === filePath }"
                     :title="file.path"
                   >{{ file.name }}</div>
@@ -75,13 +75,13 @@
           </div>
           <div v-if="showGenerateMenu" class="dropdown-panel generate-menu">
             <div class="generate-menu-section">
-              <button @click="generateOutline" class="menu-btn">整理提纲</button>
+              <button @click="generateOutline" class="menu-btn hover-fill">整理提纲</button>
               <div class="menu-option-list">
-                <label class="menu-option">
+                <label class="menu-option hover-fill">
                   <input type="checkbox" v-model="optimizeTitle" />
                   <span>优化吸引人的标题</span>
                 </label>
-                <label class="menu-option">
+                <label class="menu-option hover-fill">
                   <input type="checkbox" v-model="addDessert" />
                   <span>增加文章甜点</span>
                 </label>
@@ -783,11 +783,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--color-1);
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--bg-3);
-  }
+  --hover-fill: var(--bg-3);
 
   &.active {
     color: var(--theme-0);
@@ -819,11 +815,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--bg-3);
-  }
+  --hover-fill: var(--bg-3);
 }
 
 .menu-option-list {
@@ -841,11 +833,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   padding: 0.25rem;
   border-radius: 0.25rem;
   color: var(--color-1);
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: var(--bg-3);
-  }
+  --hover-fill: var(--bg-3);
 
   input[type="checkbox"] {
     margin-right: 0.5rem;

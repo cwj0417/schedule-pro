@@ -39,7 +39,7 @@
       </div>
       <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
         <empty v-if="!timers.length" />
-        <div style="color: var(--color-1)" class="todo-item-wrap group" :class="index % 2 === 1 ? 'stripped' : ''"
+        <div style="color: var(--color-1)" class="todo-item-wrap hover-fill group" :class="index % 2 === 1 ? 'stripped' : ''"
           v-for="(timer, index) of timers" :key="timer.id">
           <div class="w-1/2 pl-5 overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden">{{ timer.content }}
           </div>

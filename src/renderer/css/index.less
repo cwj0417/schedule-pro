@@ -26,6 +26,35 @@ body {
   user-select: none;
 }
 
+// 鼠标位置快速展开的 hover 底色:
+// JS 在指针进入时写入 --hover-x/--hover-y 并加上 .hover-fill-on, 底色从进入点展开
+// 用 transform/opacity 做动画(合成器接管), 避免 clip-path 逐帧重绘导致的卡顿
+.hover-fill {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--hover-fill, var(--bg-2));
+    opacity: 0;
+    transform: scale(0);
+    transform-origin: var(--hover-x, 50%) var(--hover-y, 50%);
+    transition: transform 0.12s ease-out, opacity 0.1s ease-out;
+    pointer-events: none;
+  }
+
+  &.hover-fill-on::before {
+    opacity: 1;
+    transform: scale(1);
+    // 进入立即铺满, 不做展开动画, 避免产生"延迟感"
+    transition: none;
+  }
+}
+
 .kbd {
   @apply border p-1 font-light rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-sm;
   background-color: var(--bg-1);
