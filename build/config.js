@@ -1,3 +1,4 @@
+const { join } = require('path')
 
 /**
  * @type {import('electron-builder').Configuration}
@@ -45,6 +46,13 @@ const config = {
         x: 130,
         y: 150,
         type: 'file'
+      },
+      {
+        // 没有 Apple 开发者证书, 包是 ad-hoc 签名, 首次打开会被 Gatekeeper 拦截
+        x: 270,
+        y: 250,
+        type: 'file',
+        path: join(__dirname, '安装说明.txt')
       }
     ]
   },

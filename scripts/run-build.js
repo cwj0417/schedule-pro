@@ -11,10 +11,11 @@ const runBuild = async () => {
 
     const isLocal = process.argv[2] === 'local'
 
-    // 清理dist和built
+    // 清理dist和built, 避免本地遗留的 node_modules 被打进包里
     await remove(join(projRoot, 'build', 'built'))
     await remove(join(projRoot, 'dist', 'renderer'))
     await remove(join(projRoot, 'dist', 'main'))
+    await remove(join(projRoot, 'dist', 'node_modules'))
 
     // vite(rollup)打包renderer进程
     await rendererBuild()
