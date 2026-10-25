@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -31,7 +35,39 @@ jobs:
       - name: Install
         run: |
           pnpm install --frozen-lockfile
+      # electron-builder 26 在并发上传多个产物时会重复创建 Release, 这里先建 draft,
+      # 让所有上传都落到同一个 Release 上, 构建成功后再转正式发布
+      - name: Resolve tag
+        id: meta
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v$VERSION"
+          if [ "${{ github.event_name }}" = "push" ] && [ "$GITHUB_REF_NAME" != "$TAG" ]; then
+            echo "::error::tag $GITHUB_REF_NAME 与 package.json 版本 $VERSION 不一致"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.meta.outputs.tag }}"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              gh release create "$TAG" --draft --title "${TAG#v}" --target "$GITHUB_SHA" --generate-notes
+            else
+              gh release create "$TAG" --draft --title "${TAG#v}" --generate-notes
+            fi
+          fi
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != "true" ]; then
+            echo "::error::Release $TAG 已正式发布, 重新发版请先删除该 Release 及其 tag"
+            exit 1
+          fi
       - name: Build
         run: pnpm build
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ steps.meta.outputs.tag }}" --draft=false
