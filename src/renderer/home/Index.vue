@@ -1,10 +1,11 @@
 <template>
   <div class="wrap">
     <div class="page-title">
-      <div class="absolute left-3 top-3 px-2 py-1 h-10 rounded-md" :style="{
-        borderWidth: searchContent ? '2px' : '',
-        borderColor: searchContent ? 'var(--theme-2)' : ''
-      }">
+      <div class="absolute left-3 top-3 px-2 py-1 h-10 rounded-md transition-all duration-200"
+        :style="{
+          borderWidth: searchContent ? '1px' : '',
+          borderColor: searchContent ? 'var(--border-0)' : ''
+        }">
         <input type="text" class="outline-none caret-transparent cursor-default bg-transparent" ref="searchInput"
           v-model="searchContent" @keydown.esc="searchContent = ''" />
       </div>
@@ -38,9 +39,10 @@
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
-      <div style="width: calc(75% - 0.625rem)" class="flex space-x-5">
+      <div :style="{ width: bothEmpty ? '27.25rem' : 'calc(75% - 0.625rem)' }"
+        style="transition: width .5s;" class="flex space-x-5">
         <div class="h-full" style="transition: width .5s;" :style="{
-          width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '11rem' : 'calc(100% - 12.5rem)'
+          width: bothEmpty ? '13rem' : (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '13rem' : 'calc(100% - 14.5rem)'
         }">
           <div class="text-sm space-x-2">
             <ScheduleSvg class="inline-block" />
@@ -52,12 +54,11 @@
                 ? editingAccelerator
                 : config.schedule" />
           </div>
-          <div style="height: calc(100% - 95px);" :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
-            class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+          <div style="height: calc(100% - 95px);" :style="{ borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
+            class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
             <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
               item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
-              @update:modelValue="handleScheduleUpdate($event)" tag="transition-group"
-              :component-data="{ name: 'animate-list', tag: 'div' }">
+              @update:modelValue="handleScheduleUpdate($event)" tag="div">
               <template #header>
                 <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
                 <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
@@ -86,15 +87,20 @@
               })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
                 :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
             </div>
-            <div v-else class="text-sm space-x-2 cursor-pointer h-full rounded-xl border-2 p-1"
-              @click="location.replace('#/timer')" style="color: var(--color-0); border-color: var(--theme-1)"
-              :style="`background: linear-gradient(90deg, var(--theme-2), var(--theme-4) ${timers[0].percent * 100 + '%'}, transparent 0);`">
-              {{ timers[0].content }}
+            <div v-else class="relative overflow-hidden text-sm cursor-pointer h-full rounded-xl border-2 p-1"
+              @click="location.replace('#/timer')" style="color: var(--color-0); border-color: var(--theme-1)">
+              <!-- 进度条用真实宽度表示剩余比例, 并配合 transition 让每秒的变化平滑可见 -->
+              <div class="absolute left-0 top-0 bottom-0" :style="{
+                width: Math.min(100, Math.max(0, timers[0].percent * 100)) + '%',
+                background: 'linear-gradient(90deg, var(--theme-2), var(--theme-0))',
+                transition: 'width 1s linear',
+              }"></div>
+              <span class="relative">{{ timers[0].content }}</span>
             </div>
           </div>
         </div>
         <div class="h-full" style="transition: width .5s;" :style="{
-          width: (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 12.5rem)' : '11rem'
+          width: bothEmpty ? '13rem' : (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 14.5rem)' : '13rem'
         }">
           <div class="text-sm space-x-2">
             <InspirationSvg class="inline-block" />
@@ -106,12 +112,11 @@
                 ? editingAccelerator
                 : config.inspiration" />
           </div>
-          <div style="height: calc(100% - 44px);" :style="{ borderColor: isDragging ? 'var(--theme-2)' : 'var(--bg-2)' }"
-            class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll text-sm border cursor-grab">
+          <div style="height: calc(100% - 44px);" :style="{ borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
+            class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
             <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
               item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
-              @update:modelValue="handleInspirationUpdate($event)" tag="transition-group"
-              :component-data="{ name: 'animate-list', tag: 'div' }">
+              @update:modelValue="handleInspirationUpdate($event)" tag="div">
               <template #header>
                 <empty v-if="!searchScheduleOrInspiration(inspiration).length && !isDragging" />
                 <div v-if="!searchScheduleOrInspiration(inspiration).length && isDragging"
@@ -133,14 +138,14 @@
           </div>
         </div>
       </div>
-      <div style="width: calc(25% - 0.625rem)">
+      <div :style="{ width: bothEmpty ? 'calc(100% - 28.5rem)' : 'calc(25% - 0.625rem)' }" style="transition: width .5s;">
         <div class="text-sm space-x-2">
           <StickySvg class="inline-block" />
           <span>便签</span>
           <keyboard :disabled="true" :value="['metaKey', 'n']" />
         </div>
-        <div style="height: calc(100% - 44px)"
-          class="content-block mt-3 rounded-xl shadow-lg overflow-y-scroll divide-y text-sm">
+        <div style="height: calc(100% - 44px); border: 1px solid var(--border-0);"
+          class="content-block mt-3 rounded-xl overflow-y-scroll divide-y text-sm">
           <stikies :search="searchContent" />
         </div>
       </div>
@@ -384,6 +389,13 @@ const searchScheduleOrInspiration = useSearchContent(
   "content"
 );
 
+// 今日办与待办池都为空时, 两列收窄到只包住标题内容, 把空间让给便签
+const bothEmpty = computed(
+  () =>
+    !searchScheduleOrInspiration(schedule.value?.[getTs()])?.length &&
+    !searchScheduleOrInspiration(inspiration.value)?.length
+);
+
 // schedule and inspiration sort
 
 const isDragging = ref(false);
@@ -413,17 +425,42 @@ const location = window.location
 
 </script>
 <style lang="less">
+@reference "tailwindcss";
+
 .content-block {
   @apply font-light;
-  background-color: var(--bg-0);
+  background-color: var(--bg-1);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--bg-0);
+  }
 }
 
 .stripped {
-  background-color: var(--bg-1);
+  background-color: var(--bg-0);
 }
 
 .item-done {
   @apply line-through;
-  color: var(--color-2);
+  color: var(--color-3);
+  opacity: 0.7;
+}
+
+/* 列表项 hover 效果 */
+.w-full.h-10.p-2 {
+  transition: background-color 0.15s ease;
+  border-radius: 6px;
+  margin: 1px 4px;
+
+  &:hover {
+    background-color: var(--bg-2);
+  }
+}
+
+/* 拖拽占位样式 */
+.border-dashed.border-2 {
+  border-radius: 6px;
+  transition: border-color 0.2s ease;
 }
 </style>

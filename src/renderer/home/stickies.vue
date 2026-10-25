@@ -1,16 +1,20 @@
 <template>
   <empty v-if="!searchSticky(stickies).length" />
   <draggable :disabled="search" v-else :modelValue="searchSticky(stickies)" @update:modelValue="sortSticky($event)"
-    item-key="id" class="divide-y" tag="transition-group" :component-data="{ name: 'animate-list', tag: 'div' }">
+    item-key="id" tag="div">
     <template #item="{ element: sticky }">
       <div @click="openSticky(sticky?.id)"
-        class="h-10 leading-10 px-4 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative group transition-all"
-        style="borderColor: var(--bg-2);transformOrigin: left;" :style="{
+        class="sticky-row group h-10 leading-10 pl-3 pr-9 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
+        :style="{
           background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
         }">
+        <!-- 左侧便签色条 -->
+        <span class="sticky-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 rounded-full opacity-0"
+          :style="{ background: getBg(sticky?.backgroundColor) }"></span>
         <template v-if="isFileSticky(sticky)">
-          <FileSvg class="inline-block mr-1.5 align-middle flex-shrink-0" width="14" height="14" style="color: #888" />
+          <FileSvg class="sticky-file-icon inline-block mr-1.5 align-middle flex-shrink-0 transition-colors" width="14"
+            height="14" style="color: var(--color-2)" />
           <span class="inline-block truncate align-middle" style="max-width: calc(100% - 24px)">
             <search-result :value="getFileNameFromSticky(sticky)" :search="search" />
           </span>
@@ -18,11 +22,11 @@
         <template v-else>
           <search-result :value="sticky?.title || '未命名便签'" :search="search" />
         </template>
-        <div class="w-2 h-2 rounded-md absolute top-4 right-3 opacity-100 group-hover:opacity-0" :style="{
-          background: getBg(sticky?.backgroundColor),
-        }"></div>
+        <!-- 便签颜色圆点, hover 时缩隐, 让出位置给置顶按钮 -->
+        <div class="sticky-dot w-2 h-2 rounded-full absolute top-4 right-3"
+          :style="{ background: getBg(sticky?.backgroundColor) }"></div>
         <ArrowUpSvg @click.prevent.stop="toTop(sticky?.id)" style="fill: var(--color-0);"
-          class="inline-block group-hover:opacity-100 absolute top-3 right-2 opacity-0" />
+          class="sticky-top absolute top-3 right-1 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-[var(--bg-3)]" />
       </div>
     </template>
   </draggable>
@@ -135,3 +139,42 @@ const sortSticky = (value: any[]) => {
 const searchSticky = useSearchContent(toRef(props, "search"), "title");
 
 </script>
+
+<style lang="less" scoped>
+.sticky-row {
+  color: var(--color-1);
+}
+
+/* 行间细分隔线, 左右随行内缩 */
+.sticky-row + .sticky-row {
+  border-top: 1px solid var(--border-0);
+}
+
+.sticky-row:hover {
+  background-color: var(--bg-2);
+  color: var(--color-0);
+}
+
+/* 左侧色条由中心展开 */
+.sticky-row:hover .sticky-bar {
+  height: 20px;
+  opacity: 1;
+}
+
+/* 颜色圆点缩隐, 让位给置顶按钮 */
+.sticky-row:hover .sticky-dot {
+  opacity: 0;
+  transform: scale(0.4);
+}
+
+.sticky-row:hover .sticky-file-icon {
+  color: var(--color-1);
+}
+
+.sticky-bar,
+.sticky-dot,
+.sticky-top,
+.sticky-file-icon {
+  transition: all 0.2s ease;
+}
+</style>

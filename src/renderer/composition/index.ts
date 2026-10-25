@@ -30,30 +30,49 @@ const useUserData = (name = 'main', init = {}, extraEffect: any = null, gotData:
 const useTimer = () => {
     let timers: any = ref([]);
     let timerHandler: NodeJS.Timeout | null = null;
-    const fetchTimers = () => {
-        if (timerHandler) clearInterval(timerHandler)
+
+    // 每秒重新拉取一次队列: 迟到创建的倒计时也能立即出现, 且已删除/已结束的会及时消失
+    const tick = () => {
         invoke("getNotificationQ")
             .then((messageQ: notification[]) => {
-                const render = () => {
-                    timers.value = messageQ
-                        .map((item) => ({
-                            id: item.id,
-                            content: item.content,
-                            last: Math.round((item.end - item.createTime) / 1000),
-                            percent: (item.end - Date.now()) / (item.end - item.createTime),
-                            remain: Math.round((item.end - Date.now()) / 1000),
-                        }))
-                        .filter((i) => i.remain > 0);
-                };
-                timerHandler = setInterval(render, 1000);
-                render();
+                const now = Date.now();
+                timers.value = messageQ
+                    .map((item) => ({
+                        id: item.id,
+                        content: item.content,
+                        last: Math.round((item.end - item.createTime) / 1000),
+                        percent: (item.end - now) / (item.end - item.createTime),
+                        remain: Math.round((item.end - now) / 1000),
+                    }))
+                    .filter((i) => i.remain > 0);
             });
-    }
+    };
+
+    const stop = () => {
+        if (timerHandler) clearInterval(timerHandler);
+        timerHandler = null;
+    };
+
+    const fetchTimers = () => {
+        stop();
+        tick();
+        timerHandler = setInterval(tick, 1000);
+    };
+
+    // 窗口被遮挡/隐藏时渲染进程的定时器会被节流, 重新可见时立即刷新一次, 避免进度停在旧值
+    const refreshWhenVisible = () => {
+        if (!document.hidden) tick();
+    };
+
     onMounted(() => {
-        fetchTimers()
-    })
+        fetchTimers();
+        document.addEventListener("visibilitychange", refreshWhenVisible);
+        window.addEventListener("focus", refreshWhenVisible);
+    });
     onUnmounted(() => {
-        clearInterval(timerHandler!);
+        stop();
+        document.removeEventListener("visibilitychange", refreshWhenVisible);
+        window.removeEventListener("focus", refreshWhenVisible);
     });
     return {
         timers,
