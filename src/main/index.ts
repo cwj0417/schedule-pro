@@ -9,7 +9,7 @@ import stickiesPage from '@/renderer/index.html#/stickies'
 import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
-import { readdirSync, unlinkSync, readFileSync, writeFileSync } from 'fs'
+import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
@@ -117,7 +117,7 @@ const stickyWindows: {
 } = {}
 
 let mainWindowConfig: BrowserWindowConstructorOptions = {
-  width: 960,
+  width: 1120,
   minWidth: 960,
   height: 552,
   minHeight: 552,
@@ -137,7 +137,7 @@ const windowConf: {
   main: {
     url: mainPage,
     conf: {
-      width: 960,
+      width: 1120,
       minWidth: 960,
       height: 552,
       minHeight: 552,
@@ -198,6 +198,29 @@ const windowConf: {
   }
 }
 
+// 所有页面都是同一个 index.html 的 hash 路由. Electron 45 起, 对仅 hash 不同的地址调用
+// loadURL 会抛 ERR_FAILED(-2), 所以同文档切换改用 location.hash
+const navigateTo = (win: BrowserWindow, url: string) => {
+  const current = win.webContents.getURL()
+  if (current === url) return
+  const [currentPath, ...currentHashParts] = current.split('#')
+  const [targetPath, ...targetHashParts] = url.split('#')
+  // dev 下 vite 会把 /index.html 重定向成 /, 所以把 index.html 和它所在的目录视为同一文档
+  const normalize = (p: string) => {
+    const dir = p.replace(/index\.html$/, '')
+    return dir.endsWith('/') ? dir : dir + '/'
+  }
+  if (normalize(currentPath) === normalize(targetPath)) {
+    const hash = targetHashParts.join('#')
+    if (hash && hash !== currentHashParts.join('#')) {
+      win.webContents.executeJavaScript(`location.hash = ${JSON.stringify('#' + hash)}`)
+        .catch((err) => log.error('[navigateTo] set hash failed', url, err))
+    }
+    return
+  }
+  win.loadURL(url).catch((err) => log.error('[navigateTo] loadURL failed', url, err))
+}
+
 function createWindow(type: keyof typeof windowConf = 'main') {
   // 对于设置窗口，检查是否已经存在
   if (type === 'settings') {
@@ -225,8 +248,12 @@ function createWindow(type: keyof typeof windowConf = 'main') {
   }
 
   if (mainWindow) {
-    if (mainWindow?.webContents.getURL() !== windowConf[type].url) mainWindow!.loadURL(windowConf[type].url)
-    mainWindow!.show()
+    navigateTo(mainWindow, windowConf[type].url)
+    // show() 对已可见的窗口不会提到前台, 必须显式 focus; macOS 上还要激活整个应用
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+    if (process.platform === 'darwin') app.focus({ steal: true })
   } else {
     mainWindow = new BrowserWindow({
       ...mainWindowConfig,
@@ -368,12 +395,16 @@ app.whenReady().then(() => {
   shortcuts.inspiration = shortcuts.inspiration ?? ["metaKey", "shiftKey", "l"]
   shortcuts.main = shortcuts.main ?? ["metaKey", "shiftKey", "h"]
   for (let [windowName, key] of Object.entries(shortcuts)) {
-    globalShortcut.register(key.map(keyToAccelerator).join('+'), () => {
+    const accelerator = key.map(keyToAccelerator).join('+')
+    const registered = globalShortcut.register(accelerator, () => {
+      log.info('[shortcut] trigger', accelerator, '->', windowName)
       if (windowName === 'main') {
         Object.values(stickyWindows).forEach(win => win.focus())
       }
       createWindow(windowName as any)
     })
+    // 被其它实例/应用占用时 register 只会返回 false, 不会抛错
+    log.info('[shortcut] register', accelerator, windowName, registered)
   }
   
   // 检查并启动自动备份
@@ -937,10 +968,31 @@ ipcMain.handle('ensureFilePathInSettings', (event, filePath: string) => {
   return true
 })
 
+// 打包后从 Finder/Dock 启动不继承 shell 的 PATH,补充常见可执行目录(npm 全局 bin 所在处)
+function buildEnhancedPath(): string {
+  const home = process.env.HOME || ''
+  const extra = [
+    '/usr/local/bin',
+    '/opt/homebrew/bin',
+    '/opt/homebrew/sbin',
+    home && `${home}/.npm-global/bin`,
+    home && `${home}/.volta/bin`,
+    home && `${home}/.yarn/bin`,
+    home && `${home}/.deno/bin`,
+    home && `${home}/bin`,
+  ].filter(Boolean) as string[]
+  const nvmDir = home && join(home, '.nvm/versions/node')
+  if (nvmDir && existsSync(nvmDir)) {
+    for (const v of readdirSync(nvmDir)) extra.push(join(nvmDir, v, 'bin'))
+  }
+  return [...new Set(extra)].join(':')
+}
+
 ipcMain.handle('executeFileModeCommand', async (event, command: string, filePath: string) => {
   const { exec } = require('child_process')
   const env = { ...process.env }
   if (filePath) env.FILE_PATH = filePath
+  env.PATH = `${process.env.PATH}:${buildEnhancedPath()}`
   const folder = filePath ? dirname(filePath) : undefined
   return new Promise((resolve, reject) => {
     exec(command, { cwd: folder, env, timeout: 30000 }, (error: any, stdout: string, stderr: string) => {
