@@ -33,13 +33,24 @@ feat: 首页三列布局与倒计时体验优化
 
 ## 发版流程
 
-发版是"两个提交 + 一个 tag"，两个提交都只 push 一次 `main`，随后只打**一个** tag，
+发版是"一个发版提交 + 一个 tag"：只 push 一次 `main`，随后只打**一个** tag，
 CI 只跑一次、只生成一个 Release。不要为了"分批"去重复触发 workflow。
 
-1. 提交一：只改 `package.json` 的 `version`，提交信息 `chore(release): x.y.z`
-2. 提交二：写本次更新日志（变更说明），与版本号分开提交
-3. `git push origin main`（普通 push，不触发构建）
-4. 打 tag 并推送：`git tag vX.Y.Z && git push origin vX.Y.Z`
+1. 提交：只改 `package.json` 的 `version`，提交信息 `chore(release): x.y.z`；
+   **正文必须用 `-` 逐条列出本次完整更新内容**（不要只写"优化"之类的空话）。
+   CI 会把这段正文写入 Release 说明，app 的更新弹窗直接读取它展示给用户
+2. `git push origin main`（普通 push，不触发构建）
+3. 打 tag 并推送：`git tag vX.Y.Z && git push origin vX.Y.Z`
+
+示例：
+
+```
+chore(release): 1.19.0
+
+- 便签记录新增创建/更新时间, 首页和便签窗口均可查看
+- 首页右上角新增设置入口, 支持隐藏今日办/倒计时/待办池/便签
+- 修复详情页品牌点击无法返回首页
+```
 
 CI 只在推送 `v*` tag（或手动 `workflow_dispatch`）时构建发布，普通 push 不会触发。
 tag 名必须与 `package.json` 的 `version` 一致（`version` 1.18.0 → tag `v1.18.0`）。
@@ -56,3 +67,5 @@ CI 会先创建 draft Release，构建上传完成后才转正式，避免 elect
 - macOS 没有 Apple 开发者证书，采用 `identity: '-'` 的 ad-hoc 签名（需 electron-builder 26+ 才生效）。
   Release 的 DMG 里附有 `安装说明.txt`，用户首次打开需要执行 `xattr -cr /Applications/schedule-pro.app`
   或到"系统设置 → 隐私与安全性"里放行
+- ad-hoc 签名无法通过 Squirrel 的更新校验，因此 app 内自动安装不可用；更新弹窗保留"重启安装"尝试，
+  同时提供"下载安装包"跳转 Release 页面手动覆盖安装
