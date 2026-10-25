@@ -4,28 +4,26 @@
           'item-done': item.done,
         }">
             <template v-if="isEditing">
-                <input ref="inputRef" class="flex-grow outline-none bg-transparent px-5 transition-colors" type="text"
+                <input ref="inputRef" class="todo-edit-input" type="text"
                     :value="editingContent" @input="(e) => (editingContent = e.target.value)"
                     @keypress.enter="$emit('changeItem', editingContent); isEditing = false;"
                     @keydown.esc="isEditing = false" />
-                <span class="kbd my-2 animate-pulse" style="width: 40px" @click="isEditing = false">esc</span>
-                <span class="kbd my-2 animate-pulse" style="width: 40px"
+                <span class="kbd edit-key animate-pulse" @click="isEditing = false">esc</span>
+                <span class="kbd edit-key animate-pulse"
                     @click="$emit('changeItem', editingContent); isEditing = false;">⏎</span>
             </template>
             <template v-else>
                 <div :class="item.done ? 'indicator indicator-done' : 'indicator'" @click="$emit('toggleItem')"></div>
-                <div class="icon-wrap opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-[-8px] group-hover:translate-x-0"
-                    @click="isEditing = true; editingContent = item.content; inputfocus();
-                    ">
-                    <EditSvg class="m-auto inline-block" style="color: var(--color-2)" />
+                <div class="todo-text">{{ item.content }}</div>
+                <div class="todo-actions">
+                    <div class="todo-action"
+                        @click="isEditing = true; editingContent = item.content; inputfocus();">
+                        <EditSvg class="inline-block" />
+                    </div>
+                    <div class="todo-action" @click="$emit('deleteItem', item.id)">
+                        <TrashSvg class="inline-block" />
+                    </div>
                 </div>
-                <div class="icon-wrap opacity-0 group-hover:opacity-100 transition-all duration-200 translate-x-[-8px] group-hover:translate-x-0"
-                    @click="$emit('deleteItem', item.id)">
-                    <TrashSvg class="m-auto inline-block" style="color: var(--color-2)" />
-                </div>
-                <div style="width: calc(100% - 120px)"
-                    class="pl-2 whitespace-nowrap break-all transition-transform duration-200 translate-x-[-8px] group-hover:translate-x-0">
-                    {{ item.content }}</div>
             </template>
         </div>
     </div>
@@ -53,7 +51,7 @@ const inputfocus = () => {
 @reference "tailwindcss";
 
 .indicator {
-    @apply w-3 h-3 rounded-full border-2 cursor-pointer flex-shrink-0 ml-4 mr-2 mt-3 transition-all duration-150;
+    @apply w-3 h-3 rounded-full border-2 cursor-pointer flex-shrink-0 ml-1 mr-2 transition-all duration-150;
     background-color: var(--bg-0);
     border-color: var(--border-1);
 
@@ -66,6 +64,45 @@ const inputfocus = () => {
         background-color: var(--theme-0);
         border-color: var(--theme-0);
         box-shadow: inset 0 0 0 2px var(--bg-0);
+    }
+}
+
+.todo-edit-input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding-left: 8px;
+    outline: none;
+    background: transparent;
+    color: var(--color-1);
+}
+
+.edit-key {
+    width: 40px;
+    flex: none;
+}
+
+// 编辑/删除只在 hover 时出现, 避免占用列表正文空间
+.todo-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.todo-item-wrap:hover .todo-actions {
+    opacity: 1;
+}
+
+.todo-action {
+    @apply w-6 h-6 rounded-md flex items-center justify-center cursor-pointer transition-colors duration-150;
+    color: var(--color-2);
+
+    &:hover {
+        color: var(--theme-0);
+        background-color: var(--bg-2);
     }
 }
 </style>

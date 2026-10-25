@@ -1,39 +1,37 @@
 <template>
-  <div class="wrap">
+  <div class="wrap detail-page">
     <div class="page-title">
-      <div
-        class="back-home"
-        @click="location.replace('#/home')"
-      >◀︎ schedule pro</div>
-      <div>待办池</div>
+      <div class="back-home" @click="goHome">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15 18-6-6 6-6" />
+        </svg>
+        <span>schedule pro</span>
+      </div>
+      <div class="page-name">待办池</div>
+      <div class="title-drag"></div>
     </div>
     <div class="page-body">
-      <div
-        class="content-input-wrap"
-      >
-        <div class="flex-grow h-full">
-          <input
-            class="content-input-txt"
-            placeholder="请输入内容..."
-            v-focus
-            :value="contentinput"
-            @input="(e) => (contentinput = e.target.value)"
-            type="text"
-            @keypress.enter="createInspiration"
-          />
-        </div>
-        <div class="w-14 h-full">
-          <button
-            class="content-input-btn text-sm"
-            :class="{ 'active': contentinput !== '' }"
-            @click="createInspiration"
-          >添加</button>
-        </div>
+      <div class="content-input-wrap">
+        <input
+          class="content-input-txt"
+          placeholder="请输入内容..."
+          v-focus
+          :value="contentinput"
+          @input="(e) => (contentinput = e.target.value)"
+          type="text"
+          @keypress.enter="createInspiration"
+        />
+        <button
+          class="content-input-btn"
+          :class="{ 'active': contentinput !== '' }"
+          @click="createInspiration"
+        >添加</button>
       </div>
       <div class="card">
         <div class="w-full">待办内容</div>
       </div>
-      <div class="w-full overflow-y-scroll" style="height: calc(100% - 120px)">
+      <div class="list-scroll">
         <empty v-if="!inspirations.length" />
         <transition-group name="animate-list" tag="div">
           <todo-item
@@ -52,6 +50,7 @@
 </template>
 <script lang="ts" setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "../components/todoItem.vue";
@@ -72,7 +71,6 @@ const createInspiration = () => {
   contentinput.value = "";
 };
 
-const location = window.location
-
-
+const router = useRouter();
+const goHome = () => router.replace("/home");
 </script>
