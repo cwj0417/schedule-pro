@@ -53,11 +53,20 @@ jobs:
         run: |
           TAG="${{ steps.meta.outputs.tag }}"
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-              gh release create "$TAG" --draft --title "${TAG#v}" --target "$GITHUB_SHA" --generate-notes
+            # Release 说明取发版提交 (chore(release): x.y.z) 的正文,
+            # app 更新弹窗会直接读取这段内容展示给用户
+            NOTES="$(git log -1 --format=%b)"
+            ARGS=(--draft --title "${TAG#v}")
+            if [ -n "$NOTES" ]; then
+              printf '%s\n' "$NOTES" > release-notes.md
+              ARGS+=(--notes-file release-notes.md)
             else
-              gh release create "$TAG" --draft --title "${TAG#v}" --generate-notes
+              ARGS+=(--generate-notes)
             fi
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              ARGS+=(--target "$GITHUB_SHA")
+            fi
+            gh release create "$TAG" "${ARGS[@]}"
           fi
           if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != "true" ]; then
             echo "::error::Release $TAG 已正式发布, 重新发版请先删除该 Release 及其 tag"
