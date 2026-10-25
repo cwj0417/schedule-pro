@@ -4,7 +4,7 @@
     item-key="id" tag="div">
     <template #item="{ element: sticky }">
       <div @click="openSticky(sticky?.id)"
-        class="sticky-row group h-10 leading-10 pl-3 pr-9 cursor-pointer whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
+        class="sticky-row hover-fill group h-10 leading-10 pl-3 pr-9 flex items-center cursor-pointer whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
         :style="{
           background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
@@ -13,7 +13,7 @@
         <span class="sticky-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 rounded-full opacity-0"
           :style="{ background: getBg(sticky?.backgroundColor) }"></span>
         <!-- 标题区域, hover 时右侧收窄, 把位置让给更新时间 -->
-        <div class="sticky-title h-full overflow-hidden whitespace-nowrap">
+        <div class="sticky-title flex-1 min-w-0 h-full overflow-hidden whitespace-nowrap">
           <template v-if="isFileSticky(sticky)">
             <FileSvg class="sticky-file-icon inline-block mr-1.5 align-middle flex-shrink-0 transition-colors" width="14"
               height="14" style="color: var(--color-2)" />
@@ -25,8 +25,8 @@
             <search-result :value="sticky?.title || '未命名便签'" :search="search" />
           </template>
         </div>
-        <!-- 更新时间: hover 时在最右侧展示, 位于置顶按钮左侧 -->
-        <span class="sticky-time absolute top-0 right-9 h-full leading-10 text-xs whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 group-hover:opacity-100"
+        <!-- 更新时间: hover 时在最右侧展开, 位于置顶按钮左侧 -->
+        <span class="sticky-time flex-shrink-0 h-full leading-10 text-xs whitespace-nowrap pointer-events-none"
           style="color: var(--color-2)">
           {{ formatRelativeTime(sticky?.updatedAt || sticky?.createdAt || +sticky?.id) }}
         </span>
@@ -159,8 +159,8 @@ const searchSticky = useSearchContent(toRef(props, "search"), "title");
   border-top: 1px solid var(--border-0);
 }
 
+/* hover 底色由 .hover-fill 从鼠标位置展开 */
 .sticky-row:hover {
-  background-color: var(--bg-2);
   color: var(--color-0);
 }
 
@@ -180,14 +180,19 @@ const searchSticky = useSearchContent(toRef(props, "search"), "title");
   color: var(--color-1);
 }
 
-/* hover 时标题右侧让出更新时间的位置, 内容以 margin 收窄, 避免被时间文本压住 */
-.sticky-title {
-  margin-right: 0;
-  transition: margin-right 0.2s ease;
+/* 更新时间: 平时收起, hover 时按文字实际宽度展开, 左右间距与文字上下留白一致(约 12px) */
+.sticky-time {
+  max-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-width 0.2s ease, margin-left 0.2s ease, opacity 0.2s ease;
 }
 
-.sticky-row:hover .sticky-title {
-  margin-right: 4.5rem;
+.sticky-row:hover .sticky-time {
+  max-width: 6rem;
+  margin-left: 0.75rem;
+  opacity: 1;
 }
 
 .sticky-bar,

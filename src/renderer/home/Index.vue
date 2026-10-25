@@ -1,17 +1,10 @@
 <template>
   <div class="wrap">
     <div class="page-title">
-      <div class="absolute left-3 top-3 px-2 py-1 h-10 rounded-md transition-all duration-200"
-        :style="{
-          borderWidth: searchContent ? '1px' : '',
-          borderColor: searchContent ? 'var(--border-0)' : ''
-        }">
-        <input type="text" class="outline-none caret-transparent cursor-default bg-transparent" ref="searchInput"
-          v-model="searchContent" @keydown.esc="searchContent = ''" />
-      </div>
-      <div class="flex justify-center w-64 absolute left-1/3">
-        <img v-if="!isDark" class="h-6 mr-3 mt-1" src="@/assets/logo.png" draggable="false" />
-        <img v-else class="h-6 mr-3 mt-1" src="@/assets/logoblack.png" draggable="false" />
+      <!-- 左上: logo 与全局快捷键 -->
+      <div class="flex items-center absolute left-5 top-4 h-8">
+        <img v-if="!isDark" class="h-6 mr-3" src="@/assets/logo.png" draggable="false" />
+        <img v-else class="h-6 mr-3" src="@/assets/logoblack.png" draggable="false" />
         <span class="nodragable">
           <keyboard @esc="
             keydown({
@@ -21,6 +14,16 @@
             :value="data.editing === 'main' ? editingAccelerator : config.main" />
         </span>
       </div>
+      <!-- 中间: 搜索栏 -->
+      <div class="absolute left-1/3 top-3 px-2 py-1 h-10 w-56 rounded-md transition-all duration-200"
+        :style="{
+          borderWidth: searchContent ? '1px' : '',
+          borderColor: searchContent ? 'var(--border-0)' : ''
+        }">
+        <input type="text" class="w-full h-8 text-xs outline-none caret-transparent cursor-default bg-transparent search-input"
+          ref="searchInput" v-model="searchContent" @keydown.esc="searchContent = ''"
+          :placeholder="showSearchHint ? '直接输入以搜索, esc 以清空' : ''" />
+      </div>
       <div class="flex leading-7 ml-5 absolute right-5 top-5 nodragable">
         <span style="color: var(--color-2)" class="text-sm text-center leading-6 mr-3" v-if="!versionInfo.downloaded">v{{
           versionInfo.curVersion
@@ -28,10 +31,27 @@
         <RefreshSvg @click="checkForUpdate" v-if="!versionInfo.downloaded"
           :class="{ 'animate-spin': versionInfo.checkingForUpdate }" class="mt-1 mr-2 cursor-pointer" />
 
-        <div style="color: var(--color-2); backgroundColor: var(--bg-0);"
-          class="text-xs mt-1 relative w-40 z-10 p-2 shadow-md" v-if="versionInfo.downloaded">
-          <div v-html="versionInfo.releaseNotes"></div>
-          <span @click="restart" class="cursor-pointer inline-block" style="color: var(--color-0);">点击安装</span>
+        <!-- 更新弹窗: 说明可滚动, 底部提供自动安装与手动下载 -->
+        <div v-if="versionInfo.downloaded"
+          class="update-card text-xs mt-1 relative z-10 w-80 rounded-lg shadow-lg overflow-hidden"
+          style="color: var(--color-2); background-color: var(--bg-0); border: 1px solid var(--border-1);">
+          <div class="flex items-center justify-between px-3 py-2" style="border-bottom: 1px solid var(--border-1);">
+            <span class="text-sm font-bold" style="color: var(--color-0);">新版本 v{{ versionInfo.latestVersion }}</span>
+            <span class="text-[11px] opacity-60">当前 v{{ versionInfo.curVersion }}</span>
+          </div>
+          <div class="update-notes px-3 py-2 overflow-y-auto" style="max-height: 208px;"
+            v-html="versionInfo.releaseNotes || '<p>暂无更新说明</p>'"></div>
+          <div class="px-3 py-2" style="border-top: 1px solid var(--border-1);">
+            <div class="text-[11px] leading-4 mb-1.5"
+              :style="{ color: versionInfo.installStatus ? 'var(--theme-0)' : 'var(--color-3)' }">
+              {{ versionInfo.installStatus || '点击"安装并重启"自动覆盖安装, 失败时可下载安装包手动安装' }}
+            </div>
+            <div class="flex items-center justify-end gap-3">
+              <span class="cursor-pointer whitespace-nowrap opacity-60 hover:opacity-100" @click="openReleasePage">下载安装包</span>
+              <span class="cursor-pointer whitespace-nowrap px-2.5 py-1 rounded-md"
+                style="background: var(--theme-0); color: #fff;" @click="restart">安装并重启</span>
+            </div>
+          </div>
         </div>
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
           {{ versionInfo.status }}
@@ -78,7 +98,7 @@
                   <div :class="{
                     'stripped': index % 2 === 1,
                     'item-done': item.done,
-                  }" class="w-full h-10 p-2 flex leading-6">
+                  }" class="w-full h-10 p-2 flex leading-6 hover-fill">
                     <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
                     <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
                       style="width: calc(100% - 24px)">
@@ -135,7 +155,7 @@
                 <div :class="{
                   'stripped': index % 2 === 1,
                   'item-done': item.done,
-                }" class="w-full h-10 p-2 flex leading-6">
+                }" class="w-full h-10 p-2 flex leading-6 hover-fill">
                   <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
                   <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
                     style="width: calc(100% - 24px)">
@@ -202,6 +222,9 @@ const isDark = computed(() => {
 
 const searchInput = ref<any>(null);
 const searchContent = ref("");
+
+// 搜索栏提示语, 可在设置中关闭
+const showSearchHint = ref(true);
 
 const focusSearchInput = () => {
   searchInput.value.focus();
@@ -320,6 +343,7 @@ const versionInfo = reactive({
   status: "",
   downloaded: false,
   releaseNotes: '',
+  installStatus: '',
 });
 
 const checkForUpdate = () => {
@@ -330,6 +354,12 @@ const checkForUpdate = () => {
 };
 
 onMounted(() => {
+  invoke("getSearchHint")
+    .then((value: any) => {
+      if (typeof value === "boolean") showSearchHint.value = value;
+    })
+    .catch(() => {});
+
   onMessage(({ type, value }: any) => {
     if (type === "checking-for-update") {
       versionInfo.checkingForUpdate = true;
@@ -341,9 +371,23 @@ onMounted(() => {
       ).toLocaleDateString();
     }
     if (type === "update-not-available" || type === "update-error") {
-      versionInfo.status = value;
-      versionInfo.latestVersion = "";
+      versionInfo.status = (value && value.message) || value || '';
       versionInfo.checkingForUpdate = false;
+      if (versionInfo.downloaded) {
+        // 已下载完成时保留版本信息, 只提示安装失败原因
+        versionInfo.installStatus = '安装失败, 可点击"下载安装包"手动安装';
+      } else {
+        versionInfo.latestVersion = "";
+      }
+    }
+
+    if (type === "update-installing") {
+      versionInfo.installStatus = (value && value.message) || '正在安装更新, 应用即将重启…';
+    }
+
+    // 无法直接覆盖安装时, 安装包已解压到下载目录
+    if (type === "update-install-fallback") {
+      versionInfo.installStatus = (value && value.message) || '安装包已解压到下载目录, 请手动覆盖安装';
     }
 
     if (type === "download-progress") {
@@ -352,8 +396,9 @@ onMounted(() => {
 
     if (type === "update-downloaded") {
       versionInfo.downloaded = true;
-      versionInfo.latestVersion = value;
-      versionInfo.releaseNotes = `<p>当前版本 : ${versionInfo.curVersion}</p><hr class='my-2'/>` + value.releaseNotes.replace('chore(release)', '最新版本').replace(/\<p(\>[^\<]+\<\/p\>)/, '<p style="color: var(--color-0);padding-bottom: 5px;" $1') + `<hr class='my-2'/>`;
+      versionInfo.latestVersion = (value && value.version) || versionInfo.latestVersion;
+      // 部分版本 releaseNotes 可能为空, 这里兜底避免更新弹窗渲染异常
+      versionInfo.releaseNotes = (value && value.releaseNotes) || '';
     }
 
     // 监听主题变化
@@ -364,6 +409,11 @@ onMounted(() => {
     // 设置页修改首页模块显隐
     if (type === 'homeSectionsChanged') {
       Object.assign(sections, value);
+    }
+
+    // 设置页开关搜索栏提示语
+    if (type === 'searchHintChanged') {
+      showSearchHint.value = !!value;
     }
   });
 
@@ -382,7 +432,14 @@ onMounted(() => {
 });
 
 const restart = () => {
-  send("quitAndInstall");
+  versionInfo.installStatus = '正在安装更新, 应用即将重启…';
+  send("installCachedUpdate", versionInfo.latestVersion);
+}
+
+// 手动下载: 打开对应版本的 Release 页面
+const openReleasePage = () => {
+  versionInfo.installStatus = '已在浏览器打开下载页';
+  send("openReleasePage", versionInfo.latestVersion);
 }
 
 // timer
@@ -526,14 +583,68 @@ const location = window.location
   opacity: 0.7;
 }
 
-/* 列表项 hover 效果 */
+/* 列表项 hover 效果: 底色从鼠标位置展开 */
 .w-full.h-10.p-2 {
-  transition: background-color 0.15s ease;
   border-radius: 6px;
   margin: 1px 4px;
+}
 
-  &:hover {
-    background-color: var(--bg-2);
+/* 搜索栏提示语 */
+.search-input::placeholder {
+  color: var(--color-3);
+  opacity: 1;
+}
+
+/* 更新说明内容样式, 适配 GitHub Release 返回的 HTML */
+.update-notes {
+  line-height: 1.6;
+
+  :deep(p) {
+    margin: 4px 0;
+  }
+
+  :deep(h1),
+  :deep(h2),
+  :deep(h3) {
+    margin: 8px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-0);
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin: 4px 0;
+    padding-left: 16px;
+  }
+
+  :deep(ul) {
+    list-style: disc;
+  }
+
+  :deep(ol) {
+    list-style: decimal;
+  }
+
+  :deep(li) {
+    margin: 2px 0;
+  }
+
+  :deep(a) {
+    color: var(--theme-0);
+    text-decoration: underline;
+    word-break: break-all;
+  }
+
+  :deep(code) {
+    padding: 0 3px;
+    border-radius: 3px;
+    background: var(--bg-1);
+  }
+
+  :deep(hr) {
+    margin: 6px 0;
+    border-color: var(--border-1);
   }
 }
 
