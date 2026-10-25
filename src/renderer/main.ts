@@ -7,6 +7,7 @@ import Inspiration from './inspiration/Index.vue'
 import Stickies from './stickies/Index.vue'
 import Settings from './settings/Index.vue'
 import { applyTheme, setupSystemThemeListener } from './utils/theme'
+import './css/tailwind.css'
 import './css/index.less'
 
 const { invoke, onMessage } = window.apis

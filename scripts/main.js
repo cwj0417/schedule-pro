@@ -1,5 +1,5 @@
 const { join } = require('path')
-const { build, transformSync } = require('esbuild')
+const { build, context, transformSync } = require('esbuild')
 const { writeFileSync, readFileSync, ensureDirSync } = require('fs-extra')
 
 let devPlugin = port => ({
@@ -86,21 +86,36 @@ let prodPreloadPlugin = () => ({
 })
 
 const mainDevServer = async (port, onChange = () => { }) => {
-    await build({
+    // esbuild 0.17+ 移除了 build 的 watch 选项, 改用 context + watch
+    let resolveFirstBuild
+    const firstBuild = new Promise(resolve => { resolveFirstBuild = resolve })
+    let isFirstBuild = true
+    const reloadPlugin = {
+        name: 'reload',
+        setup(build) {
+            build.onEnd(result => {
+                if (result.errors.length > 0) return
+                if (isFirstBuild) {
+                    // 首次构建完成, 让调用方知道 dist 已就绪
+                    isFirstBuild = false
+                    resolveFirstBuild()
+                } else {
+                    onChange()
+                }
+            })
+        },
+    }
+    const ctx = await context({
         entryPoints: [join(__dirname, '..', 'src/main/index.ts')],
         outfile: 'dist/main/index.js',
         bundle: true, // 如果false就不会处理文件里的import
         platform: 'node',
-        plugins: [devPlugin(port), devPreloadPlugin()], // 替换入口
+        plugins: [devPlugin(port), devPreloadPlugin(), reloadPlugin], // 替换入口
         external: ['electron'], // 加了以后打包会直接require('electron') 而不是去尝试resolve, 会导致应用起不起来
-        watch: {
-            onRebuild(error, result) {
-                if (error) console.error('watch build failed:', error)
-                else onChange()
-            },
-        },
         publicPath: join(__dirname, '../dist/main'),
     })
+    await ctx.watch()
+    await firstBuild
 }
 
 const mainProdBuild = async () => {

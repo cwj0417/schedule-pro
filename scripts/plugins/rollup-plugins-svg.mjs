@@ -1,5 +1,6 @@
-const fs = require('fs');
-const { compileTemplate } = require('@vue/compiler-sfc')
+import fs from 'fs'
+import { compileTemplate } from '@vue/compiler-sfc'
+
 export default function svgloader() {
     return {
         name: 'svg-loader',

@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+// 让本文件里的 @apply 能解析 tailwind 的工具类
+@reference "tailwindcss";
 
 @import "./common.less";
 @import "./vars.less";
@@ -18,27 +17,31 @@ body {
   width: 100%;
 }
 
-@layer utilities {
-  .nodragable {
-    -webkit-app-region: no-drag;
-  }
-
-  .dragable {
-    -webkit-app-region: drag;
-    user-select: none;
-  }
-
-  .kbd {
-    @apply border p-1 font-light rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-md;
-    background-color: var(--bg-1);
-    border-color: var(--theme-0);
-    color: var(--theme-0);
-  }
+.nodragable {
+  -webkit-app-region: no-drag;
 }
 
-::-webkit-scrollbar {
-  width: 0px;
-  height: 0px;
+.dragable {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.kbd {
+  @apply border p-1 font-light rounded-md mr-1 ml-1 w-6 h-6 leading-3 inline-block text-center shadow-sm;
+  background-color: var(--bg-1);
+  border-color: var(--border-1);
+  color: var(--color-2);
+}
+
+// 隐藏所有滚动条, 但保留滚动能力
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 input::-webkit-outer-spin-button,
