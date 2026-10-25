@@ -12,7 +12,8 @@ import {
 } from "@codemirror/view"
 import { markdown } from "@codemirror/lang-markdown"
 import { languages } from "@codemirror/language-data"
-import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldKeymap } from '@codemirror/language';
+import { indentOnInput, syntaxHighlighting, HighlightStyle, bracketMatching, foldKeymap } from '@codemirror/language';
+import { tags as t } from "@lezer/highlight"
 import { history, historyKeymap } from '@codemirror/commands';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete';
@@ -36,6 +37,30 @@ const enhanceCaret = EditorView.theme({
     }
 })
 
+// 自定义高亮配色:默认样式的颜色(如 markdown 标记 #、>、** 的 #404740)在深色模式下看不清,
+// 改用主题 CSS 变量,深浅色模式都能正常显示
+const appHighlightStyle = HighlightStyle.define([
+    { tag: t.meta, color: "var(--color-2)" },
+    { tag: t.link, textDecoration: "underline", color: "var(--theme-1)" },
+    { tag: t.heading, textDecoration: "underline", fontWeight: "bold" },
+    { tag: t.emphasis, fontStyle: "italic" },
+    { tag: t.strong, fontWeight: "bold" },
+    { tag: t.strikethrough, textDecoration: "line-through" },
+    { tag: t.keyword, color: "var(--theme-1)" },
+    { tag: [t.atom, t.bool, t.url, t.contentSeparator, t.labelName], color: "var(--theme-1)" },
+    { tag: [t.literal, t.inserted], color: "var(--success-1)" },
+    { tag: [t.string, t.deleted], color: "var(--error-1)" },
+    { tag: [t.regexp, t.escape, t.special(t.string)], color: "var(--warning-1)" },
+    { tag: t.definition(t.variableName), color: "var(--color-0)" },
+    { tag: t.local(t.variableName), color: "var(--color-0)" },
+    { tag: [t.typeName, t.namespace], color: "var(--success-1)" },
+    { tag: t.className, color: "var(--theme-1)" },
+    { tag: [t.special(t.variableName), t.macroName], color: "var(--color-1)" },
+    { tag: t.definition(t.propertyName), color: "var(--theme-1)" },
+    { tag: t.comment, color: "var(--color-3)" },
+    { tag: t.invalid, color: "var(--error-0)" },
+])
+
 const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement): EditorView => {
     let debounce: NodeJS.Timeout
     const ImageDropAndPaste = useImgDnPPlugin()
@@ -48,7 +73,7 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
             dropCursor(),
             EditorState.allowMultipleSelections.of(true),
             indentOnInput(),
-            syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+            syntaxHighlighting(appHighlightStyle),
             bracketMatching(),
             closeBrackets(),
             autocompletion(),
