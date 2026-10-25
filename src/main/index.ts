@@ -543,10 +543,18 @@ ipcMain.on('quitAndInstall', (event) => {
 })
 
 // 设置相关的 IPC 处理器
+const defaultHomeSections = {
+  schedule: true,
+  timer: true,
+  inspiration: true,
+  sticky: true,
+}
+
 let userSettings = useUserData('settings', {
   theme: 'system',
   autoBackup: true,  // 默认开启自动备份
-  lastBackupTime: null
+  lastBackupTime: null,
+  homeSections: { ...defaultHomeSections },
 })
 
 ipcMain.handle('exportData', async () => {
@@ -793,6 +801,21 @@ ipcMain.on('setTheme', (event, theme: string) => {
 
 ipcMain.handle('getTheme', () => {
   return userSettings.value.theme
+})
+
+ipcMain.handle('getHomeSections', () => {
+  return { ...defaultHomeSections, ...(userSettings.value.homeSections || {}) }
+})
+
+ipcMain.handle('setHomeSections', (event, sections) => {
+  userSettings.value.homeSections = { ...defaultHomeSections, ...(sections || {}) }
+  // 广播给所有窗口, 首页按配置实时显隐
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'homeSectionsChanged',
+      value: userSettings.value.homeSections,
+    })
+  })
 })
 
 ipcMain.on('addCountDown', (event, args) => {

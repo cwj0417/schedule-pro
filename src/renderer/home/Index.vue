@@ -36,49 +36,60 @@
         <span style="color: var(--color-2)" class="cursor-pointer text-xs mt-1" v-else-if="versionInfo.status">
           {{ versionInfo.status }}
         </span>
+        <!-- 设置入口 -->
+        <span class="cursor-pointer ml-3 mt-1 hover:opacity-70 transition-opacity" title="设置"
+          @click="send('openSettingsWindow')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-2)">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+        </span>
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
-      <div :style="{ width: bothEmpty ? '27.25rem' : 'calc(75% - 0.625rem)' }"
+      <div v-if="showLeft" :style="{ width: leftWidth }"
         style="transition: width .5s;" class="flex space-x-5">
-        <div class="h-full" style="transition: width .5s;" :style="{
-          width: bothEmpty ? '13rem' : (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? '13rem' : 'calc(100% - 14.5rem)'
-        }">
-          <div class="text-sm space-x-2">
-            <ScheduleSvg class="inline-block" />
-            <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
-            <keyboard @esc="keydown({
-              keyCode: 27,
-            })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
-              :value="data.editing === 'schedule'
-                ? editingAccelerator
-                : config.schedule" />
-          </div>
-          <div style="height: calc(100% - 95px);" :style="{ borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
-            class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
-            <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
-              item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
-              @update:modelValue="handleScheduleUpdate($event)" tag="div">
-              <template #header>
-                <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
-                <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
-                  class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
-              </template>
-              <template #item="{ element: item, index }">
-                <div :class="{
-                  'stripped': index % 2 === 1,
-                  'item-done': item.done,
-                }" class="w-full h-10 p-2 flex leading-6">
-                  <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                  <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                    style="width: calc(100% - 24px)">
-                    <search-result :search="searchContent" :value="item.content" />
-                  </span>
-                </div>
-              </template>
-            </draggable>
-          </div>
-          <div class="h-8 mt-5">
+        <div v-if="showScheduleColumn" class="h-full" style="transition: width .5s;" :style="{ width: scheduleColumnWidth }">
+          <template v-if="sections.schedule">
+            <div class="text-sm space-x-2">
+              <ScheduleSvg class="inline-block" />
+              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
+              <keyboard @esc="keydown({
+                keyCode: 27,
+              })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
+                :value="data.editing === 'schedule'
+                  ? editingAccelerator
+                  : config.schedule" />
+            </div>
+            <div :style="{ height: sections.timer ? 'calc(100% - 95px)' : 'calc(100% - 44px)', borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
+              class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
+              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
+                item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
+                @update:modelValue="handleScheduleUpdate($event)" tag="div">
+                <template #header>
+                  <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
+                  <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
+                    class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
+                </template>
+                <template #item="{ element: item, index }">
+                  <div :class="{
+                    'stripped': index % 2 === 1,
+                    'item-done': item.done,
+                  }" class="w-full h-10 p-2 flex leading-6">
+                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
+                      style="width: calc(100% - 24px)">
+                      <search-result :search="searchContent" :value="item.content" />
+                    </span>
+                  </div>
+                </template>
+              </draggable>
+            </div>
+          </template>
+          <div v-if="sections.timer" class="h-8" :class="sections.schedule ? 'mt-5' : ''">
             <div v-if="!timers.length" class="text-sm space-x-2">
               <CountdownSvg class="inline-block" />
               <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
@@ -99,9 +110,7 @@
             </div>
           </div>
         </div>
-        <div class="h-full" style="transition: width .5s;" :style="{
-          width: bothEmpty ? '13rem' : (searchScheduleOrInspiration(inspiration)!.length === 0) === (searchScheduleOrInspiration(schedule?.[getTs()])!.length === 0) ? 'calc(50% - 0.625rem)' : searchScheduleOrInspiration(inspiration).length ? 'calc(100% - 14.5rem)' : '13rem'
-        }">
+        <div v-if="sections.inspiration" class="h-full" style="transition: width .5s;" :style="{ width: inspirationColumnWidth }">
           <div class="text-sm space-x-2">
             <InspirationSvg class="inline-block" />
             <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
@@ -138,7 +147,7 @@
           </div>
         </div>
       </div>
-      <div :style="{ width: bothEmpty ? 'calc(100% - 28.5rem)' : 'calc(25% - 0.625rem)' }" style="transition: width .5s;">
+      <div v-if="sections.sticky" :style="{ width: stickyWidth }" style="transition: width .5s;">
         <div class="text-sm space-x-2">
           <StickySvg class="inline-block" />
           <span>便签</span>
@@ -351,8 +360,13 @@ onMounted(() => {
     if (type === 'themeChanged') {
       themeState.currentTheme = value;
     }
+
+    // 设置页修改首页模块显隐
+    if (type === 'homeSectionsChanged') {
+      Object.assign(sections, value);
+    }
   });
-  
+
   invoke("getVersion").then((version: string) => {
     versionInfo.curVersion = version;
   });
@@ -389,12 +403,77 @@ const searchScheduleOrInspiration = useSearchContent(
   "content"
 );
 
-// 今日办与待办池都为空时, 两列收窄到只包住标题内容, 把空间让给便签
-const bothEmpty = computed(
-  () =>
-    !searchScheduleOrInspiration(schedule.value?.[getTs()])?.length &&
-    !searchScheduleOrInspiration(inspiration.value)?.length
+// 首页模块显隐配置
+const sections = reactive({
+  schedule: true,
+  timer: true,
+  inspiration: true,
+  sticky: true,
+});
+
+// 设置页保存后立即同步; 窗口重新获得焦点时再拉一次兜底
+const refreshSections = () => {
+  invoke("getHomeSections").then((value: any) => {
+    if (value) Object.assign(sections, value);
+  });
+};
+
+onMounted(() => {
+  refreshSections();
+  window.addEventListener("focus", refreshSections);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("focus", refreshSections);
+});
+
+const showScheduleColumn = computed(() => sections.schedule || sections.timer);
+const showLeft = computed(() => showScheduleColumn.value || sections.inspiration);
+const leftColumnCount = computed(
+  () => (showScheduleColumn.value ? 1 : 0) + (sections.inspiration ? 1 : 0)
 );
+
+// 隐藏的列按"空"处理, 宽度分配才能和可见内容匹配
+const scheduleEmpty = computed(
+  () =>
+    !sections.schedule ||
+    !searchScheduleOrInspiration(schedule.value?.[getTs()])?.length
+);
+const inspirationEmpty = computed(
+  () => !sections.inspiration || !searchScheduleOrInspiration(inspiration.value)?.length
+);
+const bothVisibleEmpty = computed(() => scheduleEmpty.value && inspirationEmpty.value);
+
+// "两列都为空就收窄"只是为了给便签让空间, 便签隐藏时各列应正常占满
+const narrowWhenEmpty = computed(() => sections.sticky && bothVisibleEmpty.value);
+
+const leftWidth = computed(() => {
+  if (!sections.sticky) return "100%";
+  if (!bothVisibleEmpty.value) return "calc(75% - 0.625rem)";
+  return leftColumnCount.value === 2 ? "27.25rem" : "13rem";
+});
+
+const stickyWidth = computed(() => {
+  if (!showLeft.value) return "100%";
+  if (!bothVisibleEmpty.value) return "calc(25% - 0.625rem)";
+  return leftColumnCount.value === 2
+    ? "calc(100% - 28.5rem)"
+    : "calc(100% - 14.25rem)";
+});
+
+const scheduleColumnWidth = computed(() => {
+  if (!sections.inspiration) return "100%";
+  if (!narrowWhenEmpty.value) return "calc(50% - 0.625rem)";
+  if (scheduleEmpty.value === inspirationEmpty.value) return "calc(50% - 0.625rem)";
+  return scheduleEmpty.value ? "13rem" : "calc(100% - 14.5rem)";
+});
+
+const inspirationColumnWidth = computed(() => {
+  if (!showScheduleColumn.value) return "100%";
+  if (!narrowWhenEmpty.value) return "calc(50% - 0.625rem)";
+  if (scheduleEmpty.value === inspirationEmpty.value) return "calc(50% - 0.625rem)";
+  return inspirationEmpty.value ? "calc(100% - 14.5rem)" : "13rem";
+});
 
 // schedule and inspiration sort
 

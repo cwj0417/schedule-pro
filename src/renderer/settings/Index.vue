@@ -7,6 +7,7 @@
             <div class="flex items-center pl-0 flex-shrink-0 whitespace-nowrap font-semibold pointer-events-none"
                 style="-webkit-app-region: no-drag; color: var(--color-0);">
                 <span class="text-md font-bold">设置</span>
+                <keyboard class="ml-2" :disabled="true" :value="['metaKey', ',']" />
             </div>
             <div class="ml-auto" style="-webkit-app-region: no-drag;">
                 <button @click="closeWindow"
@@ -331,6 +332,42 @@
                     </div>
                 </div>
 
+                <!-- 首页模块显隐 -->
+                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" rx="1" />
+                                <rect x="14" y="3" width="7" height="7" rx="1" />
+                                <rect x="14" y="14" width="7" height="7" rx="1" />
+                                <rect x="3" y="14" width="7" height="7" rx="1" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">首页模块</h2>
+                            <p class="text-xs" style="color: var(--color-2);">选择首页需要展示的模块</p>
+                        </div>
+                    </div>
+                    <div v-for="item in sectionOptions" :key="item.key"
+                        class="flex items-center justify-between p-3 rounded-lg mb-3"
+                        style="background: var(--bg-1); border: 1px solid var(--border-1);">
+                        <div>
+                            <p class="text-sm font-medium" style="color: var(--color-0);">{{ item.label }}</p>
+                            <p class="text-xs" style="color: var(--color-2);">{{ item.desc }}</p>
+                        </div>
+                        <button @click="toggleHomeSection(item.key)"
+                            class="relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none"
+                            :style="homeSections[item.key] ? 'background: var(--theme-0);' : 'background: var(--border-1);'">
+                            <div class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200"
+                                :style="homeSections[item.key] ? 'left: 1.25rem;' : 'left: 0.125rem;'">
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 文件模式操作设置 -->
                 <div id="file-mode-settings" class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
@@ -431,6 +468,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, nextTick, watch } from 'vue'
+import keyboard from '../components/keyboards.vue'
 
 const { send, invoke, onMessage } = window.apis
 
@@ -461,6 +499,31 @@ const themes = [
     { value: 'light', label: '白色主题' },
     { value: 'dark', label: '黑色主题' }
 ]
+
+// 首页模块显隐
+const homeSections = reactive<Record<string, boolean>>({
+    schedule: true,
+    timer: true,
+    inspiration: true,
+    sticky: true
+})
+
+const sectionOptions = [
+    { key: 'schedule', label: '今日办', desc: '首页左侧的今日待办列表' },
+    { key: 'timer', label: '倒计时', desc: '首页左侧的倒计时进度' },
+    { key: 'inspiration', label: '待办池', desc: '首页中间的待办池列表' },
+    { key: 'sticky', label: '便签', desc: '首页右侧的便签列表' }
+]
+
+const toggleHomeSection = async (key: string) => {
+    homeSections[key] = !homeSections[key]
+    try {
+        await invoke('setHomeSections', { ...homeSections })
+    } catch (error) {
+        console.error('保存首页模块设置失败:', error)
+        homeSections[key] = !homeSections[key]
+    }
+}
 
 // AI 模型提供商列表
 const providers = [
@@ -755,6 +818,16 @@ onMounted(async () => {
         }
     } catch (error) {
         console.error('获取主题设置失败:', error)
+    }
+
+    // 获取首页模块显隐配置
+    try {
+        const savedSections = await invoke('getHomeSections')
+        if (savedSections) {
+            Object.assign(homeSections, savedSections)
+        }
+    } catch (error) {
+        console.error('获取首页模块设置失败:', error)
     }
 
     // 获取自动备份设置和备份状态
