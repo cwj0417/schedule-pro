@@ -33,13 +33,20 @@ feat: 首页三列布局与倒计时体验优化
 
 ## 发版流程
 
-1. 只修改 `package.json` 的 `version`
-2. 提交：`chore(release): x.y.z`，正文写本次功能摘要
-3. `git push origin main`
+发版是"两个提交 + 一个 tag"，两个提交都只 push 一次 `main`，随后只打**一个** tag，
+CI 只跑一次、只生成一个 Release。不要为了"分批"去重复触发 workflow。
+
+1. 提交一：只改 `package.json` 的 `version`，提交信息 `chore(release): x.y.z`
+2. 提交二：写本次更新日志（变更说明），与版本号分开提交
+3. `git push origin main`（普通 push，不触发构建）
 4. 打 tag 并推送：`git tag vX.Y.Z && git push origin vX.Y.Z`
 
 CI 只在推送 `v*` tag（或手动 `workflow_dispatch`）时构建发布，普通 push 不会触发。
 tag 名必须与 `package.json` 的 `version` 一致（`version` 1.18.0 → tag `v1.18.0`）。
+
+CI 会先创建 draft Release，构建上传完成后才转正式，避免 electron-builder 26 并发上传时
+重复创建 Release。一个版本只应存在一个 Release；发版失败留下的 draft 不会公开。
+需要重新发版时，先删除该 Release 和远端 tag，再重新打 tag 推送，不要对已正式发布的 Release 重复构建。
 
 ## 打包说明
 
