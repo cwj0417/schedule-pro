@@ -11,6 +11,8 @@
       @apply px-5 font-bold absolute left-0 top-4 cursor-pointer;
       color: var(--color-1);
       transition: color 0.2s ease;
+      /* 标题栏整体是拖拽区域, 这里必须排除, 否则点击不会触发返回首页 */
+      -webkit-app-region: no-drag;
 
       &:hover {
         color: var(--theme-0);
