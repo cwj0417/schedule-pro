@@ -26,12 +26,12 @@
             <div class="max-w-2xl mx-auto space-y-5">
 
                 <!-- 应用更新 -->
-                <div class="flex backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                <div class="flex backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
                     <div class="flex items-center gap-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <polygon points="12,6 16,12 8,12" fill="none" stroke="currentColor" stroke-width="2"
                                     stroke-linejoin="round" />
@@ -53,8 +53,8 @@
                             <button
                                 v-if="!versionInfo.checkingForUpdate && !versionInfo.status && !versionInfo.downloaded"
                                 @click="checkForUpdates"
-                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 update-btn"
-                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                                class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 update-btn hover-fill"
+                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
                                     <path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.35 0 4.48.9 6.07 2.38" />
@@ -94,7 +94,7 @@
                             <!-- 下载完成状态 -->
                             <div v-if="versionInfo.downloaded" class="flex-grow">
                                 <div class="px-4 py-2 rounded-lg border-2"
-                                    style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                                    style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                                     <div class="flex items-center gap-2 mb-2">
                                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="2">
@@ -108,7 +108,7 @@
                                     <button @click="restart"
                                         class="px-3 py-1 text-white text-xs rounded transition-colors success-btn"
                                         style="background: var(--success-0);">
-                                        点击安装
+                                        安装并重启
                                     </button>
                                 </div>
                             </div>
@@ -117,12 +117,12 @@
                 </div>
 
                 <!-- 数据管理 -->
-                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
                     <div class="flex items-center gap-4 mb-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                 <polyline points="14,2 14,8 20,8" />
@@ -163,8 +163,8 @@
                     <!-- 操作按钮 -->
                     <div class="flex flex-wrap gap-2">
                         <button @click="createBackup"
-                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 backup-btn"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 data-btn hover-fill"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                                 <polyline points="17,21 17,13 7,13 7,21"/>
@@ -175,10 +175,10 @@
                         <button @click="restoreData"
                             :disabled="!backupInfo.hasBackup"
                             :class="[
-                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 restore-btn',
+                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 data-btn hover-fill',
                                 !backupInfo.hasBackup ? 'opacity-50 cursor-not-allowed' : ''
                             ]"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="1,4 1,10 7,10"/>
                                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
@@ -186,8 +186,8 @@
                             <span class="text-xs font-medium">恢复数据</span>
                         </button>
                         <button @click="exportData"
-                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 export-btn"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 data-btn hover-fill"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
                                 <polyline points="7,10 12,15 17,10" stroke-width="2" />
@@ -196,8 +196,8 @@
                             <span class="text-xs font-medium">导出</span>
                         </button>
                         <button @click="importData"
-                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 import-btn"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center gap-2 data-btn hover-fill"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke-width="2" />
                                 <polyline points="17,8 12,3 7,8" stroke-width="2" />
@@ -218,81 +218,13 @@
                     </div>
                 </div>
 
-                <!-- AI 设置 -->
-                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">AI 模型设置</h2>
-                            <p class="text-xs" style="color: var(--color-2);">配置大模型提供商和 API Token</p>
-                        </div>
-                    </div>
-                    
-                    <!-- 提供商选择 -->
-                    <div class="flex flex-col gap-4">
-                        <!-- 提供商选择 -->
-                        <div class="flex flex-col gap-2">
-                            <label class="text-xs font-medium" style="color: var(--color-1);">模型提供商</label>
-                            <select v-model="selectedProvider" @change="onProviderChange"
-                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
-                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
-                                <option v-for="provider in providers" :key="provider.value" :value="provider.value">
-                                    {{ provider.label }}
-                                </option>
-                            </select>
-                        </div>
-                        
-                        <!-- Token 输入 -->
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center justify-between">
-                                <label class="text-xs font-medium" style="color: var(--color-1);">API Token</label>
-                                <button @click="toggleTokenVisibility"
-                                    class="text-xs px-2 py-1 rounded transition-all duration-200"
-                                    style="color: var(--color-2); background: var(--bg-1); border: 1px solid var(--border-1);">
-                                    {{ showToken ? '隐藏' : '显示' }}
-                                </button>
-                            </div>
-                            <input :type="showToken ? 'text' : 'password'" v-model="tokenInput"
-                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
-                                :style="{
-                                    'border-color': tokenInput ? 'var(--theme-0)' : 'var(--border-1)',
-                                    'background': 'var(--bg-0)',
-                                    'color': 'var(--color-1)'
-                                }"
-                                placeholder="请输入 API Token">
-                        </div>
-                        
-                        <!-- 保存按钮 -->
-                        <button @click="saveToken"
-                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center justify-center gap-2 save-token-btn"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                <polyline points="17 21 17 13 7 13 7 21" />
-                                <polyline points="7 3 7 8 15 8" />
-                            </svg>
-                            <span class="text-xs font-medium">保存设置</span>
-                        </button>
-                    </div>
-                </div>
-
                 <!-- 外观设置 -->
-                <div class="flex backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                <div class="flex backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
                     <div class="flex flex-grow items-center gap-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <circle cx="12" cy="12" r="5" />
                                 <line x1="12" y1="1" x2="12" y2="3" />
@@ -313,7 +245,7 @@
                     <div class="flex flex-row gap-4 justify-end items-center ml-auto mt-2">
                         <div class="flex flex-row gap-2 flex-grow justify-end">
                             <button v-for="theme in themes" :key="theme.value" @click="selectTheme(theme.value)" :class="[
-                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 theme-btn',
+                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 theme-btn hover-fill',
                                 themeMode === theme.value ? 'theme-active' : 'theme-inactive'
                             ]" :style="themeMode === theme.value
                     ? 'border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0);'
@@ -333,12 +265,12 @@
                 </div>
 
                 <!-- 首页模块显隐 -->
-                <div class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
                     <div class="flex items-center gap-4 mb-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <rect x="3" y="3" width="7" height="7" rx="1" />
                                 <rect x="14" y="3" width="7" height="7" rx="1" />
@@ -351,30 +283,36 @@
                             <p class="text-xs" style="color: var(--color-2);">选择首页需要展示的模块</p>
                         </div>
                     </div>
-                    <div v-for="item in sectionOptions" :key="item.key"
-                        class="flex items-center justify-between p-3 rounded-lg mb-3"
-                        style="background: var(--bg-1); border: 1px solid var(--border-1);">
-                        <div>
-                            <p class="text-sm font-medium" style="color: var(--color-0);">{{ item.label }}</p>
-                            <p class="text-xs" style="color: var(--color-2);">{{ item.desc }}</p>
-                        </div>
-                        <button @click="toggleHomeSection(item.key)"
-                            class="relative w-11 h-6 rounded-full transition-all duration-200 focus:outline-none"
-                            :style="homeSections[item.key] ? 'background: var(--theme-0);' : 'background: var(--border-1);'">
-                            <div class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-200"
-                                :style="homeSections[item.key] ? 'left: 1.25rem;' : 'left: 0.125rem;'">
-                            </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button v-for="item in sectionOptions" :key="item.key"
+                            @click="toggleHomeSection(item.key)"
+                            class="section-tile hover-fill flex flex-col items-center justify-center gap-1 py-2.5 rounded-xl focus:outline-none"
+                            :class="homeSections[item.key] ? 'section-tile-active' : 'section-tile-inactive'"
+                            :style="homeSections[item.key] ? '--hover-fill: color-mix(in srgb, var(--theme-0) 18%, transparent);' : '--hover-fill: var(--bg-2);'"
+                            :title="item.desc">
+                            <div class="section-tile-icon w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                                v-html="item.icon"></div>
+                            <span class="text-xs font-medium">{{ item.label }}</span>
                         </button>
                     </div>
+                    <button @click="toggleSearchHint"
+                        class="section-tile hover-fill mt-2 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left focus:outline-none"
+                        :class="searchHint ? 'section-tile-active' : 'section-tile-inactive'"
+                        :style="searchHint ? '--hover-fill: color-mix(in srgb, var(--theme-0) 18%, transparent);' : '--hover-fill: var(--bg-2);'">
+                        <div class="section-tile-icon w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                            v-html="hintIcon"></div>
+                        <span class="text-xs font-medium">搜索栏提示语</span>
+                        <span class="text-xs truncate ml-auto" style="color: var(--color-2);">直接输入以搜索, esc 以清空</span>
+                    </button>
                 </div>
 
                 <!-- 文件模式操作设置 -->
-                <div id="file-mode-settings" class="backdrop-blur-xl rounded-2xl p-5 transition-all duration-300 settings-card"
-                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1);">
+                <div id="file-mode-settings" class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
                     <div class="flex items-center gap-4 mb-4">
                         <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                 <path d="M14 2v6h6" />
@@ -461,6 +399,74 @@
                     </div>
                 </div>
 
+                <!-- AI 设置 -->
+                <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div
+                            class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">AI 模型设置</h2>
+                            <p class="text-xs" style="color: var(--color-2);">配置大模型提供商和 API Token</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 提供商选择 -->
+                    <div class="flex flex-col gap-4">
+                        <!-- 提供商选择 -->
+                        <div class="flex flex-col gap-2">
+                            <label class="text-xs font-medium" style="color: var(--color-1);">模型提供商</label>
+                            <select v-model="selectedProvider" @change="onProviderChange"
+                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
+                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
+                                <option v-for="provider in providers" :key="provider.value" :value="provider.value">
+                                    {{ provider.label }}
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <!-- Token 输入 -->
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-xs font-medium" style="color: var(--color-1);">API Token</label>
+                                <button @click="toggleTokenVisibility"
+                                    class="text-xs px-2 py-1 rounded transition-all duration-200"
+                                    style="color: var(--color-2); background: var(--bg-1); border: 1px solid var(--border-1);">
+                                    {{ showToken ? '隐藏' : '显示' }}
+                                </button>
+                            </div>
+                            <input :type="showToken ? 'text' : 'password'" v-model="tokenInput"
+                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
+                                :style="{
+                                    'border-color': tokenInput ? 'var(--theme-0)' : 'var(--border-1)',
+                                    'background': 'var(--bg-0)',
+                                    'color': 'var(--color-1)'
+                                }"
+                                placeholder="请输入 API Token">
+                        </div>
+                        
+                        <!-- 保存按钮 -->
+                        <button @click="saveToken"
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center justify-center gap-2 save-token-btn"
+                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17 21 17 13 7 13 7 21" />
+                                <polyline points="7 3 7 8 15 8" />
+                            </svg>
+                            <span class="text-xs font-medium">保存设置</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -508,11 +514,14 @@ const homeSections = reactive<Record<string, boolean>>({
     sticky: true
 })
 
+const icon = (paths: string) =>
+    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`
+
 const sectionOptions = [
-    { key: 'schedule', label: '今日办', desc: '首页左侧的今日待办列表' },
-    { key: 'timer', label: '倒计时', desc: '首页左侧的倒计时进度' },
-    { key: 'inspiration', label: '待办池', desc: '首页中间的待办池列表' },
-    { key: 'sticky', label: '便签', desc: '首页右侧的便签列表' }
+    { key: 'schedule', label: '今日办', desc: '首页左侧的今日待办', icon: icon('<path d="M8 2v4M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/>') },
+    { key: 'timer', label: '倒计时', desc: '首页左侧的倒计时', icon: icon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>') },
+    { key: 'inspiration', label: '待办池', desc: '首页中间的待办池', icon: icon('<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>') },
+    { key: 'sticky', label: '便签', desc: '首页右侧的便签', icon: icon('<path d="M4 4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M14 2v6h6"/>') }
 ]
 
 const toggleHomeSection = async (key: string) => {
@@ -522,6 +531,20 @@ const toggleHomeSection = async (key: string) => {
     } catch (error) {
         console.error('保存首页模块设置失败:', error)
         homeSections[key] = !homeSections[key]
+    }
+}
+
+// 首页搜索栏提示语
+const searchHint = ref(true)
+const hintIcon = icon('<path d="M4 6h16M4 12h10"/><path d="M18 15l3 3-3 3"/>')
+
+const toggleSearchHint = async () => {
+    searchHint.value = !searchHint.value
+    try {
+        await invoke('setSearchHint', searchHint.value)
+    } catch (error) {
+        console.error('保存搜索提示语设置失败:', error)
+        searchHint.value = !searchHint.value
     }
 }
 
@@ -631,7 +654,7 @@ const checkForUpdates = () => {
 }
 
 const restart = () => {
-    send('quitAndInstall')
+    send('installCachedUpdate')
 }
 
 const exportData = async () => {
@@ -830,6 +853,16 @@ onMounted(async () => {
         console.error('获取首页模块设置失败:', error)
     }
 
+    // 获取搜索栏提示语配置
+    try {
+        const savedHint = await invoke('getSearchHint')
+        if (typeof savedHint === 'boolean') {
+            searchHint.value = savedHint
+        }
+    } catch (error) {
+        console.error('获取搜索提示语设置失败:', error)
+    }
+
     // 获取自动备份设置和备份状态
     try {
         await loadBackupStatus()
@@ -880,28 +913,43 @@ onMounted(async () => {
     color: white !important;
 }
 
-/* 卡片hover效果 */
-.settings-card:hover {
-    box-shadow: var(--shadow-0);
-    transform: translateY(-2px);
+/* 首页模块图标切换 */
+.section-tile {
+    border: 1px solid var(--border-1);
+    background: var(--bg-1);
+    color: var(--color-2);
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
-/* 按钮hover效果 */
+.section-tile-icon {
+    background: var(--bg-2);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.section-tile-active {
+    border-color: var(--theme-0);
+    background: var(--theme-5);
+    color: var(--theme-0);
+}
+
+.section-tile-active .section-tile-icon {
+    background: var(--theme-5);
+    color: var(--theme-0);
+}
+
+/* 卡片hover效果: 只加深阴影, 不做位移, 避免抖动 */
+.settings-card:hover {
+    box-shadow: var(--shadow-0);
+}
+
+/* 按钮hover效果: 底色由 .hover-fill 从鼠标位置展开 */
 .update-btn:hover {
     border-color: var(--theme-0) !important;
-    background: var(--theme-5) !important;
     color: var(--theme-0) !important;
 }
 
-.export-btn:hover {
-    border-color: var(--success-0) !important;
-    background: var(--success-1) !important;
-    color: var(--success-2) !important;
-}
-
-.import-btn:hover {
+.data-btn:hover:not(:disabled) {
     border-color: var(--theme-0) !important;
-    background: var(--theme-5) !important;
     color: var(--theme-0) !important;
 }
 
@@ -909,22 +957,9 @@ onMounted(async () => {
     background: var(--success-2) !important;
 }
 
-.backup-btn:hover {
-    border-color: var(--warning-0) !important;
-    background: var(--warning-1) !important;
-    color: var(--warning-2) !important;
-}
-
-.restore-btn:hover:not(:disabled) {
-    border-color: var(--info-0) !important;
-    background: var(--info-1) !important;
-    color: var(--info-2) !important;
-}
-
 /* 主题按钮hover效果 */
 .theme-btn.theme-inactive:hover {
     border-color: var(--border-2) !important;
-    background: var(--bg-1) !important;
 }
 
 .theme-btn.theme-active {
@@ -933,7 +968,7 @@ onMounted(async () => {
 
 /* 卡片阴影动画 */
 .settings-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 按钮悬停效果增强 */
