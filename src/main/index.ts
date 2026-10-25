@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog, shell } from 'electron'
 import mainPreload from '@/preload/mainPage.ts'
 // import stickyPreload from '@/preload/stickyPage.ts'
 import mainPage from '@/renderer/index.html#/home'
@@ -8,9 +8,12 @@ import inspirationPage from '@/renderer/index.html#/inspiration'
 import stickiesPage from '@/renderer/index.html#/stickies'
 import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
+import type { IpcMainEvent } from 'electron'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
-import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync } from 'fs'
+import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync, mkdtempSync, mkdirSync, chmodSync, accessSync, constants } from 'fs'
 import { join, dirname } from 'path'
+import { tmpdir, homedir } from 'os'
+import { spawn, execFileSync } from 'child_process'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
 import { notification } from "../type"
@@ -131,7 +134,7 @@ const stickyWindows: {
 } = {}
 
 let mainWindowConfig: BrowserWindowConstructorOptions = {
-  width: 1120,
+  width: 960,
   minWidth: 960,
   height: 552,
   minHeight: 552,
@@ -151,7 +154,7 @@ const windowConf: {
   main: {
     url: mainPage,
     conf: {
-      width: 1120,
+      width: 960,
       minWidth: 960,
       height: 552,
       minHeight: 552,
@@ -536,10 +539,111 @@ ipcMain.on('checkforupdate', (event) => {
   autoUpdater.checkForUpdatesAndNotify()
 })
 
-ipcMain.on('quitAndInstall', (event) => {
-  // If application quit was initiated by autoUpdater.quitAndInstall(), then before-quit is emitted after emitting close event on all windows and closing them.
-  isQuiting = true
-  autoUpdater.quitAndInstall()
+// ad-hoc 签名的 designated requirement 是 cdhash, Squirrel 校验新版本必然失败,
+// 因此直接复用 electron-updater 已下载的 zip 覆盖安装, 避免用户重新下载
+const UPDATER_CACHE_DIR_NAME = 'schedule-pro-updater'
+
+const sendUpdaterMessage = (event: IpcMainEvent, type: string, value?: any) => {
+  if (event.sender.isDestroyed()) return
+  event.sender.send('message', { type, value })
+}
+
+const findCachedUpdateZip = (version?: string) => {
+  const cacheDir = join(homedir(), 'Library', 'Caches', UPDATER_CACHE_DIR_NAME, 'pending')
+  if (!existsSync(cacheDir)) return null
+  const files = readdirSync(cacheDir).filter(file => file.endsWith('.zip'))
+  if (!files.length) return null
+  // 指定版本时优先复用对应版本, 否则取最新下载的那个
+  const matched = version ? files.find(file => file.includes(`-${version}-`)) : undefined
+  if (matched) return join(cacheDir, matched)
+  return join(cacheDir, files
+    .map(file => ({ file, mtime: statSync(join(cacheDir, file)).mtimeMs }))
+    .sort((a, b) => b.mtime - a.mtime)[0].file)
+}
+
+ipcMain.on('installCachedUpdate', (event, version) => {
+  if (process.platform !== 'darwin') {
+    sendUpdaterMessage(event, 'update-error', { message: '当前平台不支持覆盖安装, 请下载安装包手动安装' })
+    return
+  }
+  const zipPath = findCachedUpdateZip(version)
+  if (!zipPath) {
+    sendUpdaterMessage(event, 'update-error', { message: '未找到已下载的安装包, 请点击下载安装包手动安装' })
+    return
+  }
+  let tempDir = ''
+  try {
+    tempDir = mkdtempSync(join(tmpdir(), 'schedule-pro-update-'))
+    execFileSync('ditto', ['-x', '-k', zipPath, tempDir])
+    const appName = readdirSync(tempDir).find(file => file.endsWith('.app'))
+    if (!appName) throw new Error(`update zip has no app bundle: ${zipPath}`)
+    const newApp = join(tempDir, appName)
+    // process.execPath: xxx.app/Contents/MacOS/schedule-pro
+    const currentApp = dirname(dirname(dirname(process.execPath)))
+    const installDir = dirname(currentApp)
+
+    // /Applications 不可写(例如直接从 DMG 运行)时, 解压到下载目录让用户手动覆盖
+    let writable = currentApp.endsWith('.app')
+    if (writable) {
+      try {
+        accessSync(installDir, constants.W_OK)
+      } catch {
+        writable = false
+      }
+    }
+    if (!writable) {
+      const destDir = join(app.getPath('downloads'), `schedule-pro-update-${version || app.getVersion()}`)
+      mkdirSync(destDir, { recursive: true })
+      const destApp = join(destDir, appName)
+      execFileSync('ditto', [newApp, destApp])
+      shell.showItemInFolder(destApp)
+      sendUpdaterMessage(event, 'update-install-fallback', {
+        message: `已解压到下载目录, 请把 ${appName} 拖入"应用程序"覆盖安装`,
+      })
+      return
+    }
+
+    // 等当前进程退出后再替换 app bundle, 失败时回滚备份并重新打开旧版本
+    const scriptPath = join(tempDir, 'install.sh')
+    writeFileSync(scriptPath, [
+      '#!/bin/sh',
+      'PID="$1"; TARGET="$2"; SRC="$3"',
+      'while kill -0 "$PID" 2>/dev/null; do sleep 0.3; done',
+      'BACKUP="${TARGET}.old"',
+      'rm -rf "$BACKUP"',
+      'mv "$TARGET" "$BACKUP" || exit 1',
+      'if /usr/bin/ditto "$SRC" "$TARGET"; then',
+      '  rm -rf "$BACKUP"',
+      'else',
+      '  rm -rf "$TARGET"',
+      '  mv "$BACKUP" "$TARGET"',
+      'fi',
+      '/usr/bin/xattr -cr "$TARGET" 2>/dev/null',
+      '/usr/bin/open "$TARGET"',
+      'rm -rf "$(dirname "$0")"',
+    ].join('\n'))
+    chmodSync(scriptPath, 0o755)
+    sendUpdaterMessage(event, 'update-installing', { message: '正在安装更新, 应用即将重启…' })
+    isQuiting = true
+    spawn('/bin/sh', [scriptPath, String(process.pid), currentApp, newApp], {
+      detached: true,
+      stdio: 'ignore',
+      cwd: tempDir,
+    }).unref()
+    setTimeout(() => app.quit(), 300)
+  } catch (err: any) {
+    log.error('[updater] install from cache failed', err)
+    sendUpdaterMessage(event, 'update-error', { message: '复用安装包安装失败, 请点击下载安装包手动安装' })
+  }
+})
+
+// 打不开自动安装时, 打开对应版本的下载页
+ipcMain.on('openReleasePage', (event, version) => {
+  const tag = String(version || '').replace(/^v/, '')
+  const url = tag
+    ? `https://github.com/cwj0417/schedule-pro/releases/tag/v${tag}`
+    : 'https://github.com/cwj0417/schedule-pro/releases/latest'
+  shell.openExternal(url)
 })
 
 // 设置相关的 IPC 处理器
@@ -555,6 +659,7 @@ let userSettings = useUserData('settings', {
   autoBackup: true,  // 默认开启自动备份
   lastBackupTime: null,
   homeSections: { ...defaultHomeSections },
+  searchHint: true,  // 首页搜索栏是否显示提示语
 })
 
 ipcMain.handle('exportData', async () => {
@@ -810,10 +915,27 @@ ipcMain.handle('getHomeSections', () => {
 ipcMain.handle('setHomeSections', (event, sections) => {
   userSettings.value.homeSections = { ...defaultHomeSections, ...(sections || {}) }
   // 广播给所有窗口, 首页按配置实时显隐
+  // 必须传普通对象: userSettings.value.homeSections 是响应式代理, 直接跨进程发送会丢失字段
+  const payload = { ...userSettings.value.homeSections }
   BrowserWindow.getAllWindows().forEach(window => {
     window.webContents.send('message', {
       type: 'homeSectionsChanged',
-      value: userSettings.value.homeSections,
+      value: payload,
+    })
+  })
+})
+
+ipcMain.handle('getSearchHint', () => {
+  return userSettings.value.searchHint !== false
+})
+
+ipcMain.handle('setSearchHint', (event, visible) => {
+  userSettings.value.searchHint = !!visible
+  // 广播给所有窗口, 首页搜索栏提示语实时更新
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'searchHintChanged',
+      value: userSettings.value.searchHint,
     })
   })
 })
