@@ -4,7 +4,7 @@
     item-key="id" tag="div">
     <template #item="{ element: sticky }">
       <div @click="openSticky(sticky?.id)"
-        class="sticky-row group h-10 leading-10 pl-3 pr-9 cursor-pointer overflow-ellipsis whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
+        class="sticky-row group h-10 leading-10 pl-3 pr-9 cursor-pointer whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
         :style="{
           background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
@@ -12,16 +12,24 @@
         <!-- 左侧便签色条 -->
         <span class="sticky-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 rounded-full opacity-0"
           :style="{ background: getBg(sticky?.backgroundColor) }"></span>
-        <template v-if="isFileSticky(sticky)">
-          <FileSvg class="sticky-file-icon inline-block mr-1.5 align-middle flex-shrink-0 transition-colors" width="14"
-            height="14" style="color: var(--color-2)" />
-          <span class="inline-block truncate align-middle" style="max-width: calc(100% - 24px)">
-            <search-result :value="getFileNameFromSticky(sticky)" :search="search" />
-          </span>
-        </template>
-        <template v-else>
-          <search-result :value="sticky?.title || '未命名便签'" :search="search" />
-        </template>
+        <!-- 标题区域, hover 时右侧收窄, 把位置让给更新时间 -->
+        <div class="sticky-title h-full overflow-hidden whitespace-nowrap">
+          <template v-if="isFileSticky(sticky)">
+            <FileSvg class="sticky-file-icon inline-block mr-1.5 align-middle flex-shrink-0 transition-colors" width="14"
+              height="14" style="color: var(--color-2)" />
+            <span class="inline-block truncate align-middle" style="max-width: calc(100% - 24px)">
+              <search-result :value="getFileNameFromSticky(sticky)" :search="search" />
+            </span>
+          </template>
+          <template v-else>
+            <search-result :value="sticky?.title || '未命名便签'" :search="search" />
+          </template>
+        </div>
+        <!-- 更新时间: hover 时在最右侧展示, 位于置顶按钮左侧 -->
+        <span class="sticky-time absolute top-0 right-9 h-full leading-10 text-xs whitespace-nowrap opacity-0 pointer-events-none transition-opacity duration-200 group-hover:opacity-100"
+          style="color: var(--color-2)">
+          {{ formatRelativeTime(sticky?.updatedAt || sticky?.createdAt || +sticky?.id) }}
+        </span>
         <!-- 便签颜色圆点, hover 时缩隐, 让出位置给置顶按钮 -->
         <div class="sticky-dot w-2 h-2 rounded-full absolute top-4 right-3"
           :style="{ background: getBg(sticky?.backgroundColor) }"></div>
@@ -41,6 +49,7 @@ import searchResult from "../components/searchResult.vue";
 import ArrowUpSvg from "@/assets/svg/arrowup.svg";
 import FileSvg from "@/assets/svg/file.svg";
 import { getBg } from "../composition";
+import { formatRelativeTime } from "../utils/time";
 
 const props = defineProps(['search']);
 
@@ -169,6 +178,16 @@ const searchSticky = useSearchContent(toRef(props, "search"), "title");
 
 .sticky-row:hover .sticky-file-icon {
   color: var(--color-1);
+}
+
+/* hover 时标题右侧让出更新时间的位置, 内容以 margin 收窄, 避免被时间文本压住 */
+.sticky-title {
+  margin-right: 0;
+  transition: margin-right 0.2s ease;
+}
+
+.sticky-row:hover .sticky-title {
+  margin-right: 4.5rem;
 }
 
 .sticky-bar,

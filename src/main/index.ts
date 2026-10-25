@@ -9,7 +9,7 @@ import stickiesPage from '@/renderer/index.html#/stickies'
 import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
-import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync } from 'fs'
+import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync } from 'fs'
 import { join, dirname } from 'path'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
@@ -98,6 +98,7 @@ let stickiesConfig = useUserData('stickiesConfig', {}, (conf: any) => {
 
 const ensureIdInStickiesConfig = (id: number) => {
   if (!stickiesConfig.value[id]) {
+    const now = Date.now()
     stickiesConfig.value[id] = {
       order: 0,
       backgroundColor: Math.ceil(Math.random() * 9).toString(),
@@ -107,8 +108,21 @@ const ensureIdInStickiesConfig = (id: number) => {
       y: 0,
       title: '',
       expended: true,
+      createdAt: now,
+      updatedAt: now,
     }
     toTop(id)
+  } else {
+    // 老数据没有时间戳: 便签 id 本身就是创建时间; 更新时间取便签内容文件的修改时间
+    const conf = stickiesConfig.value[id]
+    if (!conf.createdAt) conf.createdAt = +id
+    if (!conf.updatedAt) {
+      let updatedAt = conf.createdAt
+      try {
+        updatedAt = Math.max(updatedAt, statSync(join(userPath, `sticky${id}.json`)).mtimeMs)
+      } catch (e) { }
+      conf.updatedAt = updatedAt
+    }
   }
 }
 
@@ -849,14 +863,28 @@ ipcMain.on('removeCountDown', (event, id) => {
 
 ipcMain.on('setStickyTitle', (event, args) => {
   if (stickiesConfig.value[args.key]) {
+    const conf = stickiesConfig.value[args.key]
     const val = args.val || ''
     // 文件模式占位符直接作为 title 保存，不做正则截取
     if (val.startsWith('[file]')) {
-      stickiesConfig.value[args.key].title = val
+      conf.title = val
     } else {
-      stickiesConfig.value[args.key].title = val.match(/\s?([^\n]+)/)?.[1] ?? ''
+      conf.title = val.match(/\s?([^\n]+)/)?.[1] ?? ''
     }
+    conf.updatedAt = Date.now()
+    // 同步给便签窗口底部的创建/更新时间展示
+    event.sender.send('message', {
+      type: 'stickyMetaChange',
+      value: { createdAt: conf.createdAt, updatedAt: conf.updatedAt },
+    })
   }
+})
+
+ipcMain.handle('getStickyMeta', (event, id) => {
+  const conf = stickiesConfig.value[id]
+  if (!conf) return null
+  const createdAt = conf.createdAt || +id
+  return { createdAt, updatedAt: conf.updatedAt || createdAt }
 })
 
 ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {

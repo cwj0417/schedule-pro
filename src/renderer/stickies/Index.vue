@@ -109,11 +109,18 @@
     </div>
 
     <!-- 编辑器/空状态 -->
-    <div v-if="isFileMode && !filePath" class="flex items-center justify-center text-sm" style="height: calc(100% - 2.5rem); color: var(--color-2)" :style="`background: ${bgColor}`">
+    <div v-if="isFileMode && !filePath" class="flex items-center justify-center text-sm" style="height: calc(100% - 3.75rem); color: var(--color-2)" :style="`background: ${bgColor}`">
       <span class="cursor-pointer opacity-60 hover:opacity-100" @click="selectFile">点击选择文件开始编辑</span>
     </div>
-    <div v-else id="code-mirror" class="p-2 text-sm" style="height: calc(100% - 2.5rem); color: var(--color-0)"
+    <div v-else id="code-mirror" class="p-2 text-sm" style="height: calc(100% - 3.75rem); color: var(--color-0)"
       :style="`background: ${bgColor}`">
+    </div>
+
+    <!-- 底部状态栏: 创建时间与更新时间 -->
+    <div class="h-5 px-2 flex items-center justify-between text-[11px] select-none"
+      :style="{ backgroundColor: bgColor, color: 'var(--color-2)', opacity: 0.65 }">
+      <span>创建于 {{ formatStickyDate(stickyMeta.createdAt) }}</span>
+      <span>更新于 {{ formatStickyDateTime(stickyMeta.updatedAt) }}</span>
     </div>
   </div>
 
@@ -193,6 +200,21 @@ const isFileMode = ref(false);
 const filePath = ref('');
 const fileContent = ref(''); // 文件模式下编辑器的实际内容，与 data.value.content 分离
 const fileModeOperations = ref<{ name: string, command: string, params?: string[] }[]>([]);
+
+// 便签的创建/更新时间
+const stickyMeta = ref<{ createdAt?: number; updatedAt?: number }>({});
+const formatStickyDate = (timestamp?: number) => {
+  if (!timestamp) return '-';
+  const d = new Date(timestamp);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+};
+const formatStickyDateTime = (timestamp?: number) => {
+  if (!timestamp) return '-';
+  const d = new Date(timestamp);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${formatStickyDate(timestamp)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
 
 // 文件下拉框状态
 const showFileList = ref(false);
@@ -497,7 +519,17 @@ onMounted(() => {
     if (type === "changebg") {
       bgColor.value = getBg(value);
     }
+    if (type === "stickyMetaChange") {
+      stickyMeta.value = value;
+    }
   });
+
+  // 拉取创建/更新时间
+  if (id) {
+    invoke('getStickyMeta', id).then((meta: any) => {
+      if (meta) stickyMeta.value = meta;
+    }).catch(() => { });
+  }
 
   document
     .getElementsByClassName("dragable")[0]
