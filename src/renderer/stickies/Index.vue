@@ -2,12 +2,12 @@
   <div class="h-full">
     <div class="dragable h-10 w-full flex items-center" :style="{ backgroundColor: bgColor }" @dblclick="fullscreen">
       <div style="backgroundColor: var(--bg-1);"
-        class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden nodragable shadow-sm shadow-gray-400">
-        <div class="w-3 h-3 rounded-lg m-1 float-left shadow-sm shadow-gray-400"
+        class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden nodragable cursor-pointer">
+        <div class="w-3 h-3 rounded-lg m-1 float-left"
           :style="{ backgroundColor: bgColor }" />
-        <div class="w-px h-2.5 float-left ml-2 mr-0.5 shadow-sm shadow-gray-400"
+        <div class="w-px h-2.5 float-left ml-2 mr-0.5"
           style="backgroundColor: var(--color-2);margin-top: 5px" />
-        <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left shadow-sm shadow-gray-400"
+        <div class="w-3 h-3 rounded-lg ml-2.5 mt-1 cursor-pointer float-left"
           v-for="color in 9" :key="color" style="--tw-ring-color: var(--color-3)"
           :style="`backgroundColor: var(--sticky-${color})`" @click="changeColor(color)" />
       </div>
@@ -24,9 +24,8 @@
                 @click="toggleFileList"
               >{{ fileName }}</span>
               <div v-if="showFileList" class="fixed inset-0 z-40" @click="showFileList = false" @contextmenu.prevent="showFileList = false"></div>
-              <div v-if="showFileList" class="absolute top-full left-[-18px] mt-1 rounded-lg shadow-lg z-50 w-64 nodragable"
-                style="background: var(--bg-1); border: 1px solid var(--border-1);">
-                <div class="flex items-center gap-1 p-1.5" style="border-bottom: 1px solid var(--border-0);">
+              <div v-if="showFileList" class="dropdown-panel file-list-panel">
+                <div class="file-list-header">
                   <input
                     ref="fileFilterInputRef"
                     v-model="fileFilter"
@@ -34,8 +33,7 @@
                     placeholder="输入关键字过滤..."
                     @keydown.esc="showFileList = false"
                     @click.stop
-                    class="flex-1 min-w-0 px-2 py-1 rounded text-xs focus:outline-none"
-                    style="background: var(--bg-0); color: var(--color-1); border: 1px solid var(--border-1);"
+                    class="file-filter-input"
                   />
                   <svg class="cursor-pointer opacity-60 hover:opacity-100 flex-shrink-0"
                     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -43,33 +41,28 @@
                     <path d="M4 4h6l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
                   </svg>
                 </div>
-                <div class="max-h-60 overflow-y-auto p-1">
-                  <div v-if="fileListLoading" class="text-xs text-center py-2 opacity-60" style="color: var(--color-2)">加载中...</div>
-                  <div v-else-if="filteredFileList.length === 0" class="text-xs text-center py-2 opacity-60" style="color: var(--color-2)">无匹配文件</div>
+                <div class="file-list-body">
+                  <div v-if="fileListLoading" class="file-list-empty">加载中...</div>
+                  <div v-else-if="filteredFileList.length === 0" class="file-list-empty">无匹配文件</div>
                   <div
                     v-for="file in filteredFileList"
                     :key="file.path"
                     @click.stop="switchToPath(file.path)"
-                    class="text-xs px-2 py-1 rounded cursor-pointer truncate"
-                    :style="{
-                      color: file.path === filePath ? 'var(--theme-0)' : 'var(--color-1)',
-                      background: file.path === filePath ? 'var(--bg-2)' : 'transparent'
-                    }"
+                    class="file-list-item"
+                    :class="{ active: file.path === filePath }"
                     :title="file.path"
-                    @mouseenter="($event.target as HTMLElement).style.background = 'var(--bg-3)'"
-                    @mouseleave="($event.target as HTMLElement).style.background = file.path === filePath ? 'var(--bg-2)' : 'transparent'"
                   >{{ file.name }}</div>
                 </div>
               </div>
             </div>
             <template v-for="(op, i) in fileModeOperations" :key="i">
-              <div class="relative nodragable">
-                <span class="text-xs cursor-pointer opacity-50 hover:opacity-100 inline-block px-1.5 py-0 leading-4 rounded" style="color: var(--color-0); background: var(--bg-2)" @click="executeOperation(op)" :title="op.command">{{ op.name }}</span>
-              </div>
+              <span class="text-xs cursor-pointer opacity-50 hover:opacity-100 inline-block px-1.5 py-0 leading-4 rounded nodragable" style="color: var(--color-0); background: var(--bg-2)" @click="executeOperation(op)" :title="op.command">{{ op.name }}</span>
             </template>
           </template>
         </template>
       </div>
+
+      <!-- 右侧操作区 -->
       <div class="h-5 pr-5 flex leading-4 nodragable items-center">
         <div class="relative">
           <div class="cursor-pointer ml-3" @click="showGenerateMenu = !showGenerateMenu" :class="{ 'opacity-50': isGenerating }">
@@ -80,65 +73,42 @@
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <div v-if="showGenerateMenu" class="absolute top-6 right-0 rounded-lg shadow-lg p-3 z-50 w-56"
-            style="background: var(--bg-1); border: 1px solid var(--border-1);">
-            <div class="mb-3 pb-2" style="border-bottom: 1px solid var(--border-0);">
-              <button
-                @click="generateOutline"
-                class="w-full text-left px-3 py-2 rounded text-sm"
-                style="color: var(--color-1);"
-                :disabled="isGenerating"
-                @mouseenter="$event.target.style.background = 'var(--bg-3)'"
-                @mouseleave="$event.target.style.background = 'transparent'"
-              >
-                整理提纲
-              </button>
-              <div class="mt-2 space-y-2">
-                <label class="flex items-center text-sm cursor-pointer p-1 rounded"
-                  style="color: var(--color-1);"
-                  @mouseenter="$event.currentTarget.style.background = 'var(--bg-3)'"
-                  @mouseleave="$event.currentTarget.style.background = 'transparent'">
-                  <input type="checkbox" v-model="optimizeTitle" class="mr-2" />
+          <div v-if="showGenerateMenu" class="dropdown-panel generate-menu">
+            <div class="generate-menu-section">
+              <button @click="generateOutline" class="menu-btn">整理提纲</button>
+              <div class="menu-option-list">
+                <label class="menu-option">
+                  <input type="checkbox" v-model="optimizeTitle" />
                   <span>优化吸引人的标题</span>
                 </label>
-                <label class="flex items-center text-sm cursor-pointer p-1 rounded"
-                  style="color: var(--color-1);"
-                  @mouseenter="$event.currentTarget.style.background = 'var(--bg-3)'"
-                  @mouseleave="$event.currentTarget.style.background = 'transparent'">
-                  <input type="checkbox" v-model="addDessert" class="mr-2" />
+                <label class="menu-option">
+                  <input type="checkbox" v-model="addDessert" />
                   <span>增加文章甜点</span>
                 </label>
               </div>
-              <button
-                @click="generateBlog"
-                class="w-full mt-2 px-3 py-2 rounded text-sm"
-                style="background: var(--theme-0); color: #fff;"
-                :disabled="isGenerating"
-                @mouseenter="$event.target.style.opacity = '0.9'"
-                @mouseleave="$event.target.style.opacity = '1'"
-              >
-                生成 Post
-              </button>
+              <button @click="generateBlog" class="menu-btn-primary">生成 Post</button>
             </div>
           </div>
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
-        <div v-if="!isFileMode" class="cursor-pointer ml-3" :class="{ 'opacity-30': !canToggleFileMode }" :title="!canToggleFileMode ? '仅空便签可切换文件模式' : '文件模式'" @click="toggleFileMode">
-          <FileSvg class="inline-block" style="color: #999" />
+        <div v-if="!isFileMode" class="cursor-pointer ml-3 transition-opacity" :class="{ 'opacity-30': !canToggleFileMode }" :title="!canToggleFileMode ? '仅空便签可切换文件模式' : '文件模式'" @click="toggleFileMode">
+          <FileSvg class="inline-block" style="color: var(--color-2)" />
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
         <div class="cursor-pointer ml-3" @click="togglePin">
-          <ArrowupSvg class="inline-block" :fill="isPin ? '#333333' : '#999999'" />
+          <ArrowupSvg class="inline-block transition-colors" :fill="isPin ? 'var(--theme-0)' : 'var(--color-2)'" />
         </div>
         <div class="cursor-pointer ml-3" @click="toggleTransparent">
-          <TransparentSvg class="inline-block" :fill="isTransparent ? '#333333' : '#999999'" />
+          <TransparentSvg class="inline-block transition-colors" :fill="isTransparent ? 'var(--theme-0)' : 'var(--color-2)'" />
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
-        <div class="cursor-pointer ml-3">
-          <TrashSvg @click="deleteSticky" class="inline-block" fill="#333333" />
+        <div class="cursor-pointer ml-3 opacity-60 hover:opacity-100 transition-opacity">
+          <TrashSvg @click="deleteSticky" class="inline-block" fill="var(--color-2)" />
         </div>
       </div>
     </div>
+
+    <!-- 编辑器/空状态 -->
     <div v-if="isFileMode && !filePath" class="flex items-center justify-center text-sm" style="height: calc(100% - 2.5rem); color: var(--color-2)" :style="`background: ${bgColor}`">
       <span class="cursor-pointer opacity-60 hover:opacity-100" @click="selectFile">点击选择文件开始编辑</span>
     </div>
@@ -146,6 +116,7 @@
       :style="`background: ${bgColor}`">
     </div>
   </div>
+
   <SelectModal
     :visible="showProviderModal"
     title="选择AI提供商"
@@ -164,22 +135,21 @@
   <Toast ref="toastRef" />
 
   <!-- 参数收集对话框 -->
-  <div v-if="paramDialog.visible" class="fixed inset-0 z-[9998] flex items-center justify-center" style="background: rgba(0,0,0,0.3)">
-    <div class="rounded-lg shadow-xl p-4 w-72 nodragable" style="background: var(--bg-1); border: 1px solid var(--border-1);">
-      <div class="text-xs font-medium mb-3" style="color: var(--color-1);">{{ paramDialog.opName }} - {{ paramDialog.params[paramDialog.currentIndex] }}</div>
+  <div v-if="paramDialog.visible" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-title">{{ paramDialog.opName }} - {{ paramDialog.params[paramDialog.currentIndex] }}</div>
       <input v-model="paramDialog.values[paramDialog.currentIndex]" @keydown.enter="onParamSubmit"
-        class="w-full px-3 py-2 rounded border text-xs focus:outline-none mb-3"
-        style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);"
-        :placeholder="paramDialog.params[paramDialog.currentIndex]" autofocus>
-      <div class="flex justify-end gap-2">
-        <button @click="onParamCancel" class="text-xs px-3 py-1.5 rounded" style="color: var(--color-2);">取消</button>
-        <button @click="onParamSubmit" class="text-xs px-3 py-1.5 rounded" style="color: var(--theme-0); background: var(--theme-5);">
+        class="param-input" :placeholder="paramDialog.params[paramDialog.currentIndex]" autofocus>
+      <div class="modal-actions">
+        <button @click="onParamCancel" class="modal-btn modal-btn-cancel">取消</button>
+        <button @click="onParamSubmit" class="modal-btn modal-btn-primary">
           {{ paramDialog.currentIndex < paramDialog.params.length - 1 ? '下一步' : '执行' }}
         </button>
       </div>
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, computed, nextTick, shallowRef } from "vue";
 import { useUserData, getBg } from "../composition";
@@ -717,14 +687,221 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   }
 };
 </script>
-<style lang="less">
-.non-border {
-  border: 0;
-  resize: none;
-  background: transparent;
 
-  &:focus {
-    outline: none;
+<style lang="less" scoped>
+/* ========== 下拉面板 ========== */
+.dropdown-panel {
+  position: absolute;
+  top: 1.5rem;
+  right: 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px var(--shadow-0), 0 4px 6px -4px var(--shadow-1);
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  z-index: 50;
+}
+
+/* 文件列表下拉 */
+.file-list-panel {
+  left: -0.5rem;
+  width: 16rem;
+  right: auto;
+}
+
+.file-list-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  border-bottom: 1px solid var(--border-0);
+}
+
+.file-filter-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  background: var(--bg-0);
+  color: var(--color-1);
+  border: 1px solid var(--border-1);
+  outline: none;
+}
+
+.file-list-body {
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.file-list-empty {
+  font-size: 0.75rem;
+  text-align: center;
+  padding: 0.5rem;
+  opacity: 0.6;
+  color: var(--color-2);
+}
+
+.file-list-item {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-1);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-3);
+  }
+
+  &.active {
+    color: var(--theme-0);
+    background: var(--bg-2);
+  }
+}
+
+/* 生成菜单下拉 */
+.generate-menu {
+  top: 1.5rem;
+  right: 0;
+  width: 14rem;
+  padding: 0.75rem;
+}
+
+.generate-menu-section {
+  border-bottom: 1px solid var(--border-0);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.menu-btn {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-3);
+  }
+}
+
+.menu-option-list {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.menu-option {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  color: var(--color-1);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-3);
+  }
+
+  input[type="checkbox"] {
+    margin-right: 0.5rem;
+  }
+}
+
+.menu-btn-primary {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  background: var(--theme-0);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+/* ========== 模态框 ========== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.modal-dialog {
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px var(--shadow-0);
+  padding: 1rem;
+  width: 18rem;
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+}
+
+.modal-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: var(--color-1);
+}
+
+.param-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-1);
+  font-size: 0.75rem;
+  outline: none;
+  margin-bottom: 0.75rem;
+  background: var(--bg-0);
+  color: var(--color-1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-btn {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition: opacity 0.15s ease;
+
+  &.modal-btn-cancel {
+    color: var(--color-2);
+  }
+
+  &.modal-btn-primary {
+    color: var(--theme-0);
+    background: var(--theme-5);
+  }
+
+  &:hover {
+    opacity: 0.85;
   }
 }
 </style>

@@ -863,27 +863,6 @@ onMounted(async () => {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 自定义滚动条 */
-.overflow-y-auto {
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: var(--bg-1);
-        border-radius: 4px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background: var(--border-1);
-        border-radius: 4px;
-
-        &:hover {
-            background: var(--border-2);
-        }
-    }
-}
-
 /* 按钮悬停效果增强 */
 button {
     &:focus {
