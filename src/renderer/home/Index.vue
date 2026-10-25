@@ -33,23 +33,44 @@
 
         <!-- 更新弹窗: 说明可滚动, 底部提供自动安装与手动下载 -->
         <div v-if="versionInfo.downloaded"
-          class="update-card text-xs mt-1 relative z-10 w-80 rounded-lg shadow-lg overflow-hidden"
+          class="update-card text-xs mt-1 relative z-10 w-[21rem] rounded-xl shadow-lg overflow-hidden"
           style="color: var(--color-2); background-color: var(--bg-0); border: 1px solid var(--border-1);">
-          <div class="flex items-center justify-between px-3 py-2" style="border-bottom: 1px solid var(--border-1);">
-            <span class="text-sm font-bold" style="color: var(--color-0);">新版本 v{{ versionInfo.latestVersion }}</span>
-            <span class="text-[11px] opacity-60">当前 v{{ versionInfo.curVersion }}</span>
-          </div>
-          <div class="update-notes px-3 py-2 overflow-y-auto" style="max-height: 208px;"
-            v-html="versionInfo.releaseNotes || '<p>暂无更新说明</p>'"></div>
-          <div class="px-3 py-2" style="border-top: 1px solid var(--border-1);">
-            <div class="text-[11px] leading-4 mb-1.5"
-              :style="{ color: versionInfo.installStatus ? 'var(--theme-0)' : 'var(--color-3)' }">
-              {{ versionInfo.installStatus || '点击"安装并重启"自动覆盖安装, 失败时可下载安装包手动安装' }}
+          <div class="flex items-center gap-2.5 px-4 pt-3 pb-2.5" style="border-bottom: 1px solid var(--border-1);">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+              style="background: var(--theme-5); color: var(--theme-0);">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
             </div>
-            <div class="flex items-center justify-end gap-3">
-              <span class="cursor-pointer whitespace-nowrap opacity-60 hover:opacity-100" @click="openReleasePage">下载安装包</span>
-              <span class="cursor-pointer whitespace-nowrap px-2.5 py-1 rounded-md"
-                style="background: var(--theme-0); color: #fff;" @click="restart">安装并重启</span>
+            <div class="flex flex-col leading-4">
+              <span class="text-sm font-bold" style="color: var(--color-0);">新版本 v{{ versionInfo.latestVersion }}</span>
+              <span class="text-[11px] opacity-70">当前版本 v{{ versionInfo.curVersion }}</span>
+            </div>
+            <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0"
+              style="background: var(--theme-5); color: var(--theme-0);">已下载</span>
+          </div>
+          <div class="update-notes px-4 py-3 overflow-y-auto" style="max-height: 216px;"
+            v-html="versionInfo.releaseNotes || '<p>暂无更新说明</p>'"></div>
+          <div class="px-4 py-3" style="border-top: 1px solid var(--border-1); background: var(--bg-1);">
+            <div class="flex items-start gap-1.5 text-[11px] leading-4 mb-2.5"
+              :style="{ color: versionInfo.installStatus ? 'var(--theme-0)' : 'var(--color-3)' }">
+              <svg class="flex-shrink-0 mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 11v5" />
+                <path d="M12 8h.01" />
+              </svg>
+              <span>{{ versionInfo.installStatus || '点"安装并重启"即可覆盖安装, 无需重新下载' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="flex-1 h-8 rounded-lg text-xs font-medium transition-opacity hover:opacity-85"
+                style="background: var(--theme-0); color: #fff;" @click="restart">安装并重启</button>
+              <button class="h-8 px-3 rounded-lg text-xs transition-colors hover:opacity-80"
+                style="background: var(--bg-0); color: var(--color-1); border: 1px solid var(--border-1);"
+                @click="openReleasePage">下载安装包</button>
             </div>
           </div>
         </div>
@@ -597,7 +618,8 @@ const location = window.location
 
 /* 更新说明内容样式, 适配 GitHub Release 返回的 HTML */
 .update-notes {
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.7;
 
   :deep(p) {
     margin: 4px 0;
@@ -627,7 +649,18 @@ const location = window.location
   }
 
   :deep(li) {
-    margin: 2px 0;
+    margin: 3px 0;
+  }
+
+  :deep(strong) {
+    font-weight: 600;
+    color: var(--color-0);
+  }
+
+  :deep(hr) {
+    margin: 6px 0;
+    border: none;
+    border-top: 1px solid var(--border-1);
   }
 
   :deep(a) {
