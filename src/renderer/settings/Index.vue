@@ -469,14 +469,27 @@
 
             </div>
         </div>
+
+        <AlertMessage ref="alertRef" />
+        <ConfirmModal ref="confirmRef" />
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, nextTick, watch } from 'vue'
 import keyboard from '../components/keyboards.vue'
+import AlertMessage from '../components/AlertMessage.vue'
+import ConfirmModal from '../components/ConfirmModal.vue'
 
 const { send, invoke, onMessage } = window.apis
+
+const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
+const confirmRef = ref<InstanceType<typeof ConfirmModal> | null>(null)
+
+// 轻提示: 无需用户决策的信息
+const tip = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    alertRef.value?.show(message, type)
+}
 
 const themeMode = ref('system')
 const currentVersion = ref('')
@@ -635,10 +648,10 @@ const saveToken = async () => {
             provider: selectedProvider.value,
             token: tokenInput.value
         })
-        alert('保存成功')
+        tip('保存成功', 'success')
     } catch (error) {
         console.error('保存token失败:', error)
-        alert('保存失败')
+        tip('保存失败', 'error')
     }
 }
 
@@ -662,22 +675,30 @@ const exportData = async () => {
         // 调用主进程的导出数据方法
         const result = await invoke('exportData')
         if (result) {
-            alert('数据导出成功')
+            tip('数据导出成功', 'success')
         }
     } catch (error) {
-        alert('数据导出失败')
+        tip('数据导出失败', 'error')
     }
 }
 
 const importData = async () => {
+    const confirmed = await confirmRef.value?.show({
+        title: '导入数据',
+        message: '导入数据将覆盖当前所有数据，应用将重启。确定要继续吗？',
+        confirmText: '继续导入',
+        danger: true
+    })
+    if (!confirmed) return
+
     try {
         // 调用主进程的导入数据方法
         const result = await invoke('importData')
         if (result) {
-            alert('数据导入成功')
+            tip('数据导入成功', 'success')
         }
     } catch (error) {
-        alert('数据导入失败')
+        tip('数据导入失败', 'error')
     }
 }
 
@@ -686,34 +707,39 @@ const createBackup = async () => {
         // 调用主进程的创建备份方法
         const result = await invoke('createBackup')
         if (result) {
-            alert('备份创建成功')
+            tip('备份创建成功', 'success')
             // 刷新备份状态
             await loadBackupStatus()
         }
     } catch (error) {
-        alert('备份创建失败')
+        tip('备份创建失败', 'error')
     }
 }
 
 const restoreData = async () => {
     try {
         if (!backupInfo.hasBackup) {
-            alert('没有可用的备份文件')
+            tip('没有可用的备份文件', 'warning')
             return
         }
-        
-        const confirmed = confirm('恢复数据将覆盖当前所有数据，应用将重启。确定要继续吗？')
+
+        const confirmed = await confirmRef.value?.show({
+            title: '恢复数据',
+            message: '恢复数据将覆盖当前所有数据，应用将重启。确定要继续吗？',
+            confirmText: '继续恢复',
+            danger: true
+        })
         if (!confirmed) return
-        
+
         // 调用主进程的恢复数据方法
         const result = await invoke('restoreData')
         if (result.success) {
-            alert('数据恢复成功，应用即将重启')
+            tip('数据恢复成功，应用即将重启', 'success')
         } else {
-            alert('数据恢复失败: ' + result.message)
+            tip('数据恢复失败: ' + result.message, 'error')
         }
     } catch (error) {
-        alert('数据恢复失败')
+        tip('数据恢复失败', 'error')
     }
 }
 

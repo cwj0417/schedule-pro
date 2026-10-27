@@ -140,6 +140,7 @@
   />
   <!-- Toast -->
   <Toast ref="toastRef" />
+  <AlertMessage ref="alertRef" />
 
   <!-- 参数收集对话框 -->
   <div v-if="paramDialog.visible" class="modal-overlay">
@@ -161,6 +162,7 @@
 import { onMounted, onUnmounted, ref, computed, nextTick, shallowRef } from "vue";
 import { useUserData, getBg } from "../composition";
 import Toast from "../components/Toast.vue";
+import AlertMessage from "../components/AlertMessage.vue";
 import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
@@ -290,6 +292,7 @@ const doExecute = async (command: string, opName: string) => {
 };
 
 const toastRef = ref<InstanceType<typeof Toast> | null>(null);
+const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null);
 
 const canToggleFileMode = computed(() => {
   if (isFileMode.value) return true;
@@ -594,13 +597,13 @@ const generateBlog = async () => {
   }
 
   if (!content || content.trim() === '') {
-    alert('请先在便签中输入内容或选中文本');
+    alertRef.value?.show('请先在便签中输入内容或选中文本', 'warning');
     return;
   }
 
   const providers = await getConfiguredProviders();
   if (providers.length === 0) {
-    alert('请先在设置中配置至少一个AI提供商的API Token');
+    alertRef.value?.show('请先在设置中配置至少一个AI提供商的API Token', 'warning');
     return;
   }
 
@@ -634,13 +637,13 @@ const generateOutline = async () => {
   }
 
   if (!content || content.trim() === '') {
-    alert('请先在便签中输入内容或选中文本');
+    alertRef.value?.show('请先在便签中输入内容或选中文本', 'warning');
     return;
   }
 
   const providers = await getConfiguredProviders();
   if (providers.length === 0) {
-    alert('请先在设置中配置至少一个AI提供商的API Token');
+    alertRef.value?.show('请先在设置中配置至少一个AI提供商的API Token', 'warning');
     return;
   }
 
@@ -713,7 +716,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
       content: blogContent
     });
   } catch (error: any) {
-    alert(error.message || (isOutlineMode ? '整理提纲失败' : '生成博客失败'));
+    alertRef.value?.show(error.message || (isOutlineMode ? '整理提纲失败' : '生成博客失败'), 'error');
   } finally {
     isGenerating.value = false;
   }
