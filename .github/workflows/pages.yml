@@ -1,0 +1,42 @@
+name: Pages
+
+# 与 Release 发布解耦: 只有 website/ 或本工作流改动合并到 main 时才部署,
+# Release 构建 (build.yml) 仍由 v* 标签触发, 两者互不依赖
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        with:
+          # 仓库未开启 Pages 时尝试自动开启 (需仓库允许 Actions 创建 Pages 站点)
+          enablement: true
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

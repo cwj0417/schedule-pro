@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>schedule PRO · 把今天要做的，放在一个窗口里</title>
+  <meta name="description" content="schedule PRO 是一款 macOS 桌面日程应用：今日办、待办池、便签和倒计时并排在一屏，全局快捷键随时唤起，数据只保存在你自己的电脑里。" />
+  <meta property="og:title" content="schedule PRO · 把今天要做的，放在一个窗口里" />
+  <meta property="og:description" content="今日办、待办池、便签和倒计时并排在一屏。全局快捷键随手唤起，数据只存在本地。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://cwj0417.github.io/schedule-pro/" />
+  <meta property="og:image" content="https://cwj0417.github.io/schedule-pro/assets/icon.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+  <link rel="apple-touch-icon" href="./assets/icon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <header class="site-header" id="siteHeader">
+    <div class="container nav">
+      <a class="brand" href="./" aria-label="schedule PRO 首页">
+        <img class="brand-icon" src="./assets/icon.png" alt="" width="28" height="28" />
+        <span class="brand-name">schedule <em>PRO</em></span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="#features">功能</a>
+        <a href="#shortcuts">快捷键</a>
+        <a href="#local">本地与 AI</a>
+        <a href="#releases">更新日志</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深浅色主题" title="切换主题">
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+          </svg>
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+          </svg>
+        </button>
+        <a class="btn btn-ghost nav-github" href="https://github.com/cwj0417/schedule-pro" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 .5a11.5 11.5 0 0 0-3.64 22.42c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.87-1.54-3.87-1.54-.52-1.32-1.28-1.67-1.28-1.67-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.73-1.54-2.56-.29-5.25-1.28-5.25-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.35.78 1.05.78 2.12v3.14c0 .3.2.66.79.55A11.5 11.5 0 0 0 12 .5Z"></path>
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <a class="btn btn-primary nav-download" id="downloadTop" href="https://github.com/cwj0417/schedule-pro/releases/latest" target="_blank" rel="noopener">下载</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <p class="eyebrow reveal">
+          <span class="eyebrow-dot"></span>
+          macOS 桌面应用 · 本地优先 · 开源
+        </p>
+        <h1 class="reveal">今天要做什么，<br /><span class="grad">一个窗口就够了。</span></h1>
+        <p class="hero-sub reveal">今日办、待办池、便签和倒计时并排在一屏。全局快捷键随手唤起，<br class="desktop-only" />所有数据只存在你自己的电脑里。</p>
+        <div class="hero-cta reveal">
+          <a class="btn btn-primary btn-lg" id="downloadHero" href="https://github.com/cwj0417/schedule-pro/releases/latest" target="_blank" rel="noopener">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.36 12.7c0-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.43.73-3.06.73-.63 0-1.6-.71-2.64-.69-1.36.02-2.62.79-3.32 2-1.42 2.46-.36 6.1 1.02 8.1.68.98 1.48 2.08 2.54 2.04 1.02-.04 1.4-.66 2.64-.66s1.58.66 2.66.64c1.1-.02 1.8-1 2.47-1.98.78-1.14 1.1-2.24 1.12-2.3-.02-.01-2.15-.82-2.17-3.26ZM14.3 6.63c.56-.68.94-1.62.83-2.56-.8.03-1.78.54-2.36 1.21-.52.6-.97 1.56-.85 2.48.9.07 1.81-.46 2.38-1.13Z"></path>
+            </svg>
+            <span>下载最新版本</span>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#features">看看它做什么</a>
+        </div>
+        <p class="hero-meta reveal">
+          <span>Apple Silicon / Intel</span>
+          <span class="meta-divider"></span>
+          <span id="latestVersionText">前往 GitHub 获取最新版本</span>
+          <span class="meta-divider"></span>
+          <span>免费 · MIT License</span>
+        </p>
+
+        <!-- 应用界面示意 -->
+        <div class="app-mock reveal" aria-hidden="true">
+          <div class="mock-window">
+            <div class="mock-titlebar">
+              <span class="traffic red"></span>
+              <span class="traffic yellow"></span>
+              <span class="traffic green"></span>
+              <span class="mock-appname">schedule-pro</span>
+            </div>
+            <div class="mock-content">
+              <div class="mock-top">
+                <div class="mock-top-left">
+                  <img class="mock-logo mock-logo-light" src="./assets/logo.png" alt="" />
+                  <img class="mock-logo mock-logo-dark" src="./assets/logo-dark.png" alt="" />
+                  <span class="kbd">⌘ ⇧ H</span>
+                </div>
+                <div class="mock-search">直接输入以搜索, esc 以清空</div>
+                <div class="mock-top-right">
+                  <span class="mock-version">v1.20.2</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+                    <path d="M21 3v6h-6"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="mock-grid">
+                <div class="mock-col">
+                  <div class="mock-col-head">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="17" rx="2"></rect>
+                      <path d="M8 2v4M16 2v4M3 10h18"></path>
+                    </svg>
+                    <span>今日办</span>
+                    <span class="kbd">⌘ ⇧ J</span>
+                  </div>
+                  <ul class="mock-list">
+                    <li><i class="tick"></i><span>整理本周发布说明</span></li>
+                    <li class="done"><i class="tick"></i><span>回复设计评审的评论</span></li>
+                    <li><i class="tick"></i><span>跟进 MCP 服务的反馈</span></li>
+                    <li><i class="tick"></i><span>写产品页文案</span></li>
+                    <li class="mock-list-empty"><i class="tick"></i><span>把待办池里的事拖进来</span></li>
+                  </ul>
+                  <div class="mock-countdown">
+                    <i class="mock-countdown-fill"></i>
+                    <span class="mock-countdown-label">产品评审</span>
+                    <span class="mock-countdown-time">24:00</span>
+                  </div>
+                </div>
+
+                <div class="mock-col">
+                  <div class="mock-col-head">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 3a6 6 0 0 0-4 10.5V18h8v-4.5A6 6 0 0 0 12 3Z"></path>
+                      <path d="M9 21h6"></path>
+                    </svg>
+                    <span>待办池</span>
+                    <span class="kbd">⌘ ⇧ L</span>
+                  </div>
+                  <ul class="mock-list">
+                    <li><i class="tick"></i><span>研究一下便签自动保存</span></li>
+                    <li><i class="tick"></i><span>周报模板整理</span></li>
+                    <li><i class="tick"></i><span>给倒计时加声音提醒</span></li>
+                    <li><i class="tick"></i><span>备份一下本地数据</span></li>
+                    <li><i class="tick"></i><span>看看 MCP 还能接什么</span></li>
+                    <li><i class="tick"></i><span>换季衣物收纳</span></li>
+                  </ul>
+                </div>
+
+                <div class="mock-col mock-col-sticky">
+                  <div class="mock-col-head">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l6-6V5a2 2 0 0 0-2-2Z"></path>
+                      <path d="M15 21v-4a2 2 0 0 1 2-2h4"></path>
+                    </svg>
+                    <span>便签</span>
+                    <span class="kbd">⌘ N</span>
+                  </div>
+                  <div class="mock-stickies">
+                    <div class="mock-sticky-card is-yellow">
+                      <b>产品页</b>
+                      <span>下载按钮只指向 Release 页面，不写死版本号。</span>
+                      <small>更新于 21:04</small>
+                    </div>
+                    <div class="mock-sticky-card is-mint">
+                      <b>下周要做的</b>
+                      <span>把首页搜索做成跨模块过滤，随手就能找到那一条。</span>
+                      <small>10/27</small>
+                    </div>
+                    <div class="mock-sticky-card is-pink">
+                      <b>灵感</b>
+                      <span>倒计时到点的时候，用 Touch Bar 提醒一下自己。</span>
+                      <small>10/25</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mock-float">
+            <div class="mock-float-head">
+              <span>今天的想法</span>
+              <span class="mock-float-close">×</span>
+            </div>
+            <p>便签是独立的小窗口，可以贴在屏幕任意角落。</p>
+            <div class="mock-float-foot">创建于 2026/10/28</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">功能</p>
+          <h2>把每天要处理的事，摆在同一张桌面上</h2>
+          <p class="section-sub">不折叠、不埋菜单，打开就是全部。少一次切换，就少一次走神。</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+                <path d="M9 4v16M15 4v16"></path>
+              </svg>
+            </div>
+            <h3>两列清单，拖一下就好</h3>
+            <p>今天要做的事放“今日办”，还没想好时间的丢进“待办池”。拖拽即可在两边流转，勾选完成原地保留痕迹。</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l6-6V5a2 2 0 0 0-2-2Z"></path>
+                <path d="M15 21v-4a2 2 0 0 1 2-2h4"></path>
+              </svg>
+            </div>
+            <h3>便签是独立的小窗口</h3>
+            <p>按 ⌘N 新建一张便签，它会以独立窗口浮在桌面上。随手记下想法，内容自动保存，创建和更新时间都看得见。</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="13" r="8"></circle>
+                <path d="M12 9v4l2 2M9 2h6"></path>
+              </svg>
+            </div>
+            <h3>倒计时就是一根进度条</h3>
+            <p>把正在进行的专注、会议或下班倒计时放到首页，剩余时间以真实宽度每秒平滑收缩，抬眼就知道还剩多少。</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"></path>
+              </svg>
+            </div>
+            <h3>全局快捷键，随手唤起</h3>
+            <p>不管在写代码还是看网页，⌘⇧H 唤回首页，⌘⇧J / ⌘⇧L / ⌘⇧I 直达对应模块。每个快捷键都能在首页点开重设。</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="m20 20-3.5-3.5"></path>
+              </svg>
+            </div>
+            <h3>直接打字，就能筛出来</h3>
+            <p>首页顶部的搜索框会同时过滤今日办、待办池和便签，匹配内容高亮显示。按 Esc 立刻清空，回到完整视图。</p>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="8" ry="3"></ellipse>
+                <path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"></path>
+                <path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"></path>
+              </svg>
+            </div>
+            <h3>没有账号，数据就在本机</h3>
+            <p>日程、便签和设置以 JSON 保存在本地目录，不经过任何服务器。支持一键备份、恢复、导出和导入。</p>
+          </article>
+        </div>
+
+        <div class="extras reveal">
+          <span>还有</span>
+          <ul>
+            <li>深色 / 浅色主题</li>
+            <li>首页模块按需隐藏</li>
+            <li>文件模式快捷操作</li>
+            <li>AI 模型配置</li>
+            <li>MCP 服务</li>
+            <li>应用内更新检测</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shortcuts -->
+    <section class="section section-alt" id="shortcuts">
+      <div class="container split">
+        <div class="split-copy reveal">
+          <p class="kicker">快捷键</p>
+          <h2>你的手不用离开键盘</h2>
+          <p>默认组合键已经排好，也可以点击首页上对应模块的快捷键标签，录下自己顺手的那一组。如果组合键被其他应用占用，换一组就能生效。</p>
+          <p class="split-note">除新建便签外，其余组合键都可以自定义。</p>
+        </div>
+        <div class="shortcut-card reveal">
+          <div class="shortcut-row">
+            <span>唤回主窗口</span>
+            <span class="keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>H</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span>打开今日办</span>
+            <span class="keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>J</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span>打开待办池</span>
+            <span class="keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>L</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span>打开倒计时</span>
+            <span class="keys"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>I</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span>新建便签</span>
+            <span class="keys"><kbd>⌘</kbd><kbd>N</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span>清空搜索</span>
+            <span class="keys"><kbd>Esc</kbd></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Local & MCP -->
+    <section class="section" id="local">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">本地与 AI</p>
+          <h2>数据留在本机，能力可以外接</h2>
+          <p class="section-sub">默认完全离线可用；需要时，再打开 MCP 服务，把日程交给 AI 客户端读写。</p>
+        </div>
+
+        <div class="duo">
+          <div class="duo-card reveal">
+            <div class="duo-head">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10Z"></path>
+                  <path d="m9 12 2 2 4-4"></path>
+                </svg>
+              </div>
+              <div>
+                <h3>本地优先</h3>
+                <p>没有注册、没有同步、没有遥测。</p>
+              </div>
+            </div>
+            <div class="file-tree" aria-hidden="true">
+              <div class="file-tree-title">~/Library/Application Support/schedule-pro/appdata</div>
+              <div class="file-row"><span class="tree-branch">├─</span><span class="file-name">schedule.json</span><span class="file-desc">今日办</span></div>
+              <div class="file-row"><span class="tree-branch">├─</span><span class="file-name">inspiration.json</span><span class="file-desc">待办池</span></div>
+              <div class="file-row"><span class="tree-branch">├─</span><span class="file-name">sticky*.json</span><span class="file-desc">便签内容</span></div>
+              <div class="file-row"><span class="tree-branch">├─</span><span class="file-name">shortcuts.json</span><span class="file-desc">快捷键</span></div>
+              <div class="file-row"><span class="tree-branch">└─</span><span class="file-name">settings.json</span><span class="file-desc">偏好设置</span></div>
+            </div>
+            <p class="duo-foot">设置页提供备份、恢复、导出与导入，换电脑时整包带走即可。</p>
+          </div>
+
+          <div class="duo-card reveal">
+            <div class="duo-head">
+              <div class="feature-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="6" rx="2"></rect>
+                  <rect x="3" y="14" width="18" height="6" rx="2"></rect>
+                  <path d="M7 7h.01M7 17h.01"></path>
+                </svg>
+              </div>
+              <div>
+                <h3>MCP 服务（可选）</h3>
+                <p>让 AI 客户端读懂并更新你的清单。</p>
+              </div>
+            </div>
+            <ol class="steps">
+              <li><span class="step-num">1</span><span>在设置中启动 MCP 服务，本地地址只在运行时监听。</span></li>
+              <li><span class="step-num">2</span><span>复制生成的客户端配置，粘贴到任意支持 MCP 的 AI 客户端。</span></li>
+              <li><span class="step-num">3</span><span>之后就能让 AI 读写今日办、待办池、倒计时和便签。</span></li>
+              <li><span class="step-num">4</span><span>服务只监听 127.0.0.1，局域网内的其他设备无法访问。</span></li>
+            </ol>
+            <p class="duo-foot">服务默认关闭，是否开启完全由你决定；关闭后客户端需要重新连接。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Releases -->
+    <section class="section section-alt" id="releases">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">更新日志</p>
+          <h2>每次发版，都在这里</h2>
+          <p class="section-sub">安装包统一发布在 GitHub Releases，页面会自动同步最新版本的更新说明。</p>
+        </div>
+
+        <div class="release-layout">
+          <article class="release-card reveal" id="releaseCard">
+            <div class="release-head">
+              <div>
+                <span class="release-label">最新版本</span>
+                <h3 id="releaseVersion">正在读取 GitHub…</h3>
+              </div>
+              <a class="btn btn-ghost btn-sm" id="releaseAllLink" href="https://github.com/cwj0417/schedule-pro/releases" target="_blank" rel="noopener">全部版本</a>
+            </div>
+            <div class="release-notes" id="releaseNotes">
+              <p class="release-empty">正在从 GitHub 获取最新版本的更新说明…</p>
+            </div>
+            <div class="release-foot">
+              <span id="releaseDate">发布后即可在此查看</span>
+              <a class="text-link" id="releaseDownload" href="https://github.com/cwj0417/schedule-pro/releases/latest" target="_blank" rel="noopener">
+                下载此版本
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+              </a>
+            </div>
+          </article>
+
+          <aside class="release-aside reveal">
+            <div class="aside-item">
+              <span class="aside-num">2</span>
+              <div><b>个清单</b><p>今日办与待办池并排，拖一下就能在两边流转。</p></div>
+            </div>
+            <div class="aside-item">
+              <span class="aside-num">1</span>
+              <div><b>个窗口</b><p>主窗口只管今天，便签以独立小窗浮在桌面上。</p></div>
+            </div>
+            <div class="aside-item">
+              <span class="aside-num">0</span>
+              <div><b>个账号</b><p>没有注册、云同步和遥测，数据全部保存在本机。</p></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card reveal">
+          <img src="./assets/icon.png" alt="schedule PRO 图标" width="64" height="64" class="cta-icon" />
+          <h2>把今天安排好</h2>
+          <p>下载后拖进“应用程序”就能用。首次打开若被 macOS 拦住，右键选择“打开”，或在终端执行 <code class="cta-code">xattr -cr /Applications/schedule-pro.app</code> 放行。</p>
+          <div class="cta-actions">
+            <a class="btn btn-primary btn-lg" id="downloadCta" href="https://github.com/cwj0417/schedule-pro/releases/latest" target="_blank" rel="noopener">前往 GitHub Releases 下载</a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/cwj0417/schedule-pro" target="_blank" rel="noopener">查看源码</a>
+          </div>
+          <p class="cta-hint" id="ctaHint">选择 Apple Silicon 或 Intel 对应的安装包</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="./assets/icon.png" alt="" width="22" height="22" />
+        <span>schedule PRO</span>
+      </div>
+      <p class="footer-copy">© <span id="year">2026</span> chenwj · MIT License</p>
+      <nav class="footer-links" aria-label="页脚导航">
+        <a href="https://github.com/cwj0417/schedule-pro/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/cwj0417/schedule-pro" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/cwj0417/schedule-pro/issues" target="_blank" rel="noopener">问题反馈</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="./main.js" defer></script>
+</body>
+</html>
