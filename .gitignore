@@ -2,3 +2,4 @@ node_modules
 dist
 build/built
 yarn-error.log
+.trae-html-share-packages
