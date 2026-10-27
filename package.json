@@ -40,9 +40,11 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
     "@lezer/highlight": "1.2.5",
+    "@modelcontextprotocol/sdk": "1.32.2",
     "vue": "3.5.44",
     "vue-router": "5.4.0",
-    "vuedraggable": "4.1.0"
+    "vuedraggable": "4.1.0",
+    "zod": "3.25.76"
   },
   "resolutions": {
     "@codemirror/autocomplete": "6.20.4",
