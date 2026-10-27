@@ -525,6 +525,11 @@ onMounted(() => {
     if (type === "stickyMetaChange") {
       stickyMeta.value = value;
     }
+    if (type === "stickyContentChanged" && String(value?.id) === String(id)) {
+      // MCP 等外部来源改写内容后, 刷新编辑器
+      data.value.value.content = value.content;
+      initEditor();
+    }
   });
 
   // 拉取创建/更新时间

@@ -467,6 +467,58 @@
                     </div>
                 </div>
 
+                <!-- MCP 服务 -->
+                <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                    style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl flex items-center justify-center"
+                            style="background: var(--theme-5); color: var(--theme-0);">
+                            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="6" rx="2" />
+                                <rect x="3" y="14" width="18" height="6" rx="2" />
+                                <path d="M7 7h.01M7 17h.01" />
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">MCP 服务</h2>
+                            <p class="text-xs" style="color: var(--color-2);">让 AI 客户端读写今日办、待办池、倒计时和便签</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <button @click="toggleMcp" :disabled="mcpBusy"
+                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 text-xs font-medium hover-fill"
+                            :style="mcpStatus.running
+                                ? 'border-color: var(--border-1); background: var(--bg-0); color: var(--error-0); --hover-fill: var(--bg-2);'
+                                : 'border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0); --hover-fill: color-mix(in srgb, var(--theme-0) 18%, transparent);'">
+                            {{ mcpBusy ? '处理中...' : (mcpStatus.running ? '关闭' : '启动') }}
+                        </button>
+                        <div class="flex flex-col gap-0.5 min-w-0">
+                            <span class="text-xs font-medium"
+                                :style="{ color: mcpStatus.running ? 'var(--theme-0)' : 'var(--color-2)' }">
+                                {{ mcpStatus.running ? '运行中' : '未启动' }}
+                            </span>
+                            <span class="text-xs truncate" style="color: var(--color-2);">{{ mcpStatus.url }}</span>
+                        </div>
+                    </div>
+                    <div v-if="mcpStatus.running" class="mt-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs" style="color: var(--color-2);">客户端配置</span>
+                            <button @click="copyMcpConfig"
+                                class="text-xs px-2 py-1 rounded-md transition-opacity focus:outline-none hover:opacity-70"
+                                style="color: var(--theme-0);">
+                                {{ mcpCopied ? '已复制' : '复制' }}
+                            </button>
+                        </div>
+                        <pre class="text-xs font-mono leading-5 rounded-lg p-3 mt-1 overflow-x-auto"
+                            style="background: var(--bg-0); border: 1px solid var(--border-1); color: var(--color-1);"><code>{{ mcpConfigText }}</code></pre>
+                    </div>
+                    <p v-if="mcpStatus.error" class="text-xs mt-2" style="color: var(--error-0);">{{ mcpStatus.error }}</p>
+                    <p class="text-xs mt-2 leading-5" style="color: var(--color-2);">
+                        把上面的配置加进客户端即可连接；关闭服务后需要在客户端重新连接。
+                    </p>
+                </div>
+
             </div>
         </div>
 
@@ -476,12 +528,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, nextTick, watch } from 'vue'
+import { ref, onMounted, reactive, computed, nextTick, watch } from 'vue'
 import keyboard from '../components/keyboards.vue'
 import AlertMessage from '../components/AlertMessage.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 
-const { send, invoke, onMessage } = window.apis
+const { send, invoke, onMessage, copyText } = window.apis
 
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const confirmRef = ref<InstanceType<typeof ConfirmModal> | null>(null)
@@ -577,6 +629,59 @@ const providers = [
 const selectedProvider = ref('openai')
 const tokenInput = ref('')
 const showToken = ref(false)
+
+// MCP 服务
+const mcpStatus = reactive({
+    running: false,
+    enabled: false,
+    port: 7243,
+    url: 'http://127.0.0.1:7243/mcp',
+    error: ''
+})
+const mcpBusy = ref(false)
+
+// 客户端配置文件里可以直接粘贴的片段
+const mcpConfigText = computed(() => JSON.stringify({
+    mcpServers: {
+        'schedule-pro': {
+            url: mcpStatus.url,
+        },
+    },
+}, null, 2))
+
+const mcpCopied = ref(false)
+const copyMcpConfig = () => {
+    try {
+        copyText(mcpConfigText.value)
+        mcpCopied.value = true
+        setTimeout(() => { mcpCopied.value = false }, 1500)
+    } catch (error) {
+        console.error('复制 MCP 配置失败:', error)
+    }
+}
+
+const loadMcpStatus = async () => {
+    try {
+        const status = await invoke('getMcpStatus')
+        Object.assign(mcpStatus, status)
+    } catch (error) {
+        console.error('获取 MCP 服务状态失败:', error)
+    }
+}
+
+const toggleMcp = async () => {
+    if (mcpBusy.value) return
+    mcpBusy.value = true
+    try {
+        const status = await invoke('setMcpEnabled', !mcpStatus.running)
+        Object.assign(mcpStatus, status)
+    } catch (error: any) {
+        console.error('切换 MCP 服务失败:', error)
+        mcpStatus.error = String(error?.message || error)
+    } finally {
+        mcpBusy.value = false
+    }
+}
 
 // 文件模式设置
 const fileModePaths = ref<{ [filePath: string]: { name: string, command: string, params: string[] }[] }>({})
@@ -834,6 +939,10 @@ onMounted(async () => {
         if (type === 'themeChanged') {
             themeMode.value = value
         }
+        // 监听 MCP 服务状态变化
+        if (type === 'mcpStatusChanged') {
+            Object.assign(mcpStatus, value)
+        }
         // 监听文件模式设置刷新
         if (type === 'reloadFileModeSettings') {
             try {
@@ -895,6 +1004,9 @@ onMounted(async () => {
     } catch (error) {
         console.error('获取备份设置失败:', error)
     }
+
+    // 获取 MCP 服务状态
+    await loadMcpStatus()
 
     // 加载AI设置
     try {

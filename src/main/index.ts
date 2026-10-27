@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog, shell } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog, shell, clipboard } from 'electron'
 import mainPreload from '@/preload/mainPage.ts'
 // import stickyPreload from '@/preload/stickyPage.ts'
 import mainPage from '@/renderer/index.html#/home'
@@ -10,6 +10,7 @@ import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import type { IpcMainEvent } from 'electron'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
+import { createMcpHttpServer } from './mcp'
 import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync, mkdtempSync, mkdirSync, chmodSync, accessSync, constants } from 'fs'
 import { join, dirname } from 'path'
 import { tmpdir, homedir } from 'os'
@@ -428,6 +429,15 @@ app.whenReady().then(() => {
   if (userSettings.value.autoBackup) {
     setupAutoBackup()
   }
+
+  // 上次退出前 MCP 服务处于开启状态时自动恢复
+  if (userSettings.value.mcp?.enabled) {
+    startMcp().then(status => {
+      if (!status.running) {
+        log.warn('[mcp] auto start failed:', status.error)
+      }
+    })
+  }
 })
 
 app.on('activate', () => {
@@ -518,6 +528,10 @@ Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 ipcMain.handle('getUserPath', () => userPath)
 
 ipcMain.handle('getVersion', () => app.getVersion())
+
+ipcMain.on('copyText', (event, text: string) => {
+    clipboard.writeText(String(text ?? ''))
+})
 
 ipcMain.handle('getNotificationQ', () => notificationQ)
 
@@ -942,22 +956,7 @@ ipcMain.handle('setSearchHint', (event, visible) => {
 
 ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
-  const id = Date.now()
-  notificationQ.push({
-    id,
-    createTime: id,
-    cd,
-    content,
-    end: countdownInterval * cd + Date.now(),
-  })
-  notificationHandlers[id] = setTimeout(() => {
-    new Notification({
-      title: 'schedule pro',
-      body: content,
-    }).show()
-    notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
-    delete notificationHandlers[id]
-  }, countdownInterval * cd)
+  addTimer(cd, content)
 })
 
 ipcMain.on('hideWindow', () => {
@@ -1001,9 +1000,7 @@ ipcMain.on('set-ignore-mouse-events', (event, ignore: boolean, options?: any) =>
 })
 
 ipcMain.on('removeCountDown', (event, id) => {
-  notificationQ.splice(notificationQ.findIndex(i => i.id === id), 1)
-  clearTimeout(notificationHandlers[id])
-  delete notificationHandlers[id]
+  removeTimer(id)
 })
 
 ipcMain.on('setStickyTitle', (event, args) => {
@@ -1221,10 +1218,7 @@ ipcMain.handle('getSelectedAIProvider', () => {
 
 ipcMain.on('createStickyWithContent', (event, args: { id: number, content: string }) => {
   const { id, content } = args
-  ensureIdInStickiesConfig(id)
-  const stickyData = useUserData('sticky' + id, { content: '' })
-  stickyData.value.content = content
-  createStickies(id)
+  createStickyByContent(content, undefined, id)
 })
 
 ipcMain.handle('showOpenFileDialog', async (event, options?: { title?: string, filters?: any[], defaultPath?: string }) => {
@@ -1285,4 +1279,344 @@ ipcMain.handle('writeFileContent', async (event, filePath: string, content: stri
   } catch (error) {
     throw error
   }
+})
+
+// ---------------- MCP 服务 ----------------
+// 默认端口取 schedule 在小键盘上的前四位: s=7 c=2 h=4 e=3
+const MCP_PORT = 7243
+let mcpServer: ReturnType<typeof createMcpHttpServer> | null = null
+let mcpError = ''
+
+const readDataFile = (name: string, fallback: any) => {
+  try {
+    const path = join(userPath, `${name}.json`)
+    if (existsSync(path)) {
+      return JSON.parse(readFileSync(path, { encoding: 'utf-8' }))
+    }
+  } catch (error) {
+    log.warn('[mcp] read data failed', name, error)
+  }
+  return fallback
+}
+
+const writeDataFile = (name: string, value: any) => {
+  writeFileSync(join(userPath, `${name}.json`), JSON.stringify(value))
+}
+
+const broadcastMessage = (payload: any) => {
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', payload)
+  })
+}
+
+const notifyDataChanged = (name: string) => {
+  broadcastMessage({ type: 'userDataChanged', value: name })
+}
+
+// 今日办
+const listSchedule = (dayKey: number) => {
+  const all = readDataFile('schedule', {})
+  return Array.isArray(all[dayKey]) ? all[dayKey] : []
+}
+
+const addSchedule = (dayKey: number, content: string) => {
+  const all = readDataFile('schedule', {})
+  if (!Array.isArray(all[dayKey])) all[dayKey] = []
+  const item = {
+    id: Date.now(),
+    create_time: Date.now(),
+    content,
+    done: false,
+    fromMcp: true,
+  }
+  all[dayKey].unshift(item)
+  writeDataFile('schedule', all)
+  notifyDataChanged('schedule')
+  return item
+}
+
+const findSchedule = (id: number) => {
+  const all = readDataFile('schedule', {})
+  for (const dayKey of Object.keys(all)) {
+    const item = (all[dayKey] || []).find((i: any) => +i.id === id)
+    if (item) return { all, dayKey, item }
+  }
+  return null
+}
+
+const updateSchedule = (id: number, patch: { content?: string, done?: boolean }) => {
+  const found = findSchedule(id)
+  if (!found) return null
+  if (patch.content !== undefined) found.item.content = patch.content
+  if (patch.done !== undefined) found.item.done = patch.done
+  found.item.fromMcp = true
+  writeDataFile('schedule', found.all)
+  notifyDataChanged('schedule')
+  return { dayKey: found.dayKey, item: found.item }
+}
+
+const deleteSchedule = (id: number) => {
+  const found = findSchedule(id)
+  if (!found) return false
+  found.all[found.dayKey] = (found.all[found.dayKey] || []).filter((i: any) => +i.id !== id)
+  writeDataFile('schedule', found.all)
+  notifyDataChanged('schedule')
+  return true
+}
+
+// 待办池
+const listInspiration = () => {
+  const all = readDataFile('inspiration', [])
+  return Array.isArray(all) ? all : []
+}
+
+const addInspiration = (content: string) => {
+  const all = listInspiration()
+  const now = Date.now()
+  const item = {
+    id: now,
+    create_time: now,
+    finish_time: now,
+    content,
+    done: false,
+    fromMcp: true,
+  }
+  all.unshift(item)
+  writeDataFile('inspiration', all)
+  notifyDataChanged('inspiration')
+  return item
+}
+
+const updateInspiration = (id: number, patch: { content?: string, done?: boolean }) => {
+  const all = listInspiration()
+  const item = all.find((i: any) => +i.id === id)
+  if (!item) return null
+  if (patch.content !== undefined) item.content = patch.content
+  if (patch.done !== undefined && !!item.done !== patch.done) {
+    item.done = patch.done
+    item.finish_time = Date.now()
+  }
+  item.fromMcp = true
+  writeDataFile('inspiration', all)
+  notifyDataChanged('inspiration')
+  return item
+}
+
+const deleteInspiration = (id: number) => {
+  const all = listInspiration()
+  const index = all.findIndex((i: any) => +i.id === id)
+  if (index === -1) return false
+  all.splice(index, 1)
+  writeDataFile('inspiration', all)
+  notifyDataChanged('inspiration')
+  return true
+}
+
+// 倒计时
+const addTimer = (minutes: number, content: string, fromMcp = false) => {
+  const id = Date.now()
+  const item = {
+    id,
+    createTime: id,
+    cd: minutes,
+    content,
+    end: countdownInterval * minutes + Date.now(),
+    ...(fromMcp ? { fromMcp: true } : {}),
+  }
+  notificationQ.push(item)
+  notificationHandlers[id] = setTimeout(() => {
+    new Notification({
+      title: 'schedule pro',
+      body: content,
+    }).show()
+    const index = notificationQ.findIndex(i => i.id === id)
+    if (index > -1) notificationQ.splice(index, 1)
+    delete notificationHandlers[id]
+  }, countdownInterval * minutes)
+  return item
+}
+
+const listTimers = () => {
+  const now = Date.now()
+  return notificationQ.map(item => ({
+    ...item,
+    startAt: item.createTime,
+    endAt: item.end,
+    remainSeconds: Math.max(0, Math.round((item.end - now) / 1000)),
+  }))
+}
+
+const removeTimer = (id: number) => {
+  const index = notificationQ.findIndex(i => i.id === id)
+  if (index === -1) return false
+  notificationQ.splice(index, 1)
+  clearTimeout(notificationHandlers[id])
+  delete notificationHandlers[id]
+  return true
+}
+
+// 便签
+const listStickies = () => {
+  return Object.entries(toRaw(stickiesConfig.value))
+    .map(([id, conf]: any) => ({
+      id: +id,
+      title: conf.title || '未命名便签',
+      order: conf.order,
+      backgroundColor: conf.backgroundColor,
+      createdAt: conf.createdAt || +id,
+      updatedAt: conf.updatedAt || conf.createdAt || +id,
+    }))
+    .sort((a, b) => a.order - b.order)
+}
+
+const readSticky = (id: number) => {
+  const data = readDataFile(`sticky${id}`, null)
+  return data && typeof data.content === 'string' ? data.content : null
+}
+
+// MCP 写入的便签在内容末尾追加标注, 重复写入时先去掉旧标注避免叠加
+const MCP_MARK = '(from mcp)'
+const withMcpMark = (content: string) => content.replace(/\s*\(from mcp\)\s*$/, '') + MCP_MARK
+
+const createStickyByContent = (content: string, title?: string, id: number = Date.now(), fromMcp = false) => {
+  ensureIdInStickiesConfig(id)
+  const conf = stickiesConfig.value[id]
+  const finalContent = fromMcp ? withMcpMark(content) : content
+  if (fromMcp) conf.fromMcp = true
+  conf.title = title || (finalContent.match(/\s?([^\n]+)/)?.[1] ?? '')
+  conf.updatedAt = Date.now()
+  writeDataFile(`sticky${id}`, { content: finalContent })
+  createStickies(id)
+  return { id, title: conf.title }
+}
+
+const updateStickyContent = (id: number, content: string, fromMcp = false) => {
+  const conf = stickiesConfig.value[id]
+  if (!conf) return false
+  const finalContent = fromMcp ? withMcpMark(content) : content
+  writeDataFile(`sticky${id}`, { content: finalContent })
+  const isFileSticky = String(conf.title || '').startsWith('[file]')
+  if (!isFileSticky) {
+    conf.title = finalContent.match(/\s?([^\n]+)/)?.[1] ?? ''
+  }
+  conf.updatedAt = Date.now()
+  stickyWindows[id]?.webContents?.send('message', {
+    type: 'stickyContentChanged',
+    value: { id, content: finalContent },
+  })
+  return true
+}
+
+const deleteStickyById = (id: number) => {
+  if (!stickiesConfig.value[id]) return false
+  const stickyWindow = stickyWindows[id]
+  if (stickyWindow) {
+    // 清空标题后关闭, 让 close 事件走"无标题便签"分支自动清理配置与内容文件
+    stickiesConfig.value[id].title = ''
+    stickyWindow.close()
+    setTimeout(() => {
+      if (stickiesConfig.value[id]) {
+        delete stickiesConfig.value[id]
+        try { unlinkSync(join(userPath, `sticky${id}.json`)) } catch (e) { }
+      }
+    }, 500)
+  } else {
+    delete stickiesConfig.value[id]
+    try { unlinkSync(join(userPath, `sticky${id}.json`)) } catch (e) { }
+  }
+  return true
+}
+
+const getMcpStatus = () => ({
+  running: !!mcpServer,
+  enabled: userSettings.value.mcp?.enabled === true,
+  port: MCP_PORT,
+  url: `http://127.0.0.1:${MCP_PORT}/mcp`,
+  error: mcpError,
+})
+
+const getAppSettings = () => ({
+  theme: userSettings.value.theme,
+  autoBackup: userSettings.value.autoBackup,
+  homeSections: { ...defaultHomeSections, ...(userSettings.value.homeSections || {}) },
+  searchHint: userSettings.value.searchHint !== false,
+  mcp: getMcpStatus(),
+})
+
+const buildMcpBridge = () => ({
+  getVersion: () => app.getVersion(),
+  listSchedule,
+  addSchedule,
+  updateSchedule,
+  deleteSchedule,
+  listInspiration,
+  addInspiration,
+  updateInspiration,
+  deleteInspiration,
+  listTimers,
+  addTimer: (minutes: number, content: string) => addTimer(minutes, content, true),
+  removeTimer,
+  listStickies,
+  readSticky,
+  createSticky: (content: string, title?: string) => createStickyByContent(content, title, Date.now(), true),
+  updateSticky: (id: number, content: string) => updateStickyContent(id, content, true),
+  deleteSticky: deleteStickyById,
+  getSettings: getAppSettings,
+})
+
+async function startMcp() {
+  if (mcpServer) return getMcpStatus()
+  mcpError = ''
+  const server = createMcpHttpServer(buildMcpBridge())
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const onError = (error: any) => reject(error)
+      server.once('error', onError)
+      server.listen(MCP_PORT, '127.0.0.1', () => {
+        server.removeListener('error', onError)
+        resolve()
+      })
+    })
+    mcpServer = server
+    log.info('[mcp] listening on', getMcpStatus().url)
+  } catch (error: any) {
+    mcpError = error?.code === 'EADDRINUSE'
+      ? `端口 ${MCP_PORT} 已被占用`
+      : String(error?.message || error)
+    try { server.close() } catch (e) { }
+    log.error('[mcp] start failed', error)
+  }
+  return getMcpStatus()
+}
+
+async function stopMcp() {
+  const server = mcpServer
+  mcpServer = null
+  if (server) {
+    await new Promise<void>(resolve => {
+      server.close(() => resolve())
+      // 关闭已建立的 keep-alive 连接, 否则 close 会一直等待
+      ;(server as any).closeAllConnections?.()
+    })
+    log.info('[mcp] stopped')
+  }
+  return getMcpStatus()
+}
+
+ipcMain.handle('getMcpStatus', () => getMcpStatus())
+
+ipcMain.handle('setMcpEnabled', async (event, enabled: boolean) => {
+  let status = getMcpStatus()
+  if (enabled) {
+    status = await startMcp()
+    if (status.running) {
+      userSettings.value.mcp = { ...(userSettings.value.mcp || {}), enabled: true }
+    }
+  } else {
+    status = await stopMcp()
+    userSettings.value.mcp = { ...(userSettings.value.mcp || {}), enabled: false }
+  }
+  status = getMcpStatus()
+  broadcastMessage({ type: 'mcpStatusChanged', value: status })
+  return status
 })

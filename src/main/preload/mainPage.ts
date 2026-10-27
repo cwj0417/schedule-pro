@@ -14,6 +14,7 @@ electron.contextBridge.exposeInMainWorld('apis', {
     send: electron.ipcRenderer.send,
     openUrl: electron.shell.openExternal,
     platform: process.platform,
+    copyText: (text: string) => electron.ipcRenderer.send('copyText', text),
     onMessage: (fn: any) => {
         electron.ipcRenderer.on('message', (event, text) => {
             fn?.(text)

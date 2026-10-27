@@ -2,7 +2,7 @@ import { watch, ref, toRaw, onMounted, onUnmounted } from 'vue'
 
 import { notification } from "../../type";
 
-const { fs, join, invoke } = window.apis as any
+const { fs, join, invoke, onMessage } = window.apis as any
 
 const useUserData = (name = 'main', init = {}, extraEffect: any = null, gotData: any = () => { }) => {
     let userData = ref<any>(init)
@@ -17,6 +17,16 @@ const useUserData = (name = 'main', init = {}, extraEffect: any = null, gotData:
                 fs.writeFileSync(confPath, JSON.stringify(init))
                 gotData();
             }
+            // 其他进程(如 MCP 服务)改写数据后, 从磁盘重新载入
+            onMessage(({ type, value }: any) => {
+                if (type === 'userDataChanged' && value === name && fs.existsSync(confPath)) {
+                    try {
+                        userData.value = JSON.parse(fs.readFileSync(confPath, { encoding: 'utf-8' }))
+                    } catch (e) {
+                        console.error('reload user data failed', name, e)
+                    }
+                }
+            })
             watch(userData, val => {
                 // console.log('set userdata', name, toRaw(val))
                 fs.writeFileSync(confPath, JSON.stringify(val))
@@ -43,6 +53,7 @@ const useTimer = () => {
                         last: Math.round((item.end - item.createTime) / 1000),
                         percent: (item.end - now) / (item.end - item.createTime),
                         remain: Math.round((item.end - now) / 1000),
+                        fromMcp: item.fromMcp === true,
                     }))
                     .filter((i) => i.remain > 0);
             });

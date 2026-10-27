@@ -35,7 +35,10 @@
         <empty v-if="!timers.length" />
         <div class="todo-item-wrap hover-fill group" :class="{ stripped: index % 2 === 1 }" v-for="(timer, index) of timers"
           :key="timer.id">
-          <div class="w-1/2 todo-text">{{ timer.content }}</div>
+          <div class="w-1/2 flex items-center min-w-0">
+            <span class="todo-text">{{ timer.content }}</span>
+            <span v-if="timer.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
+          </div>
           <div class="w-1/4 tabular-nums">{{ formatCountdown(timer.last) }}</div>
           <div class="w-1/4 tabular-nums flex items-center">
             {{ formatCountdown(timer.remain) }}

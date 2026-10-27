@@ -121,9 +121,11 @@
                     'item-done': item.done,
                   }" class="w-full h-10 p-2 flex leading-6 hover-fill">
                     <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                      style="width: calc(100% - 24px)">
-                      <search-result :search="searchContent" :value="item.content" />
+                    <span class="flex items-center min-w-0" style="width: calc(100% - 24px)">
+                      <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden min-w-0 flex-1">
+                        <search-result :search="searchContent" :value="item.content" />
+                      </span>
+                      <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
                     </span>
                   </div>
                 </template>
@@ -147,7 +149,8 @@
                 background: 'linear-gradient(90deg, var(--theme-2), var(--theme-0))',
                 transition: 'width 1s linear',
               }"></div>
-              <span class="relative">{{ timers[0].content }}</span>
+              <span class="relative">{{ timers[0].content }}<span v-if="timers[0].fromMcp" class="mcp-tag"
+                  title="由 MCP 写入">MCP</span></span>
             </div>
           </div>
         </div>
@@ -178,9 +181,11 @@
                   'item-done': item.done,
                 }" class="w-full h-10 p-2 flex leading-6 hover-fill">
                   <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                  <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden"
-                    style="width: calc(100% - 24px)">
-                    <search-result :search="searchContent" :value="item.content" />
+                  <span class="flex items-center min-w-0" style="width: calc(100% - 24px)">
+                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden min-w-0 flex-1">
+                      <search-result :search="searchContent" :value="item.content" />
+                    </span>
+                    <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
                   </span>
                 </div>
               </template>
@@ -292,6 +297,7 @@ declare global {
       send: (channel: string, ...args: any[]) => void
       invoke: (channel: string, ...args: any[]) => Promise<any>
       onMessage: (callback: (message: any) => void) => void
+      copyText: (text: string) => void
       platform: string
     }
   }

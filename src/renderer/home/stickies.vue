@@ -25,6 +25,7 @@
             <search-result :value="sticky?.title || '未命名便签'" :search="search" />
           </template>
         </div>
+        <span v-if="sticky.fromMcp" class="mcp-tag" title="由 MCP 创建">MCP</span>
         <!-- 更新时间: hover 时在最右侧展开, 位于置顶按钮左侧 -->
         <span class="sticky-time flex-shrink-0 h-full leading-10 text-xs whitespace-nowrap pointer-events-none"
           style="color: var(--color-2)">

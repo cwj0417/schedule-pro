@@ -4,4 +4,5 @@ export type notification = {
     cd: number,
     end: number,
     content: string,
+    fromMcp?: boolean,
 }

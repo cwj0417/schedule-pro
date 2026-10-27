@@ -15,6 +15,7 @@
             <template v-else>
                 <div :class="item.done ? 'indicator indicator-done' : 'indicator'" @click="$emit('toggleItem')"></div>
                 <div class="todo-text">{{ item.content }}</div>
+                <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
                 <div class="todo-actions">
                     <div class="todo-action"
                         @click="isEditing = true; editingContent = item.content; inputfocus();">
