@@ -3,7 +3,6 @@
 
   const REPO = "cwj0417/schedule-pro";
   const RELEASES_URL = `https://github.com/${REPO}/releases`;
-  const LATEST_URL = `${RELEASES_URL}/latest`;
   const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
   const CACHE_KEY = "schedulepro:latestRelease";
   const CACHE_TTL = 60 * 60 * 1000;
@@ -100,16 +99,50 @@
 
   if (allLink) allLink.href = RELEASES_URL;
 
-  downloadLinks.forEach((link) => {
-    link.href = LATEST_URL;
-  });
-
   const setDownloadUrl = (url) => {
     downloadLinks.forEach((link) => {
       link.href = url;
     });
     if (releaseDownload) releaseDownload.href = url;
   };
+
+  /* ---------- 下载链接: 识别芯片架构, 直接下载最新安装包 ---------- */
+  const archMeta = document.getElementById("archMeta");
+  const ctaHint = document.getElementById("ctaHint");
+
+  // Apple Silicon 的 WebGL 渲染器是 "Apple M1/M2/GPU", Intel 机型是 Intel/AMD/NVIDIA
+  const detectMacArch = () => {
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (!gl) return "";
+      const ext = gl.getExtension("WEBGL_debug_renderer_info");
+      const renderer = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER) || "");
+      if (/apple/i.test(renderer)) return "arm64";
+      if (/intel|amd|radeon|nvidia|geforce/i.test(renderer)) return "x64";
+    } catch (error) {
+      /* WebGL 不可用时忽略 */
+    }
+    return "";
+  };
+
+  const applyDownloadLinks = () => {
+    let url = RELEASES_URL;
+
+    if (/Macintosh/i.test(navigator.userAgent)) {
+      const arch = detectMacArch();
+      if (arch) {
+        // 配合安装包的固定文件名, 链接永远指向最新发布的 DMG, 点击直接开始下载
+        url = `${RELEASES_URL}/latest/download/schedule-pro-${arch}.dmg`;
+        if (archMeta) archMeta.textContent = `已匹配 ${arch === "arm64" ? "Apple Silicon" : "Intel"} 安装包`;
+        if (ctaHint) ctaHint.textContent = "已根据你的芯片自动匹配安装包，点击直接开始下载";
+      }
+    }
+
+    setDownloadUrl(url);
+  };
+
+  applyDownloadLinks();
 
   const formatDate = (value) => {
     const date = new Date(value);
@@ -182,8 +215,6 @@
         releaseNotes.appendChild(empty);
       }
     }
-
-    if (release.html_url) setDownloadUrl(release.html_url);
   };
 
   const renderFallback = () => {
@@ -197,7 +228,6 @@
       paragraph.textContent = "暂时没能从 GitHub 读取更新说明，可以直接前往 Releases 页面查看完整变更与下载地址。";
       releaseNotes.appendChild(paragraph);
     }
-    setDownloadUrl(LATEST_URL);
   };
 
   const readCache = () => {
