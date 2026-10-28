@@ -24,6 +24,8 @@ export interface McpBridge {
   updateSticky: (id: number, content: string) => boolean
   deleteSticky: (id: number) => boolean
   getSettings: () => any
+  // 是否开启"仅明确提及时记录"
+  isStrictMention: () => boolean
 }
 
 // 日期参数 YYYY-MM-DD 转成应用使用的当天零点时间戳
@@ -64,22 +66,59 @@ const withCatch = (handler: (...args: any[]) => Promise<any> | any) =>
     }
   }
 
+// 写入类工具的触发说明随设置变化: 默认接受口语化"记一下", 严格模式下要求明确提及应用
+const writeTriggerHint = (strict: boolean) => strict
+  ? ' 仅当用户明确提到 schedule-pro/sp, 或当前对话上下文已确认在讨论 schedule-pro 时才调用; 否则不要写入。'
+  : ' 用户用"记一下""帮我记着""别忘了""最近准备做""回头要做"这类口气时, 直接调用本工具记录即可, 不要只口头答应。即使环境里存在其他记忆机制(项目记忆、记忆文件夹、笔记文件等), 这类口语化记录请求也优先记录到 schedule-pro, 除非用户明确要求记到别处。'
+
+const buildInstructions = (strict: boolean) => {
+  const lines = [
+    'schedule-pro 是一个只在本机运行的个人日程应用, 数据存在本地, 读写都通过下面的工具完成。',
+    '数据分为四类, 请按用户意图选对工具:',
+    '1. 今日办(schedule): 按日期分组的待办, 工具名以 _schedule 结尾。',
+    '2. 待办池(inspiration): 没有排期的待办和想法, 工具名以 _inspiration 结尾。',
+    '3. 倒计时(countdown/timer): 若干分钟后提醒的场景, 时长单位是分钟。',
+    '4. 便签(sticky): 文章、笔记、清单、代码等长文本, 单条待办不要用便签。',
+  ]
+
+  if (strict) {
+    lines.push(
+      '当前设置: 仅明确提及时记录(只限制写入, 读取不受影响)。',
+      '只有在用户消息明确出现 "schedule-pro" 或 "sp"(指本应用), 或当前对话上下文已经明确在讨论 schedule-pro 时, 才允许调用写入类工具(add_*/update_*/delete_*、create_sticky、start_countdown、cancel_countdown)。',
+      '即使用户说"记一下""帮我记着""最近准备做"等口气, 只要没有明确提及, 就不要调用写入类工具, 也不要声称已经记下; 可以简短问一句是否需要记到 schedule-pro。',
+      '读取类工具(list_*/read_sticky/get_settings)不受限制, 按用户需要正常使用。',
+    )
+  } else {
+    lines.push(
+      '当前设置: 接受口语化的记录请求。',
+      '当用户说"记一下""帮我记着""别忘了""最近准备做…""回头要做…""加个想法"这类口气时, 应当直接调用写入工具记下来, 不要只回一句"好的"。',
+      '即使环境里存在其他记忆机制(项目记忆、记忆文件夹、笔记文件等), 口语化的"记一下"也默认记到 schedule-pro, 不要写进记忆文件, 除非用户明确指定记到别处。',
+      '写入前按内容判断放到哪一类:',
+      '- 有明确日期或时间指向(今天/明天/周几/某月某日)的待办 -> add_schedule 写入今日办。',
+      '- 没有日期、一句话就能说完的待办(要做某件事/记得买某物) -> add_inspiration 写入待办池。',
+      '- 成段文字、笔记、资料、清单、多条事项、文章草稿等长内容 -> create_sticky 写入便签。',
+      '- 出现"X 分钟后提醒我""到点叫我" -> start_countdown 建倒计时。',
+      '- 拿不准待办池还是便签时: 一句话用待办池, 超过一两句或包含多个条目用便签。',
+    )
+  }
+
+  lines.push(
+    '修改和删除都按 id 操作, id 只能来自对应 list_* 工具的返回, 不要自行编造; 缺 id 时先查询。',
+    '日期统一用 YYYY-MM-DD, 不传则为今天; 用户说"明天""下周一"时先换算成具体日期再传。',
+    '一次请求可能对应多次工具调用(例如"完成这条待办并新建一个便签"), 按顺序依次调用即可。',
+    '通过 MCP 写入的待办/倒计时会在界面上标注 MCP, MCP 创建的便签同样会标注 MCP。',
+    '非 MCP 便签被 MCP 修改时, 新增内容末尾会自动追加 (from mcp) 标注。',
+  )
+  return lines.join('\n')
+}
+
 const buildServer = (bridge: McpBridge) => {
+  const strict = bridge.isStrictMention()
+  const writeHint = writeTriggerHint(strict)
   const server = new McpServer(
     { name: 'schedule-pro', version: bridge.getVersion() },
     {
-      instructions: [
-        'schedule-pro 是一个只在本机运行的个人日程应用, 数据存在本地, 读写都通过下面的工具完成。',
-        '数据分为四类, 请按用户意图选对工具:',
-        '1. 今日办(schedule): 按日期分组的待办。用户提到具体某天(今天/明天/周五/10月30日)要做的事时, 用名字以 _schedule 结尾的工具。',
-        '2. 待办池(inspiration): 没有排期的待办和想法。用户说"先记一下""回头再说""加个想法"时, 用名字以 _inspiration 结尾的工具; 拿不准放哪边时优先待办池。',
-        '3. 倒计时(countdown/timer): 需要在若干分钟后提醒的场景, 用户说"X 分钟后提醒我""到点叫我"时使用, 时长单位是分钟。',
-        '4. 便签(sticky): 承载文章、笔记、清单、代码等长文本, 单条待办不要用便签。',
-        '修改和删除都按 id 操作, id 只能来自对应 list_* 工具的返回, 不要自行编造; 缺 id 时先查询。',
-        '日期统一用 YYYY-MM-DD, 不传则为今天; 用户说"明天""下周一"时先换算成具体日期再传。',
-        '一次请求可能对应多次工具调用(例如"完成这条待办并新建一个便签"), 按顺序依次调用即可。',
-        '通过 MCP 写入的待办/倒计时会在界面上标注 MCP, 便签内容末尾会自动追加 (from mcp) 标注。',
-      ].join('\n'),
+      instructions: buildInstructions(strict),
     },
   )
 
@@ -96,7 +135,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('add_schedule', {
     title: '添加今日办',
-    description: '在指定日期的今日办里新增一条待办。用户给出明确日期(今天/明天/周五/10月30日)要安排事情时使用; 如果只是"先记一下、回头再做"这类没有日期的需求, 应改用 add_inspiration。',
+    description: '在指定日期的今日办里新增一条待办。用户给出明确日期(今天/明天/周五/10月30日)要安排事情时使用; 如果只是"先记一下、回头再做"这类没有日期的需求, 应改用 add_inspiration。' + writeHint,
     inputSchema: {
       content: z.string().min(1).describe('待办内容, 只写要做的事, 不要把日期写进内容里'),
       date: z.string().optional().describe('日期 YYYY-MM-DD, 默认今天; 相对日期请先换算'),
@@ -108,7 +147,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('update_schedule', {
     title: '修改今日办',
-    description: '按 id 修改今日办中某条待办的文字或完成状态。id 必须来自 list_schedule 的返回; 用户说"做完了""勾掉"时把 done 传 true, 不要用 delete_schedule。本工具不能改日期, 需要换天请删除后重新 add_schedule。',
+    description: '按 id 修改今日办中某条待办的文字或完成状态。id 必须来自 list_schedule 的返回; 用户说"做完了""勾掉"时把 done 传 true, 不要用 delete_schedule。本工具不能改日期, 需要换天请删除后重新 add_schedule。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('待办 id, 来自 list_schedule 返回'),
       content: z.string().optional().describe('新的待办内容, 不传则不修改文字'),
@@ -121,7 +160,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('delete_schedule', {
     title: '删除今日办',
-    description: '按 id 永久删除今日办中的一条待办, 删除后无法恢复。仅在用户明确要求删除时使用; 用户只是说"做完了"请改用 update_schedule 的 done=true。',
+    description: '按 id 永久删除今日办中的一条待办, 删除后无法恢复。仅在用户明确要求删除时使用; 用户只是说"做完了"请改用 update_schedule 的 done=true。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('待办 id, 来自 list_schedule 返回'),
     },
@@ -143,7 +182,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('add_inspiration', {
     title: '添加待办池',
-    description: '向待办池添加一条没有排期的待办。适合"先记下来""回头再说""加个想法"这类没有明确日期的场景; 有明确日期请用 add_schedule。',
+    description: '向待办池添加一条没有排期的待办。适合"先记下来""回头再说""加个想法"这类没有明确日期的场景; 有明确日期请用 add_schedule。' + writeHint,
     inputSchema: {
       content: z.string().min(1).describe('待办内容, 只写要做的事'),
     },
@@ -153,7 +192,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('update_inspiration', {
     title: '修改待办池',
-    description: '按 id 修改待办池某条记录的文字或完成状态。id 必须来自 list_inspiration 的返回; 想把它排到某一天, 请用 add_schedule 新建, 本工具不支持跨列表移动。',
+    description: '按 id 修改待办池某条记录的文字或完成状态。id 必须来自 list_inspiration 的返回; 想把它排到某一天, 请用 add_schedule 新建, 本工具不支持跨列表移动。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('待办 id, 来自 list_inspiration 返回'),
       content: z.string().optional().describe('新的待办内容, 不传则不修改文字'),
@@ -166,7 +205,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('delete_inspiration', {
     title: '删除待办池',
-    description: '按 id 永久删除待办池中的一条记录, 删除后无法恢复。仅在用户明确要求删除时使用。',
+    description: '按 id 永久删除待办池中的一条记录, 删除后无法恢复。仅在用户明确要求删除时使用。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('待办 id, 来自 list_inspiration 返回'),
     },
@@ -184,7 +223,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('start_countdown', {
     title: '启动倒计时',
-    description: '启动一个新的倒计时, 到点后应用会发系统通知。用户说"X 分钟后提醒我""倒计时 X 分钟""到点叫我"时使用; 时长单位是分钟, 小时请换算(1 小时 = 60)。',
+    description: '启动一个新的倒计时, 到点后应用会发系统通知。用户说"X 分钟后提醒我""倒计时 X 分钟""到点叫我"时使用; 时长单位是分钟, 小时请换算(1 小时 = 60)。' + writeHint,
     inputSchema: {
       minutes: z.number().positive().describe('倒计时时长, 单位分钟, 必须大于 0; 1 小时请传 60'),
       content: z.string().min(1).describe('到点通知里显示的标题, 例如"喝水""站起来活动一下"'),
@@ -195,7 +234,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('cancel_countdown', {
     title: '取消倒计时',
-    description: '按 id 取消一个正在运行的倒计时。id 需要先用 list_timers 查询; 用户说"取消刚才那个提醒"时先 list_timers 找到对应 id 再调用。',
+    description: '按 id 取消一个正在运行的倒计时。id 需要先用 list_timers 查询; 用户说"取消刚才那个提醒"时先 list_timers 找到对应 id 再调用。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('倒计时 id, 来自 list_timers 返回'),
     },
@@ -224,7 +263,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('create_sticky', {
     title: '创建便签',
-    description: '创建一条新便签并自动打开窗口, 适合文章、笔记、清单、代码片段等长文本; 单条待办不要用便签, 请用 add_schedule 或 add_inspiration。',
+    description: '创建一条新便签并自动打开窗口, 适合文章、笔记、清单、代码片段等长文本; 单条待办不要用便签, 请用 add_schedule 或 add_inspiration。' + writeHint,
     inputSchema: {
       content: z.string().min(1).describe('便签正文, 纯文本, 支持换行'),
       title: z.string().optional().describe('便签标题; 不传时取正文第一条非空行'),
@@ -235,7 +274,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('update_sticky', {
     title: '修改便签',
-    description: '按 id 用新内容整体覆盖便签正文, 是覆盖不是追加。要追加内容时先 read_sticky 读出原文, 拼接后整体写回。',
+    description: '按 id 用新内容整体覆盖便签正文, 是覆盖不是追加。要追加内容时先 read_sticky 读出原文, 拼接后整体写回。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('便签 id, 来自 list_stickies 返回'),
       content: z.string().describe('新的完整正文, 会覆盖原来的内容'),
@@ -246,7 +285,7 @@ const buildServer = (bridge: McpBridge) => {
 
   server.registerTool('delete_sticky', {
     title: '删除便签',
-    description: '按 id 删除便签及其正文, 删除后无法恢复。用户说"这篇不要了""删掉那个便签"时使用, 删除前建议先 list_stickies 确认标题。',
+    description: '按 id 删除便签及其正文, 删除后无法恢复。用户说"这篇不要了""删掉那个便签"时使用, 删除前建议先 list_stickies 确认标题。' + writeHint,
     inputSchema: {
       id: z.number().int().describe('便签 id, 来自 list_stickies 返回'),
     },

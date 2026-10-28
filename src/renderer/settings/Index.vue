@@ -501,6 +501,21 @@
                             <span class="text-xs truncate" style="color: var(--color-2);">{{ mcpStatus.url }}</span>
                         </div>
                     </div>
+                    <button @click="toggleMcpStrictMention" :disabled="mcpStrictBusy"
+                        class="section-tile hover-fill mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left focus:outline-none"
+                        :class="mcpStatus.strictMention ? 'section-tile-active' : 'section-tile-inactive'"
+                        :style="mcpStatus.strictMention ? '--hover-fill: color-mix(in srgb, var(--theme-0) 18%, transparent);' : '--hover-fill: var(--bg-2);'">
+                        <div class="section-tile-icon w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs font-medium">仅明确提及时记录</span>
+                            <span class="text-xs leading-4" style="color: var(--color-2);">开启后需提到 schedule-pro / sp 或上下文明确才写入, 读取不受影响; 切换后服务自动重启, 客户端需重连</span>
+                        </div>
+                    </button>
                     <div v-if="mcpStatus.running" class="mt-3">
                         <div class="flex items-center justify-between">
                             <span class="text-xs" style="color: var(--color-2);">客户端配置</span>
@@ -634,6 +649,7 @@ const showToken = ref(false)
 const mcpStatus = reactive({
     running: false,
     enabled: false,
+    strictMention: false,
     port: 7243,
     url: 'http://127.0.0.1:7243/mcp',
     error: ''
@@ -680,6 +696,22 @@ const toggleMcp = async () => {
         mcpStatus.error = String(error?.message || error)
     } finally {
         mcpBusy.value = false
+    }
+}
+
+// 切换"仅明确提及时记录"
+const mcpStrictBusy = ref(false)
+const toggleMcpStrictMention = async () => {
+    if (mcpStrictBusy.value) return
+    mcpStrictBusy.value = true
+    try {
+        const status = await invoke('setMcpStrictMention', !mcpStatus.strictMention)
+        Object.assign(mcpStatus, status)
+    } catch (error: any) {
+        console.error('切换 MCP 记录方式失败:', error)
+        mcpStatus.error = String(error?.message || error)
+    } finally {
+        mcpStrictBusy.value = false
     }
 }
 

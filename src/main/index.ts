@@ -1481,11 +1481,10 @@ const withMcpMark = (content: string) => content.replace(/\s*\(from mcp\)\s*$/, 
 const createStickyByContent = (content: string, title?: string, id: number = Date.now(), fromMcp = false) => {
   ensureIdInStickiesConfig(id)
   const conf = stickiesConfig.value[id]
-  const finalContent = fromMcp ? withMcpMark(content) : content
   if (fromMcp) conf.fromMcp = true
-  conf.title = title || (finalContent.match(/\s?([^\n]+)/)?.[1] ?? '')
+  conf.title = title || (content.match(/\s?([^\n]+)/)?.[1] ?? '')
   conf.updatedAt = Date.now()
-  writeDataFile(`sticky${id}`, { content: finalContent })
+  writeDataFile(`sticky${id}`, { content })
   createStickies(id)
   return { id, title: conf.title }
 }
@@ -1493,7 +1492,8 @@ const createStickyByContent = (content: string, title?: string, id: number = Dat
 const updateStickyContent = (id: number, content: string, fromMcp = false) => {
   const conf = stickiesConfig.value[id]
   if (!conf) return false
-  const finalContent = fromMcp ? withMcpMark(content) : content
+  // MCP 便签(由 MCP 创建, 界面已有 MCP 标志)不再追加文本标注
+  const finalContent = fromMcp && !conf.fromMcp ? withMcpMark(content) : content
   writeDataFile(`sticky${id}`, { content: finalContent })
   const isFileSticky = String(conf.title || '').startsWith('[file]')
   if (!isFileSticky) {
@@ -1530,6 +1530,7 @@ const deleteStickyById = (id: number) => {
 const getMcpStatus = () => ({
   running: !!mcpServer,
   enabled: userSettings.value.mcp?.enabled === true,
+  strictMention: userSettings.value.mcp?.strictMention === true,
   port: MCP_PORT,
   url: `http://127.0.0.1:${MCP_PORT}/mcp`,
   error: mcpError,
@@ -1562,6 +1563,7 @@ const buildMcpBridge = () => ({
   updateSticky: (id: number, content: string) => updateStickyContent(id, content, true),
   deleteSticky: deleteStickyById,
   getSettings: getAppSettings,
+  isStrictMention: () => userSettings.value.mcp?.strictMention === true,
 })
 
 async function startMcp() {
@@ -1617,6 +1619,19 @@ ipcMain.handle('setMcpEnabled', async (event, enabled: boolean) => {
     userSettings.value.mcp = { ...(userSettings.value.mcp || {}), enabled: false }
   }
   status = getMcpStatus()
+  broadcastMessage({ type: 'mcpStatusChanged', value: status })
+  return status
+})
+
+// 切换"仅明确提及时记录": instructions 与工具描述在 initialize/tools/list 时下发,
+// 重启服务让客户端重连后拿到新文案
+ipcMain.handle('setMcpStrictMention', async (event, enabled: boolean) => {
+  userSettings.value.mcp = { ...(userSettings.value.mcp || {}), strictMention: !!enabled }
+  if (mcpServer) {
+    await stopMcp()
+    await startMcp()
+  }
+  const status = getMcpStatus()
   broadcastMessage({ type: 'mcpStatusChanged', value: status })
   return status
 })
