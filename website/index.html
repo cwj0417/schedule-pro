@@ -62,6 +62,20 @@
         </p>
         <h1 class="reveal">今天要做什么，<br /><span class="grad">一个窗口就够了。</span></h1>
         <p class="hero-sub reveal">今日办、待办池、便签和倒计时并排在一屏。全局快捷键随手唤起，<br class="desktop-only" />所有数据只存在你自己的电脑里。</p>
+        <ul class="hero-points reveal" aria-label="产品特点">
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span>手不离键盘，鼠标基本用不上</span>
+          </li>
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span>打开就是全部，没有多余的东西</span>
+          </li>
+          <li>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>
+            <span>想到就记下，几秒就能完成</span>
+          </li>
+        </ul>
         <div class="hero-cta reveal">
           <a class="btn btn-primary btn-lg" id="downloadHero" href="https://github.com/cwj0417/schedule-pro/releases/latest" target="_blank" rel="noopener">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -95,7 +109,6 @@
                   <img class="mock-logo mock-logo-dark" src="./assets/logo-dark.png" alt="" />
                   <span class="kbd">⌘ ⇧ H</span>
                 </div>
-                <div class="mock-search">直接输入以搜索, esc 以清空</div>
                 <div class="mock-top-right">
                   <span class="mock-version">v1.20.2</span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -252,7 +265,7 @@
               </svg>
             </div>
             <h3>直接打字，就能筛出来</h3>
-            <p>首页顶部的搜索框会同时过滤今日办、待办池和便签，匹配内容高亮显示。按 Esc 立刻清空，回到完整视图。</p>
+            <p>唤起首页后直接开始打字，不用先找搜索框，今日办、待办池和便签会同时过滤，匹配内容高亮显示。按 Esc 立刻清空，回到完整视图。</p>
           </article>
 
           <article class="feature-card reveal">
@@ -290,6 +303,18 @@
           <h2>你的手不用离开键盘</h2>
           <p>默认组合键已经排好，也可以点击首页上对应模块的快捷键标签，录下自己顺手的那一组。如果组合键被其他应用占用，换一组就能生效。</p>
           <p class="split-note">除新建便签外，其余组合键都可以自定义。</p>
+          <div class="split-highlight reveal">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 13h6"></path>
+              </svg>
+            </div>
+            <div>
+              <b>搜索也不用找框</b>
+              <p>回到首页直接打字，今日办、待办池、便签立刻同时过滤；按 <kbd>Esc</kbd> 一下清空。整个过程不用碰鼠标。</p>
+            </div>
+          </div>
         </div>
         <div class="shortcut-card reveal">
           <div class="shortcut-row">
@@ -326,7 +351,7 @@
         <div class="section-head reveal">
           <p class="kicker">本地与 AI</p>
           <h2>数据留在本机，能力可以外接</h2>
-          <p class="section-sub">默认完全离线可用；需要时，再打开 MCP 服务，把日程交给 AI 客户端读写。</p>
+          <p class="section-sub">数据每天自动备份，换电脑整包带走；需要时再打开 MCP，让 AI 直接帮你记。</p>
         </div>
 
         <div class="duo">
@@ -339,8 +364,8 @@
                 </svg>
               </div>
               <div>
-                <h3>本地优先</h3>
-                <p>没有注册、没有同步、没有遥测。</p>
+                <h3>自动数据备份</h3>
+                <p>数据只存在你的电脑里，每天自动备份一份，误删也能找回来。</p>
               </div>
             </div>
             <div class="file-tree" aria-hidden="true">
@@ -351,7 +376,7 @@
               <div class="file-row"><span class="tree-branch">├─</span><span class="file-name">shortcuts.json</span><span class="file-desc">快捷键</span></div>
               <div class="file-row"><span class="tree-branch">└─</span><span class="file-name">settings.json</span><span class="file-desc">偏好设置</span></div>
             </div>
-            <p class="duo-foot">设置页提供备份、恢复、导出与导入，换电脑时整包带走即可。</p>
+            <p class="duo-foot">也可以随时手动操作：立即备份、恢复数据、导出、导入，换电脑时整包带走即可。</p>
           </div>
 
           <div class="duo-card reveal">
@@ -364,17 +389,17 @@
                 </svg>
               </div>
               <div>
-                <h3>MCP 服务（可选）</h3>
-                <p>让 AI 客户端读懂并更新你的清单。</p>
+                <h3>MCP 接入</h3>
+                <p>在 AI agent 里直接记待办、写便签，不用整理，也不用复制粘贴。</p>
               </div>
             </div>
             <ol class="steps">
-              <li><span class="step-num">1</span><span>在设置中启动 MCP 服务，本地地址只在运行时监听。</span></li>
-              <li><span class="step-num">2</span><span>复制生成的客户端配置，粘贴到任意支持 MCP 的 AI 客户端。</span></li>
-              <li><span class="step-num">3</span><span>之后就能让 AI 读写今日办、待办池、倒计时和便签。</span></li>
-              <li><span class="step-num">4</span><span>服务只监听 127.0.0.1，局域网内的其他设备无法访问。</span></li>
+              <li><span class="step-num">1</span><span>在设置中启动 MCP 服务，复制生成的客户端配置。</span></li>
+              <li><span class="step-num">2</span><span>粘贴到任意支持 MCP 的 AI 客户端，一次性接入。</span></li>
+              <li><span class="step-num">3</span><span>之后对话里说一句“帮我记个待办”“把这个存到便签”，AI 直接写进清单。</span></li>
+              <li><span class="step-num">4</span><span>服务只监听本机 127.0.0.1，局域网内的其他设备无法访问。</span></li>
             </ol>
-            <p class="duo-foot">服务默认关闭，是否开启完全由你决定；关闭后客户端需要重新连接。</p>
+            <p class="duo-foot">想到什么，对 AI 说一句就落到清单里；服务默认关闭，开与不开完全由你决定。</p>
           </div>
         </div>
       </div>
@@ -386,7 +411,7 @@
         <div class="section-head reveal">
           <p class="kicker">更新日志</p>
           <h2>每次发版，都在这里</h2>
-          <p class="section-sub">安装包统一发布在 GitHub Releases，页面会自动同步最新版本的更新说明。</p>
+          <p class="section-sub">每个版本带来了什么新东西，这里一目了然。更新前先看一眼，好东西不错过。</p>
         </div>
 
         <div class="release-layout">
