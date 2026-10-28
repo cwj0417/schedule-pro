@@ -8,6 +8,9 @@ const config = {
   appId: 'com.cwj.schedule-pro',
   copyright: 'chenwj',
   electronVersion: process.env.ELECTRON_VERSION, // only used for development debugging
+  // 产物文件名不带版本号, 固定为 schedule-pro-{arch}.{ext},
+  // 这样 releases/latest/download/ 恒定指向最新发布的安装包
+  artifactName: '${productName}-${arch}.${ext}',
   directories: {
     output: 'build/built',
     buildResources: 'build',
