@@ -5,6 +5,7 @@ import Timer from './timer/Index.vue'
 import Schedule from './schedule/Index.vue'
 import Inspiration from './inspiration/Index.vue'
 import Stickies from './stickies/Index.vue'
+import StickiesList from './stickiesList/Index.vue'
 import Settings from './settings/Index.vue'
 import { applyTheme, setupSystemThemeListener } from './utils/theme'
 import './css/tailwind.css'
@@ -24,6 +25,7 @@ const routes: RouteRecordRaw[] = [
     { path: '/schedule', component: Schedule },
     { path: '/inspiration', component: Inspiration },
     { path: '/stickies', component: Stickies },
+    { path: '/stickies-list', component: StickiesList },
     { path: '/settings', component: Settings },
 ]
 

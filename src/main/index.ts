@@ -6,6 +6,7 @@ import timerPage from '@/renderer/index.html#/timer'
 import schedulePage from '@/renderer/index.html#/schedule'
 import inspirationPage from '@/renderer/index.html#/inspiration'
 import stickiesPage from '@/renderer/index.html#/stickies'
+import stickiesListPage from '@/renderer/index.html#/stickies-list'
 import settingsPage from '@/renderer/index.html#/settings'
 import { BrowserWindowConstructorOptions } from 'electron/main'
 import type { IpcMainEvent } from 'electron'
@@ -192,6 +193,18 @@ const windowConf: {
   },
   inspiration: {
     url: inspirationPage,
+    conf: {
+      width: 800,
+      height: 600,
+      frame: false,
+      webPreferences: {
+        preload: mainPreload,
+        sandbox: false,
+      }
+    },
+  },
+  stickiesList: {
+    url: stickiesListPage,
     conf: {
       width: 800,
       height: 600,
@@ -411,6 +424,7 @@ app.whenReady().then(() => {
   shortcuts.timer = shortcuts.timer ?? ["metaKey", "shiftKey", "i"]
   shortcuts.schedule = shortcuts.schedule ?? ["metaKey", "shiftKey", "j"]
   shortcuts.inspiration = shortcuts.inspiration ?? ["metaKey", "shiftKey", "l"]
+  shortcuts.stickiesList = shortcuts.stickiesList ?? ["metaKey", "shiftKey", "k"]
   shortcuts.main = shortcuts.main ?? ["metaKey", "shiftKey", "h"]
   for (let [windowName, key] of Object.entries(shortcuts)) {
     const accelerator = key.map(keyToAccelerator).join('+')
@@ -1043,6 +1057,10 @@ ipcMain.on('openSticky', (event, stickyId) => {
   }
 })
 
+ipcMain.on('createSticky', () => {
+  createStickies()
+})
+
 ipcMain.handle('findStickyByFilePath', (event, filePath: string) => {
   const FILE_PREFIX = '[file]'
   const target = FILE_PREFIX + filePath
@@ -1526,6 +1544,25 @@ const deleteStickyById = (id: number) => {
   }
   return true
 }
+
+// 便签详情页: 一次性取回全部便签配置与内容
+ipcMain.handle('getStickiesWithContent', () => {
+  return Object.entries(toRaw(stickiesConfig.value))
+    .map(([id, conf]: any) => ({
+      id: +id,
+      title: conf.title || '',
+      content: readSticky(+id) || '',
+      backgroundColor: conf.backgroundColor,
+      order: conf.order,
+      expended: conf.expended === true,
+      createdAt: conf.createdAt || +id,
+      updatedAt: conf.updatedAt || conf.createdAt || +id,
+      fromMcp: conf.fromMcp === true,
+    }))
+    .sort((a, b) => a.order - b.order)
+})
+
+ipcMain.handle('deleteStickyById', (event, id: number) => deleteStickyById(id))
 
 const getMcpStatus = () => ({
   running: !!mcpServer,

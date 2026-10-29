@@ -194,10 +194,17 @@
         </div>
       </div>
       <div v-if="sections.sticky" :style="{ width: stickyWidth }" style="transition: width .5s;">
-        <div class="text-sm space-x-2">
-          <StickySvg class="inline-block" />
-          <span>便签</span>
-          <keyboard :disabled="true" :value="['metaKey', 'n']" />
+        <div class="text-sm flex items-center gap-2">
+          <StickySvg class="inline-block flex-none" />
+          <span class="cursor-pointer" @click="location.replace('#/stickies-list')">便签</span>
+          <keyboard @esc="keydown({
+            keyCode: 27,
+          })" :active="data.editing === 'stickiesList' && !editingAccelerator.length"
+            @setShortcut="edit('stickiesList')" :value="data.editing === 'stickiesList'
+              ? editingAccelerator
+              : config.stickiesList" />
+          <keyboard v-if="data.editing !== 'stickiesList'" class="shortcut-mini ml-auto flex-none"
+            :disabled="true" :value="['metaKey', 'n']" />
         </div>
         <div style="height: calc(100% - 44px); border: 1px solid var(--border-0);"
           class="content-block mt-3 rounded-xl overflow-y-scroll divide-y text-sm">
@@ -215,6 +222,7 @@ import {
   ref,
   onUnmounted,
   computed,
+  watch,
 } from "vue";
 import empty from "../components/empty.vue";
 import { useUserData, useTimer } from "../composition";
@@ -273,7 +281,9 @@ const data = reactive({
 let editingAccelerator = ref<any>([]);
 
 const config = useUserData("shortcuts");
-setTimeout(() => {
+
+// 补齐默认快捷键: shortcuts.json 可能来自旧版本, 需在异步读取完成后重新合并
+const ensureShortcutDefaults = () => {
   config.value.timer = config.value.timer ?? ["metaKey", "shiftKey", "i"];
   config.value.schedule = config.value.schedule ?? [
     "metaKey",
@@ -285,8 +295,14 @@ setTimeout(() => {
     "shiftKey",
     "l",
   ];
+  config.value.stickiesList = config.value.stickiesList ?? [
+    "metaKey",
+    "shiftKey",
+    "k",
+  ];
   config.value.main = config.value.main ?? ["metaKey", "shiftKey", "h"];
-});
+};
+watch(config, ensureShortcutDefaults, { deep: true, immediate: true });
 declare global {
   interface Window {
     apis: {
