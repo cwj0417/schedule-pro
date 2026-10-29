@@ -67,7 +67,7 @@
             </div>
             <div class="flex items-center gap-2">
               <button class="flex-1 h-8 rounded-lg text-xs font-medium transition-opacity hover:opacity-85"
-                style="background: var(--theme-0); color: #fff;" @click="restart">安装并重启</button>
+                style="background: var(--theme-0); color: var(--theme-contrast);" @click="restart">安装并重启</button>
               <button class="h-8 px-3 rounded-lg text-xs transition-colors hover:opacity-80"
                 style="background: var(--bg-0); color: var(--color-1); border: 1px solid var(--border-1);"
                 @click="openReleasePage">下载安装包</button>
@@ -221,6 +221,7 @@ import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
+import { resolveThemeBase } from "../utils/theme";
 import stikies from "./stickies.vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
@@ -237,12 +238,7 @@ const themeState = reactive({
 })
 
 // 计算当前是否为深色模式
-const isDark = computed(() => {
-  if (themeState.currentTheme === 'dark') return true
-  if (themeState.currentTheme === 'light') return false
-  // system theme
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-})
+const isDark = computed(() => resolveThemeBase(themeState.currentTheme) === 'dark')
 
 // global search
 

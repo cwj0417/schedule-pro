@@ -855,7 +855,7 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   border-radius: 0.25rem;
   font-size: 0.875rem;
   background: var(--theme-0);
-  color: #fff;
+  color: var(--theme-contrast);
   border: none;
   cursor: pointer;
   transition: opacity 0.15s ease;

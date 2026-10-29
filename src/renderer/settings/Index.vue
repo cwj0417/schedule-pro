@@ -219,9 +219,9 @@
                 </div>
 
                 <!-- 外观设置 -->
-                <div class="flex backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
+                <div class="flex flex-col backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex flex-grow items-center gap-4">
+                    <div class="flex items-center gap-4 mb-4">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -239,28 +239,20 @@
                         </div>
                         <div class="flex-1">
                             <h2 class="text-sm font-semibold" style="color: var(--color-0);">主题外观</h2>
-                            <p class="text-xs" style="color: var(--color-2);">自定义外观主题</p>
+                            <p class="text-xs" style="color: var(--color-2);">选择明暗模式或配色主题</p>
                         </div>
                     </div>
-                    <div class="flex flex-row gap-4 justify-end items-center ml-auto mt-2">
-                        <div class="flex flex-row gap-2 flex-grow justify-end">
-                            <button v-for="theme in themes" :key="theme.value" @click="selectTheme(theme.value)" :class="[
-                                'px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 theme-btn hover-fill',
-                                themeMode === theme.value ? 'theme-active' : 'theme-inactive'
-                            ]" :style="themeMode === theme.value
-                    ? 'border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0);'
-                    : 'border-color: var(--border-1); background: var(--bg-0); color: var(--color-1);'">
-                                <div class="flex items-center gap-2">
-                                    <div :class="[
-                                        'w-4 h-4 rounded-full border-2 flex-shrink-0',
-                                        theme.value === 'system' ? 'bg-gradient-to-br from-slate-800 via-slate-500 to-slate-200 border-slate-400' : '',
-                                        theme.value === 'light' ? 'bg-white border-slate-300 shadow-inner' : '',
-                                        theme.value === 'dark' ? 'bg-slate-800 border-slate-600' : ''
-                                    ]"></div>
-                                    <span class="text-xs font-medium whitespace-nowrap">{{ theme.label }}</span>
-                                </div>
-                            </button>
-                        </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button v-for="theme in themes" :key="theme.value" @click="selectTheme(theme.value)" :class="[
+                            'flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 theme-btn hover-fill',
+                            themeMode === theme.value ? 'theme-active' : 'theme-inactive'
+                        ]" :style="themeMode === theme.value
+                    ? 'border-color: var(--theme-0); background: var(--theme-5); color: var(--theme-0); --hover-fill: color-mix(in srgb, var(--theme-0) 18%, transparent);'
+                    : 'border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);'">
+                            <span class="w-4 h-4 rounded-full border-2 flex-shrink-0"
+                                :style="theme.swatch"></span>
+                            <span class="text-xs font-medium whitespace-nowrap">{{ theme.label }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -581,9 +573,12 @@ const versionInfo = reactive({
 })
 
 const themes = [
-    { value: 'system', label: '跟随系统' },
-    { value: 'light', label: '白色主题' },
-    { value: 'dark', label: '黑色主题' }
+    { value: 'system', label: '跟随系统', swatch: { background: 'linear-gradient(135deg, #1e293b 0%, #94a3b8 50%, #f8fafc 100%)', borderColor: '#94a3b8' } },
+    { value: 'light', label: '白色主题', swatch: { background: '#ffffff', borderColor: '#cbd5e1' } },
+    { value: 'dark', label: '黑色主题', swatch: { background: '#1e1e1e', borderColor: '#475569' } },
+    { value: 'tech', label: '科技感', swatch: { background: 'linear-gradient(135deg, #0b1220 0%, #0891b2 60%, #22d3ee 100%)', borderColor: '#22d3ee' } },
+    { value: 'forest', label: '森林', swatch: { background: 'linear-gradient(135deg, #eef4e3 0%, #7cc79a 45%, #2f7d4f 100%)', borderColor: '#2f7d4f' } },
+    { value: 'dopamine', label: '多巴胺', swatch: { background: 'linear-gradient(135deg, #ffd166 0%, #ff7eb3 50%, #8b5cf6 100%)', borderColor: '#ff7eb3' } }
 ]
 
 // 首页模块显隐

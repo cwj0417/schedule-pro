@@ -30,7 +30,7 @@
         <button class="cancel-btn" @click="handleCancel" :style="{ background: 'var(--bg-0)', color: 'var(--color-1)', borderColor: 'var(--border-1)' }">
           取消
         </button>
-        <button class="confirm-btn" @click="handleConfirm" :style="{ background: 'var(--theme-0)', color: 'white' }">
+        <button class="confirm-btn" @click="handleConfirm" :style="{ background: 'var(--theme-0)', color: 'var(--theme-contrast)' }">
           确认
         </button>
       </div>
