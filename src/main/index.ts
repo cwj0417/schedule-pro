@@ -136,8 +136,8 @@ const stickyWindows: {
 } = {}
 
 let mainWindowConfig: BrowserWindowConstructorOptions = {
-  width: 960,
-  minWidth: 960,
+  width: 970,
+  minWidth: 970,
   height: 552,
   minHeight: 552,
   frame: false,
@@ -156,8 +156,8 @@ const windowConf: {
   main: {
     url: mainPage,
     conf: {
-      width: 960,
-      minWidth: 960,
+      width: 970,
+      minWidth: 970,
       height: 552,
       minHeight: 552,
       frame: false,
