@@ -23,7 +23,7 @@
 
         <!-- 主内容区域 -->
         <div class="p-5 h-[calc(100vh-64px)] overflow-y-auto">
-            <div class="max-w-2xl mx-auto space-y-5">
+            <div class="max-w-2xl mx-auto space-y-5" @click="onSettingsAreaClick">
 
                 <!-- 应用更新 -->
                 <div class="flex backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
@@ -119,7 +119,8 @@
                 <!-- 数据管理 -->
                 <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="data"
+                        :class="{ 'is-open': openSection === 'data' }" @click="toggleSection('data')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -135,6 +136,7 @@
                             <p class="text-xs" style="color: var(--color-2);">备份、恢复和管理您的数据</p>
                         </div>
                     </div>
+                    <div v-show="openSection === 'data'" class="section-body">
                     
                     <!-- 自动备份设置 -->
                     <div class="flex items-center justify-between p-3 rounded-lg mb-4" 
@@ -216,12 +218,14 @@
                             </span>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- 外观设置 -->
                 <div class="flex flex-col backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="theme"
+                        :class="{ 'is-open': openSection === 'theme' }" @click="toggleSection('theme')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -242,7 +246,7 @@
                             <p class="text-xs" style="color: var(--color-2);">选择明暗模式或配色主题</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
+                    <div v-show="openSection === 'theme'" class="section-body grid grid-cols-3 gap-2">
                         <button v-for="theme in themes" :key="theme.value" @click="selectTheme(theme.value)" :class="[
                             'flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 theme-btn hover-fill',
                             themeMode === theme.value ? 'theme-active' : 'theme-inactive'
@@ -259,7 +263,8 @@
                 <!-- 首页模块显隐 -->
                 <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="home"
+                        :class="{ 'is-open': openSection === 'home' }" @click="toggleSection('home')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -275,6 +280,7 @@
                             <p class="text-xs" style="color: var(--color-2);">选择首页需要展示的模块</p>
                         </div>
                     </div>
+                    <div v-show="openSection === 'home'" class="section-body">
                     <div class="grid grid-cols-4 gap-2">
                         <button v-for="item in sectionOptions" :key="item.key"
                             @click="toggleHomeSection(item.key)"
@@ -296,12 +302,14 @@
                         <span class="text-xs font-medium">搜索栏提示语</span>
                         <span class="text-xs truncate ml-auto" style="color: var(--color-2);">直接输入以搜索, esc 以清空</span>
                     </button>
+                    </div>
                 </div>
 
                 <!-- 文件模式操作设置 -->
                 <div id="file-mode-settings" class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="filemode"
+                        :class="{ 'is-open': openSection === 'filemode' }" @click="toggleSection('filemode')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -315,6 +323,7 @@
                             <p class="text-xs" style="color: var(--color-2);">为每个文件路径配置快捷操作命令</p>
                         </div>
                     </div>
+                    <div v-show="openSection === 'filemode'" class="section-body">
 
                     <!-- 按文件路径分组 -->
                     <div v-for="(ops, fPath) in fileModePaths" :key="fPath" class="mb-4">
@@ -389,12 +398,14 @@
                     <div v-if="Object.keys(fileModePaths).length === 0" class="text-xs py-3 text-center mb-4" style="color: var(--color-2);">
                         暂无文件路径，在文件模式便签中点击编辑图标添加
                     </div>
+                    </div>
                 </div>
 
                 <!-- AI 设置 -->
                 <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="ai"
+                        :class="{ 'is-open': openSection === 'ai' }" @click="toggleSection('ai')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -412,7 +423,7 @@
                     </div>
                     
                     <!-- 提供商选择 -->
-                    <div class="flex flex-col gap-4">
+                    <div v-show="openSection === 'ai'" class="section-body flex flex-col gap-4">
                         <!-- 提供商选择 -->
                         <div class="flex flex-col gap-2">
                             <label class="text-xs font-medium" style="color: var(--color-1);">模型提供商</label>
@@ -462,7 +473,8 @@
                 <!-- MCP 服务 -->
                 <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 mb-4">
+                    <div class="flex items-center gap-4 section-header" data-section="mcp"
+                        :class="{ 'is-open': openSection === 'mcp' }" @click="toggleSection('mcp')">
                         <div class="w-12 h-12 rounded-xl flex items-center justify-center"
                             style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -477,6 +489,7 @@
                             <p class="text-xs" style="color: var(--color-2);">让 AI 客户端读写今日办、待办池、倒计时和便签</p>
                         </div>
                     </div>
+                    <div v-show="openSection === 'mcp'" class="section-body">
                     <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                         <button @click="toggleMcp" :disabled="mcpBusy"
                             class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 text-xs font-medium hover-fill"
@@ -524,6 +537,7 @@
                     <p class="text-xs mt-2 leading-5" style="color: var(--color-2);">
                         把上面的配置加进客户端即可连接；关闭服务后需要在客户端重新连接。
                     </p>
+                    </div>
                 </div>
 
             </div>
@@ -544,6 +558,21 @@ const { send, invoke, onMessage, copyText } = window.apis
 
 const alertRef = ref<InstanceType<typeof AlertMessage> | null>(null)
 const confirmRef = ref<InstanceType<typeof ConfirmModal> | null>(null)
+
+// 折叠面板: 同时只展开一个, 默认全部收起
+const openSection = ref<string | null>(null)
+const toggleSection = (key: string) => {
+    openSection.value = openSection.value === key ? null : key
+}
+
+// 收起状态下点击模块内任意位置都能展开
+const onSettingsAreaClick = (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target.closest('.section-header')) return
+    const card = target.closest('.settings-card')
+    const key = card?.querySelector('.section-header')?.getAttribute('data-section')
+    if (key && openSection.value !== key) openSection.value = key
+}
 
 // 轻提示: 无需用户决策的信息
 const tip = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
@@ -976,6 +1005,7 @@ onMounted(async () => {
                 const settings = await invoke('getFileModeSettings')
                 fileModeLoaded = true
                 fileModePaths.value = settings || {}
+                openSection.value = 'filemode'
                 nextTick(() => {
                     document.getElementById('file-mode-settings')?.scrollIntoView({ behavior: 'smooth' })
                 })
@@ -1056,8 +1086,9 @@ onMounted(async () => {
         console.error('加载文件模式设置失败:', error)
     }
 
-    // 如果URL中有hash，滚动到对应位置
+    // 如果URL中有hash，展开并滚动到对应位置
     if (window.location.hash === '#file-mode-settings') {
+        openSection.value = 'filemode'
         nextTick(() => {
             document.getElementById('file-mode-settings')?.scrollIntoView({ behavior: 'smooth' })
         })
@@ -1066,6 +1097,38 @@ onMounted(async () => {
 </script>
 
 <style lang="less" scoped>
+/* 设置分组折叠面板 */
+.section-header {
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 0 !important;
+
+    &::after {
+        content: '';
+        flex-shrink: 0;
+        margin-left: auto;
+        width: 7px;
+        height: 7px;
+        border-right: 1.5px solid var(--color-2);
+        border-bottom: 1.5px solid var(--color-2);
+        transform: rotate(45deg) translate(-2px, -2px);
+        transition: transform 0.2s ease;
+    }
+
+    &.is-open::after {
+        transform: rotate(-135deg) translate(-2px, -2px);
+    }
+}
+
+.section-body {
+    margin-top: 16px;
+}
+
+/* 收起状态下整张卡片都可点击展开 */
+.settings-card:has(.section-header:not(.is-open)) {
+    cursor: pointer;
+}
+
 /* 确保拖拽区域不可选中文本 */
 [style*="-webkit-app-region: drag"] {
     user-select: none;
