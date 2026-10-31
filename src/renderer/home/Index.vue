@@ -3,8 +3,7 @@
     <div class="page-title">
       <!-- 左上: logo 与全局快捷键 -->
       <div class="flex items-center absolute left-5 top-4 h-8">
-        <img v-if="!isDark" class="h-6 mr-3" src="@/assets/logo.png" draggable="false" />
-        <img v-else class="h-6 mr-3" src="@/assets/logoblack.png" draggable="false" />
+        <Logo class="h-6 mr-3" draggable="false" />
         <span class="nodragable">
           <keyboard @esc="
             keydown({
@@ -229,24 +228,16 @@ import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
 import { getTs, formatCountdown } from "../utils/time";
-import { resolveThemeBase } from "../utils/theme";
 import stikies from "./stickies.vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
 import draggable from "vuedraggable";
 import CountdownSvg from "@/assets/svg/countdown.svg";
+import Logo from "@/assets/svg/logo.svg";
 import StickySvg from "@/assets/svg/sticky.svg";
 import ScheduleSvg from "@/assets/svg/schedule.svg";
 import InspirationSvg from "@/assets/svg/inspiration.svg";
 import RefreshSvg from "@/assets/svg/refresh.svg";
-
-// 全局主题状态管理
-const themeState = reactive({
-  currentTheme: 'system'
-})
-
-// 计算当前是否为深色模式
-const isDark = computed(() => resolveThemeBase(themeState.currentTheme) === 'dark')
 
 // global search
 
@@ -440,11 +431,6 @@ onMounted(() => {
       versionInfo.releaseNotes = (value && value.releaseNotes) || '';
     }
 
-    // 监听主题变化
-    if (type === 'themeChanged') {
-      themeState.currentTheme = value;
-    }
-
     // 设置页修改首页模块显隐
     if (type === 'homeSectionsChanged') {
       Object.assign(sections, value);
@@ -458,15 +444,6 @@ onMounted(() => {
 
   invoke("getVersion").then((version: string) => {
     versionInfo.curVersion = version;
-  });
-  
-  // 初始化主题状态
-  invoke("getTheme").then((theme: string) => {
-    if (theme) {
-      themeState.currentTheme = theme;
-    }
-  }).catch((error) => {
-    console.error('获取主题设置失败:', error);
   });
 });
 
