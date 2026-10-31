@@ -1040,7 +1040,11 @@ ipcMain.handle('getStickyMeta', (event, id) => {
   const conf = stickiesConfig.value[id]
   if (!conf) return null
   const createdAt = conf.createdAt || +id
-  return { createdAt, updatedAt: conf.updatedAt || createdAt }
+  return {
+    createdAt,
+    updatedAt: conf.updatedAt || createdAt,
+    fromMcp: conf.fromMcp === true,
+  }
 })
 
 ipcMain.on('getStickiesConfig', () => mainWindow && mainWindow.webContents?.send('message', {

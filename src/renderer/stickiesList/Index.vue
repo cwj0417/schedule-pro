@@ -9,23 +9,29 @@
         <span>schedule pro</span>
       </div>
       <div class="page-name">便签</div>
-      <div class="title-actions">
-        <div class="title-drag"></div>
-        <button class="sticky-add hover-fill" style="--hover-fill: var(--theme-5);" @click="createSticky">
-          新建便签
-        </button>
-        <keyboard class="shortcut-mini" :disabled="true" :value="['metaKey', 'n']" />
-      </div>
+      <div class="title-drag"></div>
     </div>
     <div class="page-body">
       <div class="sticky-scroll">
-        <empty v-if="!stickies.length" />
         <div class="sticky-grid">
+          <!-- 第一个方块作为新建按钮 -->
+          <div class="sticky-create" title="新建便签" @click="createSticky">
+            <span class="create-plus-wrap">
+              <svg class="create-plus" width="70" height="70" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </span>
+            <keyboard class="create-hint" :disabled="true" :value="['metaKey', 'n']" />
+          </div>
           <div v-for="sticky in stickies" :key="sticky.id" class="sticky-card"
             :class="`is-${stickyState(sticky)}`" :style="{ background: stickyBg(sticky) }"
             @click="openSticky(sticky.id)">
             <div class="sticky-card-head">
-              <span class="sticky-card-time">{{ formatRelativeTime(sticky.updatedAt || sticky.createdAt || +sticky.id) }}</span>
+              <div class="sticky-card-meta">
+                <span class="sticky-card-time">{{ formatRelativeTime(sticky.updatedAt || sticky.createdAt || +sticky.id) }}</span>
+                <span v-if="sticky.fromMcp" class="mcp-tag" title="由 MCP 创建">MCP</span>
+              </div>
               <button class="sticky-card-delete" title="删除便签" @click.stop="askDelete(sticky)">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
@@ -53,7 +59,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import empty from "../components/empty.vue";
 import keyboard from "../components/keyboards.vue";
 import ConfirmModal from "../components/ConfirmModal.vue";
 import { getBg } from "../composition";
@@ -123,35 +128,51 @@ onMounted(() => {
 });
 </script>
 <style lang="less" scoped>
-.title-actions {
-  justify-self: stretch;
+// 去掉标题栏右侧内边距, 让拖拽区一直延伸到窗口边缘
+.page-title {
+  padding-right: 0;
+}
+
+.sticky-create {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  min-width: 0;
+  justify-content: center;
+  gap: 12px;
+  width: 220px;
+  height: 220px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-1);
+  background: var(--bg-1);
+  color: var(--color-2);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease, transform 0.18s ease;
 
-  .title-drag {
-    flex: 1;
-  }
-
-  .sticky-add {
-    flex: none;
-    display: inline-flex;
+  .create-plus-wrap {
+    display: flex;
     align-items: center;
     justify-content: center;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 7px;
-    border: 1px solid var(--border-1);
-    background: var(--bg-2);
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
     color: var(--color-1);
-    font-size: 12px;
-    cursor: pointer;
-    transition: color 0.15s ease, border-color 0.15s ease;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
 
-    &:hover {
-      color: var(--theme-0);
+  .create-hint {
+    pointer-events: none;
+    opacity: 0.85;
+  }
+
+  &:hover {
+    border-color: var(--theme-0);
+    background: var(--bg-2);
+    color: var(--theme-0);
+    transform: scale(1.012);
+
+    .create-plus-wrap {
       border-color: var(--theme-0);
+      color: var(--theme-0);
     }
   }
 }
@@ -169,7 +190,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, 220px);
   align-content: start;
-  gap: 12px;
+  gap: 16px;
   padding-bottom: 4px;
 }
 
@@ -184,7 +205,7 @@ onMounted(() => {
   color: var(--color-0);
   cursor: pointer;
   box-shadow: 0 1px 2px var(--shadow-1);
-  transition: box-shadow 0.18s ease, opacity 0.18s ease;
+  transition: box-shadow 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
 
   // 未打开: 轻微透明
   &.is-closed {
@@ -193,6 +214,7 @@ onMounted(() => {
 
   &:hover {
     opacity: 1;
+    transform: scale(1.012);
     box-shadow: 0 6px 16px var(--shadow-0);
   }
 
@@ -214,6 +236,12 @@ onMounted(() => {
   justify-content: space-between;
   gap: 6px;
   height: 20px;
+
+  .sticky-card-meta {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
 
   .sticky-card-time {
     font-size: 10px;

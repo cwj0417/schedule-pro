@@ -12,6 +12,7 @@
           :style="`backgroundColor: var(--sticky-${color})`" @click="changeColor(color)" />
       </div>
       <div class="flex-grow flex items-center justify-center gap-1.5 dragable">
+        <span v-if="stickyMeta.fromMcp" class="mcp-tag" title="由 MCP 创建">MCP</span>
         <template v-if="isFileMode">
           <span v-if="!filePath" class="text-xs cursor-pointer opacity-60 hover:opacity-100 nodragable" style="color: var(--color-0)" @click="selectFile">选择文件</span>
           <template v-else>
@@ -201,10 +202,11 @@ let isOutlineMode: boolean = false;
 const isFileMode = ref(false);
 const filePath = ref('');
 const fileContent = ref(''); // 文件模式下编辑器的实际内容，与 data.value.content 分离
+let savedFileContent: string | null = null; // 最近一次从磁盘读取/写入的内容, 用于判断是否真的有改动
 const fileModeOperations = ref<{ name: string, command: string, params?: string[] }[]>([]);
 
 // 便签的创建/更新时间
-const stickyMeta = ref<{ createdAt?: number; updatedAt?: number }>({});
+const stickyMeta = ref<{ createdAt?: number; updatedAt?: number; fromMcp?: boolean }>({});
 const formatStickyDate = (timestamp?: number) => {
   if (!timestamp) return '-';
   const d = new Date(timestamp);
@@ -332,7 +334,12 @@ const clickThoughMouseLeave = () => {
 
 const saveToFile = () => {
   if (!isFileMode.value || !filePath.value) return;
-  invoke('writeFileContent', filePath.value, fileContent.value).catch((err: any) => {
+  // 内容与最近一次读写的磁盘内容一致时, 不做无意义的写入
+  if (fileContent.value === savedFileContent) return;
+  const content = fileContent.value;
+  invoke('writeFileContent', filePath.value, content).then(() => {
+    savedFileContent = content;
+  }).catch((err: any) => {
     console.error('保存文件失败:', err);
   });
 };
@@ -353,6 +360,7 @@ const initEditor = () => {
   if (isFileMode.value && filePath.value) {
     invoke('readFileContent', filePath.value).then((content: string) => {
       fileContent.value = content;
+      savedFileContent = content;
       editorView = useEditor(() => fileContent.value, (v: string) => {
         fileContent.value = v;
         saveToFile();
@@ -360,6 +368,7 @@ const initEditor = () => {
     }).catch((err: any) => {
       console.error('读取文件失败:', err);
       fileContent.value = `读取文件失败: ${err.message}`;
+      savedFileContent = null;
       editorView = useEditor(() => fileContent.value, (v: string) => {
         fileContent.value = v;
       }, () => document.getElementById('code-mirror')!);
@@ -482,6 +491,7 @@ const exitFileMode = () => {
   isFileMode.value = false;
   filePath.value = '';
   fileContent.value = '';
+  savedFileContent = null;
   if (data.value?.value && isFileContent(data.value.value.content)) {
     data.value.value.content = '';
     send("setStickyTitle", { key: id, val: '' });
@@ -523,7 +533,7 @@ onMounted(() => {
       bgColor.value = getBg(value);
     }
     if (type === "stickyMetaChange") {
-      stickyMeta.value = value;
+      stickyMeta.value = { ...stickyMeta.value, ...value };
     }
     if (type === "stickyContentChanged" && String(value?.id) === String(id)) {
       // MCP 等外部来源改写内容后, 刷新编辑器

@@ -92,6 +92,8 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
             ]),
             markdown({ codeLanguages: languages }),
             EditorView.updateListener.of(function (e: any) {
+                // 只有文档真正变更时才触发, 避免移动光标/聚焦也触发保存
+                if (!e.docChanged) return
                 clearTimeout(debounce)
                 debounce = setTimeout(() => onchange(e.state.doc.toString()), 350)
             }),
