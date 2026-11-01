@@ -2,6 +2,7 @@ import { createApp, h, defineComponent } from 'vue'
 import { createRouter, createWebHashHistory, RouterView, RouteRecordRaw } from 'vue-router'
 import Home from './home/Index.vue'
 import Timer from './timer/Index.vue'
+import TimerWidget from './timer/Widget.vue'
 import Schedule from './schedule/Index.vue'
 import Inspiration from './inspiration/Index.vue'
 import Stickies from './stickies/Index.vue'
@@ -22,6 +23,7 @@ const App = defineComponent({
 const routes: RouteRecordRaw[] = [
     { path: '/home', component: Home },
     { path: '/timer', component: Timer },
+    { path: '/timer-widget', component: TimerWidget },
     { path: '/schedule', component: Schedule },
     { path: '/inspiration', component: Inspiration },
     { path: '/stickies', component: Stickies },

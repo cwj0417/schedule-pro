@@ -1,8 +1,9 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog, shell, clipboard } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, Notification, TouchBar, Menu, MenuItemConstructorOptions, dialog, shell, clipboard, screen } from 'electron'
 import mainPreload from '@/preload/mainPage.ts'
 // import stickyPreload from '@/preload/stickyPage.ts'
 import mainPage from '@/renderer/index.html#/home'
 import timerPage from '@/renderer/index.html#/timer'
+import timerWidgetPage from '@/renderer/index.html#/timer-widget'
 import schedulePage from '@/renderer/index.html#/schedule'
 import inspirationPage from '@/renderer/index.html#/inspiration'
 import stickiesPage from '@/renderer/index.html#/stickies'
@@ -29,6 +30,7 @@ log.info('App starting...');
 
 let mainWindow: BrowserWindow | null = null
 let settingsWindow: BrowserWindow | null = null
+let timerWidgetWindow: BrowserWindow | null = null
 
 const stickyMinFrame = {
   width: 400,
@@ -296,6 +298,75 @@ function createWindow(type: keyof typeof windowConf = 'main') {
       mainWindow = null;
     })
   }
+}
+
+function createTimerWidget() {
+  if (timerWidgetWindow && !timerWidgetWindow.isDestroyed()) return
+  const size = 168
+  const { workArea } = screen.getPrimaryDisplay()
+  timerWidgetWindow = new BrowserWindow({
+    width: size,
+    height: size,
+    x: workArea.x + workArea.width - size - 24,
+    y: workArea.y + 24,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    maximizable: false,
+    minimizable: false,
+    fullscreenable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    hasShadow: false,
+    show: false,
+    webPreferences: {
+      preload: mainPreload,
+      sandbox: false,
+      // 窗口失去焦点后仍需要每秒刷新剩余时间
+      backgroundThrottling: false,
+    }
+  })
+  timerWidgetWindow.setAlwaysOnTop(true, 'floating')
+  // 跟随所有桌面空间, 全屏应用下也保持可见
+  timerWidgetWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+  // 只展示, 不抢当前应用的焦点
+  timerWidgetWindow.once('ready-to-show', () => timerWidgetWindow?.showInactive())
+  timerWidgetWindow.loadURL(timerWidgetPage)
+  timerWidgetWindow.on('closed', () => {
+    stopTimerWidgetDrag()
+    timerWidgetWindow = null
+  })
+}
+
+let timerWidgetDragTimer: NodeJS.Timeout | null = null
+
+const stopTimerWidgetDrag = () => {
+  if (timerWidgetDragTimer) {
+    clearInterval(timerWidgetDragTimer)
+    timerWidgetDragTimer = null
+  }
+}
+
+// 跟随鼠标拖动小球窗口: 记录窗口与光标的偏移, 在光标移动时同步窗口位置
+const startTimerWidgetDrag = (win: BrowserWindow) => {
+  stopTimerWidgetDrag()
+  const cursor = screen.getCursorScreenPoint()
+  const [winX, winY] = win.getPosition()
+  const offsetX = winX - cursor.x
+  const offsetY = winY - cursor.y
+  timerWidgetDragTimer = setInterval(() => {
+    if (win.isDestroyed()) {
+      stopTimerWidgetDrag()
+      return
+    }
+    const point = screen.getCursorScreenPoint()
+    win.setPosition(point.x + offsetX, point.y + offsetY)
+  }, 16)
+}
+
+const closeTimerWidget = () => {
+  if (timerWidgetWindow && !timerWidgetWindow.isDestroyed()) timerWidgetWindow.close()
 }
 
 function createStickies(id = Date.now()) {
@@ -971,7 +1042,24 @@ ipcMain.handle('setSearchHint', (event, visible) => {
 ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
   addTimer(cd, content)
+  // 仅在输入并开始倒计时后弹出悬浮小球窗口
+  createTimerWidget()
 })
+
+ipcMain.on('showTimerWidgetMenu', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || win.isDestroyed()) return
+  Menu.buildFromTemplate([
+    { label: '关闭', click: () => win.close() },
+  ]).popup({ window: win })
+})
+
+ipcMain.on('timerWidgetDragStart', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (win && !win.isDestroyed()) startTimerWidgetDrag(win)
+})
+
+ipcMain.on('timerWidgetDragEnd', () => stopTimerWidgetDrag())
 
 ipcMain.on('hideWindow', () => {
   BrowserWindow.getFocusedWindow()?.close()
@@ -1454,6 +1542,7 @@ const addTimer = (minutes: number, content: string, fromMcp = false) => {
     const index = notificationQ.findIndex(i => i.id === id)
     if (index > -1) notificationQ.splice(index, 1)
     delete notificationHandlers[id]
+    if (!notificationQ.length) closeTimerWidget()
   }, countdownInterval * minutes)
   return item
 }
@@ -1474,6 +1563,7 @@ const removeTimer = (id: number) => {
   notificationQ.splice(index, 1)
   clearTimeout(notificationHandlers[id])
   delete notificationHandlers[id]
+  if (!notificationQ.length) closeTimerWidget()
   return true
 }
 
