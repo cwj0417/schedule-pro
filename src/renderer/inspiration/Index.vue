@@ -39,6 +39,8 @@
             :key="inspiration.create_time"
             :singleLine="index % 2 === 1"
             :item="inspiration"
+            can-move-to-schedule
+            @moveToSchedule="moveToSchedule(inspiration)"
             @deleteItem="(id: any) => inspirations.splice(inspirations.findIndex((i: any) => i.id === id), 1)"
             @toggleItem="inspiration.done = !inspiration.done; inspiration.finish_time = Date.now();"
             @changeItem="(val: any) => (inspiration.content = val)"
@@ -55,9 +57,25 @@ import { useUserData } from "../composition";
 import empty from "../components/empty.vue";
 import todoItem from "../components/todoItem.vue";
 import { sortTodoStatus } from "../utils/format";
+import { getTs } from "../utils/time";
 
 const contentinput = ref<string>("");
 let inspirations = useUserData("inspiration", []);
+let schedules = useUserData("schedule", {});
+
+// 移到今日办: 从待办池移除, 作为今天的新任务加入今日办
+const moveToSchedule = (item: any) => {
+  inspirations.value = inspirations.value.filter((i: any) => i.id !== item.id);
+  schedules.value[getTs()] = schedules.value[getTs()] ?? [];
+  schedules.value[getTs()].unshift({
+    id: item.id,
+    // 保留原始创建时间, 非今天创建的任务会显示警告色
+    create_time: item.create_time ?? Date.now(),
+    content: item.content,
+    done: false,
+    ...(item.fromMcp ? { fromMcp: true } : {}),
+  });
+};
 
 const createInspiration = () => {
   if (!contentinput.value.trim()) return;

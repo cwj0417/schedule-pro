@@ -1,18 +1,14 @@
 <template>
   <empty v-if="!searchSticky(stickies).length" />
-  <draggable :disabled="search" v-else :modelValue="searchSticky(stickies)" @update:modelValue="sortSticky($event)"
-    item-key="id" tag="div">
-    <template #item="{ element: sticky }">
-      <div @click="openSticky(sticky?.id)"
-        class="sticky-row hover-fill group h-10 leading-10 pl-3 pr-9 flex items-center cursor-pointer whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
+  <div v-else>
+    <div v-for="sticky in searchSticky(stickies)" :key="sticky.id" @click="openSticky(sticky?.id)"
+        class="sticky-row hover-fill group h-10 leading-10 pl-3 pr-8 flex items-center gap-2 cursor-pointer whitespace-nowrap break-all overflow-hidden relative transition-all duration-200 active:opacity-80"
         :style="{
           background: sticky?.expended ? +activeKey === +sticky.id ? getBg(sticky?.backgroundColor) : `linear-gradient(270deg,var(--bg-1),${getBg(sticky?.backgroundColor)})` : '',
+          '--sticky-color': getBg(sticky?.backgroundColor),
           transform: sticky.id === findKey ? 'rotate3d(1, 10, 1, -25deg)' : ''
         }">
-        <!-- 左侧便签色条 -->
-        <span class="sticky-bar absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-0 rounded-full opacity-0"
-          :style="{ background: getBg(sticky?.backgroundColor) }"></span>
-        <!-- 标题区域, hover 时右侧收窄, 把位置让给更新时间 -->
+        <!-- 标题区域 -->
         <div class="sticky-title flex-1 min-w-0 h-full overflow-hidden whitespace-nowrap">
           <template v-if="isFileSticky(sticky)">
             <FileSvg class="sticky-file-icon inline-block mr-1.5 align-middle flex-shrink-0 transition-colors" width="14"
@@ -26,25 +22,19 @@
           </template>
         </div>
         <span v-if="sticky.fromMcp" class="mcp-tag" title="由 MCP 创建">MCP</span>
-        <!-- 更新时间: hover 时在最右侧展开, 位于置顶按钮左侧 -->
-        <span class="sticky-time flex-shrink-0 h-full leading-10 text-xs whitespace-nowrap pointer-events-none"
-          style="color: var(--color-2)">
+        <!-- 更新时间: 常显小字, 弱化处理 -->
+        <span class="sticky-time flex-shrink-0 whitespace-nowrap pointer-events-none">
           {{ formatRelativeTime(sticky?.updatedAt || sticky?.createdAt || +sticky?.id) }}
         </span>
-        <!-- 便签颜色圆点, hover 时缩隐, 让出位置给置顶按钮 -->
-        <div class="sticky-dot w-2 h-2 rounded-full absolute top-4 right-3"
-          :style="{ background: getBg(sticky?.backgroundColor) }"></div>
         <ArrowUpSvg @click.prevent.stop="toTop(sticky?.id)" style="fill: var(--color-0);"
           class="sticky-top absolute top-3 right-1 p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-[var(--bg-3)]" />
       </div>
-    </template>
-  </draggable>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import empty from "../components/empty.vue";
-import { onMounted, ref, toRaw, toRef } from "vue";
-import draggable from "vuedraggable";
+import { onMounted, ref, toRef } from "vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
 import ArrowUpSvg from "@/assets/svg/arrowup.svg";
@@ -137,14 +127,6 @@ const openSticky = (id: string) => send("openSticky", id);
 
 const toTop = (id: string) => send("toTop", id);
 
-const sortSticky = (value: any[]) => {
-  if (props.search) return;
-  send(
-    "sortStickies",
-    value.map((i) => toRaw(i))
-  );
-};
-
 // search
 const searchSticky = useSearchContent(toRef(props, "search"), "title");
 
@@ -152,40 +134,36 @@ const searchSticky = useSearchContent(toRef(props, "search"), "title");
 
 <style lang="less" scoped>
 .sticky-row {
+  --hover-fill: var(--sticky-color);
   color: var(--color-1);
+  border: 1px solid var(--sticky-color);
+  border-radius: 10px;
+  margin: 6px 0;
+  transition: color 0.18s ease, box-shadow 0.18s ease;
 }
 
-/* 行间细分隔线, 左右随行内缩 */
-.sticky-row + .sticky-row {
-  border-top: 1px solid var(--border-0);
+.sticky-title {
+  font-weight: 600;
 }
 
-/* hover 底色由 .hover-fill 从鼠标位置展开 */
+/* hover 底色用便签自身颜色, 从鼠标位置展开, 卡片再轻微抬升 */
 .sticky-row:hover {
   color: var(--color-0);
-}
-
-/* 左侧色条由中心展开 */
-.sticky-row:hover .sticky-bar {
-  height: 20px;
-  opacity: 1;
-}
-
-/* 颜色圆点缩隐, 让位给置顶按钮 */
-.sticky-row:hover .sticky-dot {
-  opacity: 0;
-  transform: scale(0.4);
+  box-shadow: 0 4px 12px var(--shadow-1);
 }
 
 .sticky-row:hover .sticky-file-icon {
   color: var(--color-1);
 }
 
-/* 更新时间: 平时收起, hover 时按文字实际宽度展开, 左右间距与文字上下留白一致(约 12px) */
+/* 更新时间: 平时收起, hover 时按文字实际宽度展开 */
 .sticky-time {
   max-width: 0;
   margin-left: 0;
   overflow: hidden;
+  font-size: 10px;
+  line-height: 1;
+  color: var(--color-2);
   opacity: 0;
   transition: max-width 0.2s ease, margin-left 0.2s ease, opacity 0.2s ease;
 }
@@ -196,8 +174,6 @@ const searchSticky = useSearchContent(toRef(props, "search"), "title");
   opacity: 1;
 }
 
-.sticky-bar,
-.sticky-dot,
 .sticky-top,
 .sticky-file-icon {
   transition: all 0.2s ease;

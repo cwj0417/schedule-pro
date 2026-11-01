@@ -14,9 +14,11 @@
             </template>
             <template v-else>
                 <div :class="item.done ? 'indicator indicator-done' : 'indicator'" @click="$emit('toggleItem')"></div>
-                <div class="todo-text">{{ item.content }}</div>
+                <div class="todo-text" :class="{ 'todo-warning': warning && !item.done }">{{ item.content }}</div>
                 <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
                 <div class="todo-actions">
+                    <div v-if="canMoveToSchedule && !item.done" class="todo-action todo-action-text" title="移到今日办"
+                        @click="$emit('moveToSchedule')">→ 今日</div>
                     <div class="todo-action"
                         @click="isEditing = true; editingContent = item.content; inputfocus();">
                         <EditSvg class="inline-block" />
@@ -35,8 +37,14 @@ import { ref } from "vue";
 import EditSvg from '@/assets/svg/edit.svg';
 import TrashSvg from '@/assets/svg/trash.svg';
 
-defineProps(["item", "singleLine"])
-defineEmits(["changeItem", "deleteItem", "toggleItem"])
+// 声明 Boolean 类型, 父组件可以直接写 can-move-to-schedule 裸属性
+defineProps({
+    item: Object,
+    singleLine: Boolean,
+    canMoveToSchedule: Boolean,
+    warning: Boolean,
+})
+defineEmits(["changeItem", "deleteItem", "toggleItem", "moveToSchedule"])
 
 let isEditing = ref<boolean>(false);
 let editingContent = ref<string>("");
@@ -105,5 +113,18 @@ const inputfocus = () => {
         color: var(--theme-0);
         background-color: var(--bg-2);
     }
+}
+
+// 文字型操作(移到今日办)按内容自适应宽度
+.todo-action-text {
+    width: auto;
+    padding: 0 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--theme-0);
+}
+
+.todo-warning {
+    color: var(--warning-0);
 }
 </style>

@@ -1172,12 +1172,6 @@ ipcMain.on('toTop', (event, stickyId) => {
   toTop(stickyId)
 })
 
-ipcMain.on('sortStickies', (event, sorted) => {
-  sorted.forEach((sticky: any, order: number) => {
-    stickiesConfig.value[sticky.id].order = order
-  })
-})
-
 // ipcMain.on('retractSticky', (event, stickyId) => {
 //   stickiesConfig.value[stickyId].expended = false
 //   stickyWindows[stickyId].close()

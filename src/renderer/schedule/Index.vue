@@ -39,6 +39,7 @@
             :key="schedule.create_time"
             :singleLine="index % 2 === 1"
             :item="schedule"
+            :warning="isOverdue(schedule)"
             @deleteItem="
               (id) =>
                 schedules[getTs()].splice(
@@ -64,7 +65,12 @@ import { getTs } from "../utils/time";
 import { sortTodoStatus } from "../utils/format";
 
 const contentinput = ref<string>("");
-let schedules = useUserData("schedule", []);
+let schedules = useUserData("schedule", {});
+
+// 非当天创建(提前安排过来)的任务用警告色提示
+const isOverdue = (item: any) =>
+  !!item?.create_time &&
+  new Date(item.create_time).setHours(0, 0, 0, 0) !== getTs();
 
 const createSchedule = () => {
   if (!contentinput.value.trim()) return;

@@ -9,8 +9,8 @@
             keydown({
               keyCode: 27,
             })
-          " :active="data.editing === 'main' && !editingAccelerator.length" @setShortcut="edit('main')"
-            :value="data.editing === 'main' ? editingAccelerator : config.main" />
+          " :active="data.editing === 'main'" @setShortcut="edit('main')"
+            :value="config.main" :pressed="data.editing === 'main' ? editingAccelerator : []" />
         </span>
       </div>
       <!-- 中间: 搜索栏 -->
@@ -90,123 +90,126 @@
       </div>
     </div>
     <div class="w-full flex space-x-5 page-body">
-      <div v-if="showLeft" :style="{ width: leftWidth }"
-        style="transition: width .5s;" class="flex space-x-5">
-        <div v-if="showScheduleColumn" class="h-full" style="transition: width .5s;" :style="{ width: scheduleColumnWidth }">
-          <template v-if="sections.schedule">
-            <div class="text-sm space-x-2">
-              <ScheduleSvg class="inline-block" />
-              <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
-              <keyboard @esc="keydown({
-                keyCode: 27,
-              })" :active="data.editing === 'schedule' && !editingAccelerator.length" @setShortcut="edit('schedule')"
-                :value="data.editing === 'schedule'
-                  ? editingAccelerator
-                  : config.schedule" />
+      <div v-if="showLeft" class="h-full flex flex-col min-w-0" :style="{ width: leftWidth }"
+        style="transition: width .5s;">
+        <!-- 顶部一行: 今日办标题 / 今日办轮播 -->
+        <div v-if="showScheduleColumn" class="flex-none h-8 flex items-center gap-3">
+          <div class="flex-none flex items-center gap-2 text-sm whitespace-nowrap">
+            <ScheduleSvg class="inline-block flex-none" />
+            <span class="cursor-pointer" @click="location.replace('#/schedule')">今日办</span>
+            <keyboard @esc="keydown({
+              keyCode: 27,
+            })" :active="data.editing === 'schedule'" @setShortcut="edit('schedule')"
+              :value="config.schedule"
+              :pressed="data.editing === 'schedule' ? editingAccelerator : []" />
+          </div>
+          <div class="flex-1 min-w-0 h-full">
+            <div v-if="!currentSchedule" class="flex items-center h-full text-sm" style="color: var(--color-2)">
+              暂无内容
             </div>
-            <div :style="{ height: sections.timer ? 'calc(100% - 95px)' : 'calc(100% - 44px)', borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
-              class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
-              <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
-                item-key="id" :modelValue="searchScheduleOrInspiration(schedule?.[getTs()])"
-                @update:modelValue="handleScheduleUpdate($event)" tag="div">
-                <template #header>
-                  <empty v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && !isDragging" />
-                  <div v-if="!searchScheduleOrInspiration(schedule?.[getTs()])?.length && isDragging"
-                    class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
-                </template>
-                <template #item="{ element: item, index }">
-                  <div :class="{
-                    'stripped': index % 2 === 1,
-                    'item-done': item.done,
-                  }" class="w-full h-10 p-2 flex leading-6 hover-fill">
-                    <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                    <span class="flex items-center min-w-0" style="width: calc(100% - 24px)">
-                      <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden min-w-0 flex-1">
-                        <search-result :search="searchContent" :value="item.content" />
-                      </span>
-                      <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
-                    </span>
+            <div v-else class="carousel-item" @mouseenter="carouselHover = true" @mouseleave="carouselHover = false">
+              <!-- 切换条目时横向滚动: 旧条目向左滑出, 新条目从右侧滑入 -->
+              <transition name="carousel-slide">
+                <div class="carousel-slide-item" :key="currentSchedule.id">
+                  <span class="carousel-text" :class="{
+                    'is-done': currentSchedule.done,
+                    overdue: isOverdue(currentSchedule) && !currentSchedule.done,
+                  }">
+                    <search-result :search="searchContent" :value="currentSchedule.content" />
+                  </span>
+                  <span v-if="currentSchedule.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
+                  <div class="carousel-actions">
+                    <template v-if="currentSchedule.done">
+                      <span class="carousel-action" @click.stop="currentSchedule.done = false">撤销</span>
+                      <span class="carousel-action" @click.stop="deleteSchedule(currentSchedule)">删除</span>
+                    </template>
+                    <template v-else>
+                      <span class="carousel-action" @click.stop="currentSchedule.done = true">完成</span>
+                      <span v-if="isOverdue(currentSchedule)" class="carousel-action"
+                        @click.stop="doToday(currentSchedule)">今天做</span>
+                      <span class="carousel-action" @click.stop="moveScheduleToInspiration(currentSchedule)">→ 待办池</span>
+                    </template>
+                    <span class="carousel-action" @click.stop="nextCarousel">下一条</span>
                   </div>
-                </template>
-              </draggable>
-            </div>
-          </template>
-          <div v-if="sections.timer" class="h-8" :class="sections.schedule ? 'mt-5' : ''">
-            <div v-if="!timers.length" class="text-sm space-x-2">
-              <CountdownSvg class="inline-block" />
-              <span class="cursor-pointer" @click="location.replace('#/timer')">倒计时</span>
-              <keyboard @esc="keydown({
-                keyCode: 27,
-              })" :active="data.editing === 'timer' && !editingAccelerator.length" @setShortcut="edit('timer')"
-                :value="data.editing === 'timer' ? editingAccelerator : config.timer" />
-            </div>
-            <div v-else class="relative overflow-hidden text-sm cursor-pointer h-full rounded-xl border-2 p-1"
-              @click="location.replace('#/timer')" style="color: var(--color-0); border-color: var(--theme-1)">
-              <!-- 进度条用真实宽度表示剩余比例, 并配合 transition 让每秒的变化平滑可见 -->
-              <div class="absolute left-0 top-0 bottom-0" :style="{
-                width: Math.min(100, Math.max(0, timers[0].percent * 100)) + '%',
-                background: 'linear-gradient(90deg, var(--theme-2), var(--theme-0))',
-                transition: 'width 1s linear',
-              }"></div>
-              <span class="relative">{{ timers[0].content }}<span v-if="timers[0].fromMcp" class="mcp-tag"
-                  title="由 MCP 写入">MCP</span></span>
+                </div>
+              </transition>
             </div>
           </div>
         </div>
-        <div v-if="sections.inspiration" class="h-full" style="transition: width .5s;" :style="{ width: inspirationColumnWidth }">
-          <div class="text-sm space-x-2">
+        <!-- 待办池 -->
+        <div v-if="sections.inspiration" class="flex-1 min-h-0 flex flex-col"
+          :class="showScheduleColumn ? 'mt-3' : ''">
+          <div class="flex-none text-sm space-x-2">
             <InspirationSvg class="inline-block" />
             <span class="cursor-pointer" @click="location.replace('#/inspiration')">待办池</span>
             <keyboard @esc="keydown({
               keyCode: 27,
-            })" :active="data.editing === 'inspiration' && !editingAccelerator.length"
-              @setShortcut="edit('inspiration')" :value="data.editing === 'inspiration'
-                ? editingAccelerator
-                : config.inspiration" />
+            })" :active="data.editing === 'inspiration'"
+              @setShortcut="edit('inspiration')" :value="config.inspiration"
+              :pressed="data.editing === 'inspiration' ? editingAccelerator : []" />
           </div>
-          <div style="height: calc(100% - 44px);" :style="{ borderColor: isDragging ? 'var(--theme-0)' : 'var(--border-0)' }"
-            class="content-block mt-3 rounded-xl overflow-y-scroll text-sm border cursor-grab transition-colors duration-200">
-            <draggable :disabled="searchContent" @start="isDragging = true" @end="isDragging = false" group="sni"
-              item-key="id" :modelValue="searchScheduleOrInspiration(inspiration)"
-              @update:modelValue="handleInspirationUpdate($event)" tag="div">
-              <template #header>
-                <empty v-if="!searchScheduleOrInspiration(inspiration).length && !isDragging" />
-                <div v-if="!searchScheduleOrInspiration(inspiration).length && isDragging"
-                  class="w-full h-10 border-dashed border-2" style="border-color: var(--color-2)"></div>
-              </template>
-              <template #item="{ element: item, index }">
-                <div :class="{
-                  'stripped': index % 2 === 1,
-                  'item-done': item.done,
-                }" class="w-full h-10 p-2 flex leading-6 hover-fill">
-                  <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
-                  <span class="flex items-center min-w-0" style="width: calc(100% - 24px)">
-                    <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden min-w-0 flex-1">
-                      <search-result :search="searchContent" :value="item.content" />
-                    </span>
-                    <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
-                  </span>
-                </div>
-              </template>
-            </draggable>
+          <div class="content-block mt-2 flex-1 min-h-0 rounded-xl overflow-y-scroll text-sm border"
+            style="border-color: var(--border-0)">
+            <empty v-if="!poolList.length" />
+            <div v-for="(item, index) in poolList" :key="item.id" :class="{
+              'stripped': index % 2 === 1,
+              'item-done': item.done,
+            }" class="pool-row w-full h-10 p-2 flex leading-6 hover-fill">
+              <div :class="item.done ? 'indicator m-2 done' : 'indicator m-2'"></div>
+              <span class="flex items-center min-w-0 flex-1">
+                <span class="overflow-ellipsis whitespace-nowrap break-all overflow-x-hidden min-w-0 flex-1">
+                  <search-result :search="searchContent" :value="item.content" />
+                </span>
+                <span v-if="item.fromMcp" class="mcp-tag" title="由 MCP 写入">MCP</span>
+              </span>
+              <span v-if="!item.done" class="pool-action" @click.stop="moveInspirationToSchedule(item)">→ 今日</span>
+            </div>
           </div>
         </div>
       </div>
-      <div v-if="sections.sticky" :style="{ width: stickyWidth }" style="transition: width .5s;">
-        <div class="text-sm flex items-center gap-2">
-          <StickySvg class="inline-block flex-none" />
-          <span class="cursor-pointer" @click="location.replace('#/stickies-list')">便签</span>
-          <keyboard @esc="keydown({
-            keyCode: 27,
-          })" :active="data.editing === 'stickiesList' && !editingAccelerator.length"
-            @setShortcut="edit('stickiesList')" :value="data.editing === 'stickiesList'
-              ? editingAccelerator
-              : config.stickiesList" />
-          <keyboard v-if="data.editing !== 'stickiesList'" class="shortcut-mini ml-auto flex-none"
-            :disabled="true" :value="['metaKey', 'n']" />
+      <div v-if="showRight" class="h-full flex flex-col min-w-0" :style="{ width: rightWidth }"
+        style="transition: width .5s;">
+        <div class="flex-none text-sm flex items-center gap-2">
+          <template v-if="sections.sticky">
+            <StickySvg class="inline-block flex-none" />
+            <span class="cursor-pointer" @click="location.replace('#/stickies-list')">便签</span>
+            <keyboard @esc="keydown({
+              keyCode: 27,
+            })" :active="data.editing === 'stickiesList'"
+              @setShortcut="edit('stickiesList')" :value="config.stickiesList"
+              :pressed="data.editing === 'stickiesList' ? editingAccelerator : []" />
+          </template>
+          <!-- cmd+n 与倒计时都挂在右上角, 倒计时出现时把 cmd+n 向左推开 -->
+          <div class="ml-auto flex-none flex items-center gap-2">
+            <keyboard v-if="sections.sticky" class="flex-none" size="sm" :disabled="true"
+              :value="['metaKey', 'n']" />
+            <div v-if="sections.timer" class="timer-badge" :class="timers.length ? 'timer-running' : ''">
+              <template v-if="!timers.length">
+                <span class="flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                  @click="location.replace('#/timer')">
+                  <CountdownSvg class="inline-block flex-none" width="12" height="12" />
+                  <span>倒计时</span>
+                </span>
+                <keyboard size="sm" @esc="keydown({
+                  keyCode: 27,
+                })" :active="data.editing === 'timer'" @setShortcut="edit('timer')"
+                  :value="config.timer" :pressed="data.editing === 'timer' ? editingAccelerator : []" />
+              </template>
+              <template v-else>
+                <!-- 进度条用真实宽度表示剩余比例, 并配合 transition 让每秒的变化平滑可见 -->
+                <div class="absolute left-0 top-0 bottom-0" @click="location.replace('#/timer')" :style="{
+                  width: Math.min(100, Math.max(0, timers[0].percent * 100)) + '%',
+                  background: 'linear-gradient(90deg, var(--theme-2), var(--theme-0))',
+                  transition: 'width 1s linear',
+                }"></div>
+                <span class="relative min-w-0 flex-1 truncate cursor-pointer"
+                  @click="location.replace('#/timer')">{{ timers[0].content }}<span v-if="timers[0].fromMcp"
+                    class="mcp-tag" title="由 MCP 写入">MCP</span></span>
+              </template>
+            </div>
+          </div>
         </div>
-        <div style="height: calc(100% - 44px); border: 1px solid var(--border-0);"
-          class="content-block mt-3 rounded-xl overflow-y-scroll divide-y text-sm">
+        <div v-if="sections.sticky" class="mt-2 flex-1 min-h-0 rounded-xl overflow-y-scroll text-sm font-light">
           <stikies :search="searchContent" />
         </div>
       </div>
@@ -227,11 +230,11 @@ import empty from "../components/empty.vue";
 import { useUserData, useTimer } from "../composition";
 import keyboard from "../components/keyboards.vue";
 import { keyCodes } from "../utils/keyboard";
-import { getTs, formatCountdown } from "../utils/time";
+import { getTs } from "../utils/time";
 import stikies from "./stickies.vue";
 import { useSearchContent } from "../components/searchContent";
 import searchResult from "../components/searchResult.vue";
-import draggable from "vuedraggable";
+
 import CountdownSvg from "@/assets/svg/countdown.svg";
 import Logo from "@/assets/svg/logo.svg";
 import StickySvg from "@/assets/svg/sticky.svg";
@@ -500,77 +503,109 @@ onUnmounted(() => {
   window.removeEventListener("focus", refreshSections);
 });
 
-const showScheduleColumn = computed(() => sections.schedule || sections.timer);
+// 倒计时已挂到右列右上角, 左列顶部只剩今日办
+const showScheduleColumn = computed(() => sections.schedule);
 const showLeft = computed(() => showScheduleColumn.value || sections.inspiration);
-const leftColumnCount = computed(
-  () => (showScheduleColumn.value ? 1 : 0) + (sections.inspiration ? 1 : 0)
+const showRight = computed(() => sections.sticky || sections.timer);
+
+// 左列 60% / 右列 40%, 0.625rem 是 space-x-5 间距的一半
+const leftWidth = computed(() =>
+  !showRight.value ? "100%" : "calc(60% - 0.625rem)"
+);
+const rightWidth = computed(() =>
+  !showLeft.value ? "100%" : "calc(40% - 0.625rem)"
 );
 
-// 隐藏的列按"空"处理, 宽度分配才能和可见内容匹配
-const scheduleEmpty = computed(
-  () =>
-    !sections.schedule ||
-    !searchScheduleOrInspiration(schedule.value?.[getTs()])?.length
+// 今日办(单条轮播)与待办池列表
+const todaySchedule = computed(
+  () => searchScheduleOrInspiration(schedule.value?.[getTs()]) ?? []
 );
-const inspirationEmpty = computed(
-  () => !sections.inspiration || !searchScheduleOrInspiration(inspiration.value)?.length
+const poolList = computed(
+  () => searchScheduleOrInspiration(inspiration.value ?? [])
 );
-const bothVisibleEmpty = computed(() => scheduleEmpty.value && inspirationEmpty.value);
 
-// "两列都为空就收窄"只是为了给便签让空间, 便签隐藏时各列应正常占满
-const narrowWhenEmpty = computed(() => sections.sticky && bothVisibleEmpty.value);
+// 轮播: 每 4 秒切换一条, hover 或搜索时暂停
+const carouselIndex = ref(0);
+const carouselHover = ref(false);
+const currentSchedule = computed(
+  () => todaySchedule.value[carouselIndex.value] ?? null
+);
 
-const leftWidth = computed(() => {
-  if (!sections.sticky) return "100%";
-  if (!bothVisibleEmpty.value) return "calc(75% - 0.625rem)";
-  return leftColumnCount.value === 2 ? "27.25rem" : "13rem";
-});
-
-const stickyWidth = computed(() => {
-  if (!showLeft.value) return "100%";
-  if (!bothVisibleEmpty.value) return "calc(25% - 0.625rem)";
-  return leftColumnCount.value === 2
-    ? "calc(100% - 28.5rem)"
-    : "calc(100% - 14.25rem)";
-});
-
-const scheduleColumnWidth = computed(() => {
-  if (!sections.inspiration) return "100%";
-  if (!narrowWhenEmpty.value) return "calc(50% - 0.625rem)";
-  if (scheduleEmpty.value === inspirationEmpty.value) return "calc(50% - 0.625rem)";
-  return scheduleEmpty.value ? "13rem" : "calc(100% - 14.5rem)";
-});
-
-const inspirationColumnWidth = computed(() => {
-  if (!showScheduleColumn.value) return "100%";
-  if (!narrowWhenEmpty.value) return "calc(50% - 0.625rem)";
-  if (scheduleEmpty.value === inspirationEmpty.value) return "calc(50% - 0.625rem)";
-  return inspirationEmpty.value ? "calc(100% - 14.5rem)" : "13rem";
-});
-
-// schedule and inspiration sort
-
-const isDragging = ref(false);
-
-const handleInspirationUpdate = (val: any[]) => {
-  // 可以通过判断val和inspiration.value的长度 来判断是否要保留 inspiration, 直接return
-  if (searchContent.value) return;
-  inspiration.value = val
-    .map((i) => toRaw(i))
-    .map((i) => ({
-      ...i,
-      finish_time: i.finish_time ?? Date.now(),
-    }));
+const nextCarousel = () => {
+  if (!todaySchedule.value.length) return;
+  carouselIndex.value = (carouselIndex.value + 1) % todaySchedule.value.length;
 };
 
-const handleScheduleUpdate = (val: any[]) => {
-  if (searchContent.value) return;
-  schedule.value[getTs()] = val
-    .map((i) => toRaw(i))
-    .map((i) => {
-      delete i.finish_time;
-      return i;
-    });
+watch(
+  () => todaySchedule.value.length,
+  (len) => {
+    if (carouselIndex.value >= len) carouselIndex.value = 0;
+  }
+);
+watch(searchContent, () => {
+  carouselIndex.value = 0;
+});
+
+let carouselTimer: any = null;
+onMounted(() => {
+  carouselTimer = setInterval(() => {
+    if (!carouselHover.value && !searchContent.value) nextCarousel();
+  }, 4000);
+});
+onUnmounted(() => {
+  if (carouselTimer) clearInterval(carouselTimer);
+});
+
+// 非当天创建的任务(提前安排过来的)用警告色提示
+const isOverdue = (item: any) =>
+  !!item?.create_time &&
+  new Date(item.create_time).setHours(0, 0, 0, 0) !== getTs();
+
+const doToday = (item: any) => {
+  if (!item) return;
+  item.create_time = Date.now();
+};
+
+// 已完成的任务直接从今日办删除, 不做二次确认
+const deleteSchedule = (item: any) => {
+  const list = schedule.value?.[getTs()];
+  if (!list) return;
+  const index = list.findIndex((i: any) => i.id === item.id);
+  if (index !== -1) list.splice(index, 1);
+};
+
+// 今日办 -> 待办池
+const moveScheduleToInspiration = (item: any) => {
+  const list = schedule.value?.[getTs()];
+  if (!list) return;
+  const index = list.findIndex((i: any) => i.id === item.id);
+  if (index === -1) return;
+  list.splice(index, 1);
+  inspiration.value = inspiration.value ?? [];
+  inspiration.value.unshift({
+    id: item.id,
+    create_time: item.create_time ?? Date.now(),
+    finish_time: Date.now(),
+    content: item.content,
+    done: false,
+    ...(item.fromMcp ? { fromMcp: true } : {}),
+  });
+};
+
+// 待办池 -> 今日办
+const moveInspirationToSchedule = (item: any) => {
+  inspiration.value = (inspiration.value ?? []).filter(
+    (i: any) => i.id !== item.id
+  );
+  schedule.value[getTs()] = schedule.value[getTs()] ?? [];
+  schedule.value[getTs()].unshift({
+    id: item.id,
+    // 保留原始创建时间: 非今天创建的任务会在轮播里提示, 可用"今天做"消除
+    create_time: item.create_time ?? Date.now(),
+    content: item.content,
+    done: false,
+    ...(item.fromMcp ? { fromMcp: true } : {}),
+  });
 };
 
 const location = window.location
@@ -676,9 +711,166 @@ const location = window.location
   }
 }
 
-/* 拖拽占位样式 */
-.border-dashed.border-2 {
+/* 今日办轮播: 一行高度, 悬停暂停并显示操作 */
+.carousel-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-0);
+  border-radius: 8px;
+  background-color: var(--bg-1);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+
+  &:hover {
+    border-color: var(--border-1);
+  }
+}
+
+/* 轮播条目横向滚动切换 */
+.carousel-slide-item {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.carousel-slide-enter-active,
+.carousel-slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.carousel-slide-leave-active {
+  pointer-events: none;
+}
+
+.carousel-slide-enter-from {
+  transform: translateX(100%);
+}
+
+.carousel-slide-leave-to {
+  transform: translateX(-100%);
+}
+
+/* 倒计时挂在右上角: 缩小, 贴住标题栏下边框与应用右边界 */
+.timer-badge {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-0);
+  border-top: 0;
+  border-right: 0;
+  border-radius: 0 0 0 10px;
+  background-color: var(--bg-1);
+  box-shadow: 0 4px 10px var(--shadow-1);
+  font-size: 12px;
+  white-space: nowrap;
+  /* page-body 有 20px 内 padding: 负右边距让挂件贴住应用右边界, 再上移贴住标题栏下边框 */
+  margin-right: -20px;
+  transform: translateY(-20px);
+  /* 负底边距让挂件不撑高列头, 避免把便签列表顶下去 */
+  align-self: flex-start;
+  margin-bottom: -8px;
+}
+
+.timer-running {
+  width: 8.5rem;
+  border-color: var(--theme-1);
+  color: var(--color-0);
+  cursor: pointer;
+}
+
+.carousel-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--color-1);
+
+  &.overdue {
+    color: var(--warning-0);
+  }
+
+  &.is-done {
+    color: var(--color-3);
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+}
+
+/* 操作区盖在条目右侧, 用渐变背景避免遮挡文字时看不清 */
+.carousel-actions {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-left: 20px;
+  background: linear-gradient(90deg, transparent, var(--bg-1) 20px);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.carousel-item:hover .carousel-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(-50%);
+}
+
+.carousel-action {
+  height: 22px;
+  padding: 0 6px;
   border-radius: 6px;
-  transition: border-color 0.2s ease;
+  font-size: 11px;
+  line-height: 22px;
+  white-space: nowrap;
+  color: var(--color-2);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    color: var(--theme-0);
+    background-color: var(--bg-2);
+  }
+}
+
+/* 待办池条目 hover 出现"移到今日办"操作 */
+.pool-action {
+  flex: none;
+  margin-left: 6px;
+  padding: 0 6px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 24px;
+  white-space: nowrap;
+  color: var(--theme-0);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-2);
+  }
+}
+
+.pool-row:hover .pool-action {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>
