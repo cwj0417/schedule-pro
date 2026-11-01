@@ -822,10 +822,12 @@ html[data-theme="dark"] .mock-sticky-card b { color: #f0e6c8; }
   border-radius: 11px;
   background: #fff9e3;
   box-shadow: 0 18px 40px -18px rgba(80, 60, 20, 0.45);
-  transform: rotate(1.4deg);
+  rotate: 1.4deg;
   font-size: 11px;
   line-height: 1.55;
   color: #6a6047;
+  transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.3s ease;
+  animation: mock-float-sway 8s ease-in-out infinite;
 }
 
 html[data-theme="dark"] .mock-float {
@@ -859,6 +861,400 @@ html[data-theme="dark"] .mock-float-head {
   margin-top: 8px;
   font-size: 9px;
   color: #b3a882;
+}
+
+/* 示意图动效与 hover */
+.mock-window {
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+  animation: mock-window-float 10s ease-in-out infinite;
+}
+
+.mock-window:hover {
+  transform: translateY(-6px);
+  border-color: #cfdcf3;
+  box-shadow:
+    0 3px 8px rgba(24, 46, 96, 0.07),
+    0 52px 104px -32px rgba(28, 58, 130, 0.46),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+}
+
+html[data-theme="dark"] .mock-window:hover {
+  border-color: #33415c;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.45),
+    0 60px 120px -30px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(120, 160, 255, 0.12) inset;
+}
+
+.mock-float:hover {
+  transform: translateY(-7px) scale(1.02);
+  box-shadow: 0 26px 52px -18px rgba(80, 60, 20, 0.5);
+}
+
+html[data-theme="dark"] .mock-float:hover {
+  box-shadow: 0 26px 52px -18px rgba(0, 0, 0, 0.85);
+}
+
+.mock-float-close {
+  transition: color 0.2s ease, rotate 0.25s ease;
+}
+
+.mock-float-close:hover {
+  rotate: 90deg;
+  color: #e05a5a;
+}
+
+.mock-col-head svg {
+  transition: scale 0.2s ease;
+}
+
+.mock-col-head:hover svg {
+  scale: 1.12;
+}
+
+.mock-list li {
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.mock-list li:hover {
+  background: #f2f7ff;
+  color: #1b2537;
+}
+
+.mock-list li:hover .tick {
+  border-color: #8db2f5;
+}
+
+html[data-theme="dark"] .mock-list li:hover {
+  background: #142033;
+  color: #e3ecfb;
+}
+
+html[data-theme="dark"] .mock-list li:hover .tick {
+  border-color: #5f8fe0;
+}
+
+.mock-countdown {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mock-countdown:hover {
+  border-color: #a9c9ff;
+  box-shadow: 0 5px 14px -9px rgba(79, 125, 240, 0.5);
+}
+
+html[data-theme="dark"] .mock-countdown:hover {
+  border-color: #3d66a8;
+  box-shadow: 0 5px 16px -9px rgba(79, 125, 240, 0.6);
+}
+
+.mock-countdown-fill {
+  overflow: hidden;
+}
+
+.mock-countdown-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.55) 50%, transparent 70%);
+  transform: translateX(-130%);
+  animation: mock-countdown-shimmer 3.8s ease-in-out infinite;
+}
+
+html[data-theme="dark"] .mock-countdown-fill::after {
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+}
+
+.mock-sticky-card {
+  transition: translate 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mock-sticky-card:hover {
+  translate: 0 -2px;
+  box-shadow: 0 9px 18px -13px rgba(60, 80, 40, 0.4);
+}
+
+html[data-theme="dark"] .mock-sticky-card:hover {
+  box-shadow: 0 10px 20px -13px rgba(0, 0, 0, 0.75);
+}
+
+.mock-top-right svg {
+  transition: transform 0.35s ease, color 0.2s ease;
+}
+
+.mock-top-right svg:hover {
+  transform: rotate(180deg);
+  color: #4f7df0;
+}
+
+html[data-theme="dark"] .mock-top-right svg:hover {
+  color: #9cbaff;
+}
+
+@keyframes mock-window-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+@keyframes mock-float-sway {
+  0%,
+  100% {
+    rotate: 1.7deg;
+    translate: 0 0;
+  }
+
+  50% {
+    rotate: 0.8deg;
+    translate: 0 -3px;
+  }
+}
+
+@keyframes mock-countdown-shimmer {
+  0% {
+    transform: translateX(-130%);
+  }
+
+  55%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+/* 悬浮倒计时小球 */
+.mock-ball {
+  position: absolute;
+  top: -50px;
+  right: -16px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  transform-origin: 50% 60%;
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  animation: mock-ball-float 7s ease-in-out infinite;
+}
+
+.mock-ball-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from -90deg,
+    #a9c6ff 0%,
+    #6d9bff 32%,
+    #3d6fe0 61%,
+    rgba(79, 125, 240, 0.16) 61%,
+    rgba(79, 125, 240, 0.16) 100%
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  filter: drop-shadow(0 0 6px rgba(79, 125, 240, 0.3));
+  transition: filter 0.25s ease;
+  animation: mock-ball-ring-pulse 4.8s ease-in-out infinite;
+}
+
+.mock-ball-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow:
+    0 16px 30px -16px rgba(28, 58, 130, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  transition: box-shadow 0.25s ease, background-color 0.25s ease;
+  animation: mock-ball-face-breathe 6.4s ease-in-out infinite;
+}
+
+.mock-ball-time {
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #1b2537;
+  transition: color 0.2s ease, scale 0.2s ease;
+  animation: mock-ball-time-bob 5.4s ease-in-out infinite;
+}
+
+.mock-ball-label {
+  max-width: 82px;
+  overflow: hidden;
+  font-size: 9.5px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8b97ab;
+  transition: color 0.2s ease, opacity 0.2s ease;
+  animation: mock-ball-label-fade 6s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+/* 整体 hover：上浮放大，环更亮，球面更立体 */
+.mock-ball:hover {
+  transform: scale(1.045);
+}
+
+.mock-ball:hover .mock-ball-ring {
+  filter: drop-shadow(0 0 12px rgba(79, 125, 240, 0.55));
+}
+
+.mock-ball:hover .mock-ball-face {
+  background: #f7faff;
+  box-shadow:
+    0 22px 38px -16px rgba(28, 58, 130, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+}
+
+.mock-ball:hover .mock-ball-time {
+  color: #15213a;
+}
+
+.mock-ball:hover .mock-ball-label {
+  color: #4f7df0;
+  opacity: 1;
+}
+
+/* 各部件单独 hover */
+.mock-ball-ring:hover {
+  filter: drop-shadow(0 0 13px rgba(79, 125, 240, 0.65)) brightness(1.08);
+}
+
+.mock-ball-time:hover {
+  scale: 1.08;
+}
+
+.mock-ball-label:hover {
+  letter-spacing: 0.03em;
+}
+
+html[data-theme="dark"] .mock-ball-ring {
+  background: conic-gradient(
+    from -90deg,
+    #b8d0ff 0%,
+    #7ba1ff 32%,
+    #4a7ae8 61%,
+    rgba(123, 161, 255, 0.16) 61%,
+    rgba(123, 161, 255, 0.16) 100%
+  );
+  filter: drop-shadow(0 0 6px rgba(123, 161, 255, 0.28));
+}
+
+html[data-theme="dark"] .mock-ball-face {
+  background: #111a28;
+  box-shadow:
+    0 16px 30px -16px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(120, 160, 255, 0.1) inset;
+}
+
+html[data-theme="dark"] .mock-ball-time {
+  color: #edf2fb;
+}
+
+html[data-theme="dark"] .mock-ball-label {
+  color: #96a4b9;
+}
+
+html[data-theme="dark"] .mock-ball:hover .mock-ball-ring {
+  filter: drop-shadow(0 0 12px rgba(123, 161, 255, 0.5));
+}
+
+html[data-theme="dark"] .mock-ball:hover .mock-ball-face {
+  background: #162132;
+  box-shadow:
+    0 22px 38px -16px rgba(0, 0, 0, 0.92),
+    0 0 0 1px rgba(120, 160, 255, 0.16) inset;
+}
+
+html[data-theme="dark"] .mock-ball:hover .mock-ball-time {
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .mock-ball:hover .mock-ball-label {
+  color: #9cbaff;
+}
+
+html[data-theme="dark"] .mock-ball-ring:hover {
+  filter: drop-shadow(0 0 13px rgba(123, 161, 255, 0.6)) brightness(1.06);
+}
+
+@keyframes mock-ball-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -7px;
+  }
+}
+
+@keyframes mock-ball-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes mock-ball-face-breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+
+  50% {
+    scale: 1.012;
+  }
+}
+
+@keyframes mock-ball-time-bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -1px;
+  }
+}
+
+@keyframes mock-ball-label-fade {
+  0%,
+  100% {
+    opacity: 0.68;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mock-window,
+  .mock-float,
+  .mock-countdown-fill::after,
+  .mock-ball,
+  .mock-ball-ring,
+  .mock-ball-face,
+  .mock-ball-time,
+  .mock-ball-label {
+    animation: none !important;
+  }
 }
 
 /* ---------- 通用区块 ---------- */
@@ -1510,6 +1906,26 @@ html[data-theme="dark"] .release-notes li::before {
   .mock-float {
     display: none;
   }
+
+  .mock-ball {
+    top: -42px;
+    right: -8px;
+    width: 104px;
+    height: 104px;
+  }
+
+  .mock-ball-face {
+    width: 94px;
+    height: 94px;
+  }
+
+  .mock-ball-time {
+    font-size: 14px;
+  }
+
+  .mock-ball-label {
+    max-width: 72px;
+  }
 }
 
 @media (max-width: 860px) {
@@ -1531,6 +1947,27 @@ html[data-theme="dark"] .release-notes li::before {
 
   .mock-float {
     display: none;
+  }
+
+  .mock-ball {
+    top: -36px;
+    right: 0;
+    width: 88px;
+    height: 88px;
+  }
+
+  .mock-ball-face {
+    width: 79px;
+    height: 79px;
+  }
+
+  .mock-ball-time {
+    font-size: 12.5px;
+  }
+
+  .mock-ball-label {
+    max-width: 60px;
+    font-size: 9px;
   }
 
   .split {
@@ -1613,6 +2050,27 @@ html[data-theme="dark"] .release-notes li::before {
 
   .mock-content {
     padding: 14px 14px 16px;
+  }
+
+  .mock-ball {
+    top: -28px;
+    right: -4px;
+    width: 72px;
+    height: 72px;
+  }
+
+  .mock-ball-face {
+    width: 65px;
+    height: 65px;
+  }
+
+  .mock-ball-time {
+    font-size: 11px;
+  }
+
+  .mock-ball-label {
+    max-width: 50px;
+    font-size: 8px;
   }
 
   .mock-grid {
