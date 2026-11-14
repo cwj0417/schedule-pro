@@ -401,72 +401,52 @@
                     </div>
                 </div>
 
-                <!-- AI 设置 -->
+                <!-- Agent 设置 -->
                 <div class="backdrop-blur-xl rounded-2xl p-5 settings-card hover-fill"
                     style="background: var(--glass-bg); border: 1px solid var(--border-1); box-shadow: var(--shadow-1); --hover-fill: var(--theme-5);">
-                    <div class="flex items-center gap-4 section-header" data-section="ai"
-                        :class="{ 'is-open': openSection === 'ai' }" @click="toggleSection('ai')">
+                    <div class="flex items-center gap-4 section-header" data-section="agent"
+                        :class="{ 'is-open': openSection === 'agent' }" @click="toggleSection('agent')">
                         <div
                             class="w-12 h-12 rounded-xl flex items-center justify-center" style="background: var(--theme-5); color: var(--theme-0);">
                             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                <circle cx="9" cy="7" r="4" />
-                                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="16" rx="2" />
+                                <path d="m7 9 4 3-4 3" />
+                                <path d="M13 15h4" />
                             </svg>
                         </div>
                         <div class="flex-1">
-                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">AI 模型设置</h2>
-                            <p class="text-xs" style="color: var(--color-2);">配置大模型提供商和 API Token</p>
+                            <h2 class="text-sm font-semibold" style="color: var(--color-0);">Agent 设置</h2>
+                            <p class="text-xs" style="color: var(--color-2);">配置外部 Agent 命令，在便签中一键调用</p>
                         </div>
                     </div>
                     
-                    <!-- 提供商选择 -->
-                    <div v-show="openSection === 'ai'" class="section-body flex flex-col gap-4">
-                        <!-- 提供商选择 -->
+                    <div v-show="openSection === 'agent'" class="section-body flex flex-col gap-4">
                         <div class="flex flex-col gap-2">
-                            <label class="text-xs font-medium" style="color: var(--color-1);">模型提供商</label>
-                            <select v-model="selectedProvider" @change="onProviderChange"
-                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
-                                style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
-                                <option v-for="provider in providers" :key="provider.value" :value="provider.value">
-                                    {{ provider.label }}
-                                </option>
-                            </select>
-                        </div>
-                        
-                        <!-- Token 输入 -->
-                        <div class="flex flex-col gap-2">
-                            <div class="flex items-center justify-between">
-                                <label class="text-xs font-medium" style="color: var(--color-1);">API Token</label>
-                                <button @click="toggleTokenVisibility"
-                                    class="text-xs px-2 py-1 rounded transition-all duration-200"
-                                    style="color: var(--color-2); background: var(--bg-1); border: 1px solid var(--border-1);">
-                                    {{ showToken ? '隐藏' : '显示' }}
-                                </button>
-                            </div>
-                            <input :type="showToken ? 'text' : 'password'" v-model="tokenInput"
+                            <label class="text-xs font-medium" style="color: var(--color-1);">Agent 命令（可选）</label>
+                            <input v-model="agentCommandInput"
                                 class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
                                 :style="{
-                                    'border-color': tokenInput ? 'var(--theme-0)' : 'var(--border-1)',
+                                    'border-color': agentCommandInput ? 'var(--theme-0)' : 'var(--border-1)',
                                     'background': 'var(--bg-0)',
                                     'color': 'var(--color-1)'
                                 }"
-                                placeholder="请输入 API Token">
+                                placeholder="例如: claude -p  （prompt 从 stdin 传入）">
+                            <input v-model="agentCwdInput"
+                                class="w-full px-3 py-2 rounded-lg border-2 transition-all duration-200 focus:outline-none"
+                                :style="{
+                                    'border-color': agentCwdInput ? 'var(--theme-0)' : 'var(--border-1)',
+                                    'background': 'var(--bg-0)',
+                                    'color': 'var(--color-1)'
+                                }"
+                                placeholder="Agent 工作目录（可选，默认用户主目录）">
+                            <p class="text-xs leading-5" style="color: var(--color-2);">
+                                留空时，便签里的 Agent 操作会复制 prompt 并打开 Trae；配置后自动执行命令，stdout 作为结果。
+                                建议使用非交互模式（如 claude -p / codex exec），交互式 TUI 可能无法正常读取输出。
+                                可用环境变量 SCHEDULE_PRO_AGENT_PROMPT（prompt 临时文件路径）和 SCHEDULE_PRO_MCP_URL。
+                                修改后自动保存。
+                            </p>
                         </div>
-                        
-                        <!-- 保存按钮 -->
-                        <button @click="saveToken"
-                            class="px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none border-2 flex items-center justify-center gap-2 save-token-btn"
-                            style="border-color: var(--border-1); background: var(--bg-0); color: var(--color-1); --hover-fill: var(--theme-5);">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                <polyline points="17 21 17 13 7 13 7 21" />
-                                <polyline points="7 3 7 8 15 8" />
-                            </svg>
-                            <span class="text-xs font-medium">保存设置</span>
-                        </button>
                     </div>
                 </div>
 
@@ -652,22 +632,9 @@ const toggleSearchHint = async () => {
     }
 }
 
-// AI 模型提供商列表
-const providers = [
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'anthropic', label: 'Anthropic' },
-    { value: 'bigmodel', label: '智谱 BigModel' },
-    { value: 'baidu', label: '百度文心一言' },
-    { value: 'ali', label: '阿里云通义千问' },
-    { value: 'google', label: 'Google AI' },
-    { value: 'azure', label: 'Azure OpenAI' },
-    { value: 'deepseek', label: 'DeepSeek' }
-]
-
-// AI 设置相关变量
-const selectedProvider = ref('openai')
-const tokenInput = ref('')
-const showToken = ref(false)
+// Agent 设置相关变量
+const agentCommandInput = ref('')
+const agentCwdInput = ref('')
 
 // MCP 服务
 const mcpStatus = reactive({
@@ -785,36 +752,24 @@ const removeFilePath = (fPath: string) => {
     fileModePaths.value = rest
 }
 
-// 切换提供商
-const onProviderChange = async () => {
-    // 加载对应提供商的token
-    try {
-        const savedToken = await invoke('getAIToken', selectedProvider.value)
-        tokenInput.value = savedToken || ''
-    } catch (error) {
-        console.error('获取token失败:', error)
-        tokenInput.value = ''
-    }
-}
-
-// 切换token可见性
-const toggleTokenVisibility = () => {
-    showToken.value = !showToken.value
-}
-
-// 保存token
-const saveToken = async () => {
-    try {
-        await invoke('setAIToken', {
-            provider: selectedProvider.value,
-            token: tokenInput.value
-        })
-        tip('保存成功', 'success')
-    } catch (error) {
-        console.error('保存token失败:', error)
-        tip('保存失败', 'error')
-    }
-}
+// Agent 配置即时保存
+let agentSaveTimer: any = null
+let agentConfigLoaded = false
+watch([agentCommandInput, agentCwdInput], () => {
+    if (!agentConfigLoaded) return
+    clearTimeout(agentSaveTimer)
+    agentSaveTimer = setTimeout(async () => {
+        try {
+            await invoke('setAgentConfig', {
+                command: agentCommandInput.value,
+                cwd: agentCwdInput.value
+            })
+        } catch (error) {
+            console.error('保存 Agent 配置失败:', error)
+            tip('保存失败', 'error')
+        }
+    }, 500)
+})
 
 const closeWindow = () => {
     send('hideWindow')
@@ -1065,17 +1020,15 @@ onMounted(async () => {
     // 获取 MCP 服务状态
     await loadMcpStatus()
 
-    // 加载AI设置
+    // 加载 Agent 配置
     try {
-        const savedProvider = await invoke('getSelectedAIProvider')
-        if (savedProvider) {
-            selectedProvider.value = savedProvider
-        }
-        // 加载对应提供商的token
-        await onProviderChange()
+        const agentConfig: any = await invoke('getAgentConfig')
+        agentCommandInput.value = agentConfig?.command || ''
+        agentCwdInput.value = agentConfig?.cwd || ''
     } catch (error) {
-        console.error('加载AI设置失败:', error)
+        console.error('加载 Agent 配置失败:', error)
     }
+    agentConfigLoaded = true
 
     // 加载文件模式设置
     try {
