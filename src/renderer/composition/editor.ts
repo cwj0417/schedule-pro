@@ -1,5 +1,5 @@
 import { onMounted } from "vue";
-import { EditorSelection, EditorState } from "@codemirror/state"
+import { Compartment, EditorSelection, EditorState } from "@codemirror/state"
 import {
     EditorView,
     highlightSpecialChars,
@@ -61,12 +61,17 @@ const appHighlightStyle = HighlightStyle.define([
     { tag: t.invalid, color: "var(--error-0)" },
 ])
 
-const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement): EditorView => {
+// 自动换行可运行时切换: 用 Compartment 包裹, 切换时 reconfigure 即可
+const wordWrapCompartment = new Compartment()
+const wordWrapExtension = (enabled: boolean) => enabled ? EditorView.lineWrapping : []
+
+const useEditor = (init: () => string, onchange: (v: string) => void, dom: () => HTMLElement, wordWrap = true): EditorView => {
     let debounce: NodeJS.Timeout
     const ImageDropAndPaste = useImgDnPPlugin()
     let startState = EditorState.create({
         doc: init(),
         extensions: [
+            wordWrapCompartment.of(wordWrapExtension(wordWrap)),
             highlightSpecialChars(),
             history(),
             drawSelection(),
@@ -109,4 +114,11 @@ const useEditor = (init: () => string, onchange: (v: string) => void, dom: () =>
     return view
 }
 
-export { useEditor }
+// 运行时切换自动换行
+const setWordWrap = (view: EditorView | null, enabled: boolean) => {
+    view?.dispatch({
+        effects: wordWrapCompartment.reconfigure(wordWrapExtension(enabled)),
+    })
+}
+
+export { useEditor, setWordWrap }

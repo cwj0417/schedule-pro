@@ -13,10 +13,11 @@ import { BrowserWindowConstructorOptions } from 'electron/main'
 import type { IpcMainEvent } from 'electron'
 import { keyToAccelerator, userPath, getUserConf, useUserData } from './utils'
 import { createMcpHttpServer } from './mcp'
-import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync, mkdtempSync, mkdirSync, chmodSync, accessSync, constants } from 'fs'
+import { readdirSync, unlinkSync, readFileSync, writeFileSync, existsSync, statSync, mkdtempSync, mkdirSync, chmodSync, accessSync, constants, rmSync } from 'fs'
 import { join, dirname } from 'path'
 import { tmpdir, homedir } from 'os'
 import { spawn, execFileSync } from 'child_process'
+import type { ChildProcess } from 'child_process'
 import { autoUpdater } from "electron-updater"
 import type { UpdateInfo } from 'electron-updater'
 import { notification } from "../type"
@@ -759,6 +760,7 @@ let userSettings = useUserData('settings', {
   lastBackupTime: null,
   homeSections: { ...defaultHomeSections },
   searchHint: true,  // 首页搜索栏是否显示提示语
+  wordWrap: true,  // 便签编辑器是否自动换行
 })
 
 ipcMain.handle('exportData', async () => {
@@ -1039,6 +1041,21 @@ ipcMain.handle('setSearchHint', (event, visible) => {
   })
 })
 
+ipcMain.handle('getWordWrap', () => {
+  return userSettings.value.wordWrap !== false
+})
+
+ipcMain.handle('setWordWrap', (event, enabled) => {
+  userSettings.value.wordWrap = !!enabled
+  // 广播给所有窗口, 已打开的便签窗口同步切换
+  BrowserWindow.getAllWindows().forEach(window => {
+    window.webContents.send('message', {
+      type: 'wordWrapChanged',
+      value: userSettings.value.wordWrap,
+    })
+  })
+})
+
 ipcMain.on('addCountDown', (event, args) => {
   const { cd, content } = args
   addTimer(cd, content)
@@ -1216,11 +1233,17 @@ let notificationHandlers: {
   [id: number]: NodeJS.Timeout
 } = {}
 
-// AI 设置相关
-let aiSettings = useUserData('aiSettings', {
-  selectedProvider: 'openai',
-  tokens: {}
+// Agent 设置相关（API Token 已移除，只保留外部 Agent 命令）
+let agentSettings = useUserData('agentSettings', {
+  command: '',
+  cwd: ''
 })
+
+// 旧版本把 API Token 和 Agent 配置存在 aiSettings.json, 启动时清理掉
+try {
+  const legacyAiSettingsPath = join(userPath, 'aiSettings.json')
+  if (existsSync(legacyAiSettingsPath)) unlinkSync(legacyAiSettingsPath)
+} catch (e) { }
 
 let fileModeSettings = useUserData('fileModeSettings', {
   paths: {} as { [filePath: string]: { name: string, command: string, params?: string[] }[] }
@@ -1288,36 +1311,239 @@ ipcMain.on('openSettingsWindow', () => {
   }
 })
 
-ipcMain.handle('setAIToken', (event, args: { provider: string, token: string }) => {
-  try {
-    if (!aiSettings.value.tokens) {
-      aiSettings.value.tokens = {}
+ipcMain.handle('getAgentConfig', () => {
+  return {
+    command: String(agentSettings.value.command || ''),
+    cwd: String(agentSettings.value.cwd || '')
+  }
+})
+
+ipcMain.handle('setAgentConfig', (event, config: { command?: string, cwd?: string }) => {
+  agentSettings.value.command = String(config?.command || '').trim()
+  agentSettings.value.cwd = String(config?.cwd || '').trim()
+  return true
+})
+
+// 未配置 Agent 命令时，复制 prompt 并打开 Trae，由用户手动粘贴
+const openAgentApp = () => {
+  const appNames = ['Trae CN', 'Trae', 'TRAE SOLO CN']
+  const tryOpen = (index: number) => {
+    if (index >= appNames.length) return
+    let failed = false
+    const tryNext = () => {
+      if (failed) return
+      failed = true
+      tryOpen(index + 1)
     }
-    aiSettings.value.tokens[args.provider] = args.token
-    aiSettings.value.selectedProvider = args.provider
-    return true
+    const child = spawn('open', ['-a', appNames[index]], { stdio: 'ignore' })
+    child.on('error', tryNext)
+    child.on('exit', (code) => {
+      if (code !== 0) tryNext()
+    })
+  }
+  tryOpen(0)
+}
+
+const AGENT_TASK_TIMEOUT = 15 * 60 * 1000
+
+// 去掉 ANSI 控制序列和 TUI 光标控制, 只保留可读文本
+const stripAnsi = (text: string) => text
+  .replace(/\u001B\][^\u0007]*(?:\u0007|\u001B\\)/g, '')
+  .replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, '')
+  .replace(/\u001B[@-Z\\-_]/g, '')
+  .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+
+// 从输出缓冲区里取最近几行可读内容（去重, 保留顺序）
+const getRecentReadableLines = (buffer: string, count = 3) => {
+  const lines = stripAnsi(buffer)
+    .split(/\r\n|\n|\r/)
+    .map(line => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+  const result: string[] = []
+  for (let i = lines.length - 1; i >= 0 && result.length < count; i--) {
+    if (!result.includes(lines[i])) result.unshift(lines[i])
+  }
+  return result
+}
+
+type AgentTaskState = {
+  child: ChildProcess | null
+  canceled: boolean
+}
+
+const agentTasks = new Map<string, AgentTaskState>()
+
+ipcMain.handle('cancelAgentTask', (event, taskId: string) => {
+  const task = agentTasks.get(String(taskId || ''))
+  if (!task) return false
+  task.canceled = true
+  task.child?.kill('SIGTERM')
+  return true
+})
+
+ipcMain.handle('runAgentTask', async (event, args: { taskId?: string, prompt: string, mode: 'custom' | 'blog' | 'file' }) => {
+  const prompt = String(args?.prompt || '')
+  if (!prompt.trim()) throw new Error('prompt 为空')
+
+  const taskId = String(args?.taskId || Date.now())
+  const startedAt = Date.now()
+  const sendProgress = (phase: 'preparing' | 'running' | 'done', message: string, extra: Record<string, any> = {}) => {
+    if (event.sender.isDestroyed()) return
+    event.sender.send('message', {
+      type: 'agentProgress',
+      value: { taskId, phase, message, elapsed: Date.now() - startedAt, ...extra },
+    })
+  }
+
+  const command = String(agentSettings.value.command || '').trim()
+  if (!command) {
+    sendProgress('preparing', '未配置 Agent 命令，正在复制 prompt 并打开 Trae…')
+    clipboard.writeText(prompt)
+    openAgentApp()
+    return { handedOff: true }
+  }
+
+  const tempDir = mkdtempSync(join(tmpdir(), 'schedule-pro-agent-'))
+  const promptFile = join(tempDir, 'prompt.md')
+  writeFileSync(promptFile, prompt, 'utf8')
+  const agentCwd = String(agentSettings.value.cwd || '').trim()
+
+  const task: AgentTaskState = { child: null, canceled: false }
+  agentTasks.set(taskId, task)
+  sendProgress('preparing', `正在启动 Agent：${command}`)
+
+  try {
+    const result = await new Promise<{ stdout: string, stderr: string }>((resolve, reject) => {
+      const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        PATH: `${process.env.PATH || ''}:${buildEnhancedPath()}`,
+        SCHEDULE_PRO_AGENT_PROMPT: promptFile,
+        // 尽量让 Agent CLI 输出纯文本, 减少 TUI 控制序列
+        TERM: 'dumb',
+        NO_COLOR: '1',
+        FORCE_COLOR: '0',
+      }
+      const mcpStatus = getMcpStatus()
+      if (mcpStatus.running) env.SCHEDULE_PRO_MCP_URL = mcpStatus.url
+
+      const child = spawn('/bin/sh', ['-c', command], {
+        cwd: agentCwd && existsSync(agentCwd) ? agentCwd : homedir(),
+        env,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      })
+      task.child = child
+      sendProgress('running', 'Agent 已启动，等待输出…', {
+        pid: child.pid,
+        bytes: 0,
+        lastOutputAt: 0,
+      })
+
+      let stdout = ''
+      let stderr = ''
+      let settled = false
+      let pendingProgress: NodeJS.Timeout | null = null
+      let lastProgressAt = 0
+      let progressBuffer = ''
+      let outputBytes = 0
+      let lastOutputAt = 0
+
+      // 把可读输出的最后一行节流后推给界面, 同时带上 PID/输出量/最近输出时间
+      const reportProgress = (chunk: string) => {
+        outputBytes += Buffer.byteLength(chunk)
+        lastOutputAt = Date.now()
+        progressBuffer = (progressBuffer + chunk).slice(-8000)
+        if (pendingProgress) clearTimeout(pendingProgress)
+        const wait = Math.max(0, 600 - (Date.now() - lastProgressAt))
+        pendingProgress = setTimeout(() => {
+          pendingProgress = null
+          lastProgressAt = Date.now()
+          const lines = getRecentReadableLines(progressBuffer, 3)
+          sendProgress('running', lines[lines.length - 1]?.slice(0, 240) || 'Agent 正在运行…', {
+            pid: child.pid,
+            bytes: outputBytes,
+            lastOutputAt,
+            lines: lines.map(line => line.slice(0, 240)),
+          })
+        }, wait)
+      }
+      const finish = (action: () => void) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timer)
+        if (pendingProgress) clearTimeout(pendingProgress)
+        agentTasks.delete(taskId)
+        action()
+      }
+      const timer = setTimeout(() => {
+        finish(() => {
+          child.kill('SIGTERM')
+          reject(new Error(`Agent 执行超时（${AGENT_TASK_TIMEOUT / 60000} 分钟）`))
+        })
+      }, AGENT_TASK_TIMEOUT)
+
+      child.stdout?.on('data', (chunk) => {
+        const text = chunk.toString()
+        if (stdout.length < 2_000_000) stdout += text
+        reportProgress(text)
+      })
+      child.stderr?.on('data', (chunk) => {
+        const text = chunk.toString()
+        if (stderr.length < 200_000) stderr += text
+        reportProgress(text)
+      })
+      child.on('error', (error) => finish(() => reject(error)))
+      child.on('close', (code) => {
+        finish(() => {
+          if (task.canceled) reject(new Error('已取消'))
+          else if (code === 0) resolve({ stdout, stderr })
+          else reject(new Error(stripAnsi(stderr).trim() || `Agent 退出码 ${code}`))
+        })
+      })
+      child.stdin?.on('error', () => { })
+      child.stdin?.write(prompt)
+      child.stdin?.end()
+    })
+
+    const output = stripAnsi(result.stdout).trim()
+    // agent 运行期间是否已经通过 MCP 新建过便签
+    const createdByAgent = (Object.values(stickiesConfig.value) as any[])
+      .some(conf => Number(conf.createdAt || 0) >= startedAt)
+
+    if (args.mode === 'file' || createdByAgent || !output) {
+      sendProgress('done', createdByAgent ? 'Agent 已通过 MCP 写回便签' : 'Agent 执行完成')
+      return { stdout: output, stderr: result.stderr, createdByAgent }
+    }
+
+    const firstLine = output.split('\n').map(line => line.trim()).find(Boolean) || ''
+    const title = firstLine.replace(/^#+\s*/, '').slice(0, 40) || 'Agent 输出'
+    const created = createStickyByContent(output, title, Date.now())
+    sendProgress('done', 'Agent 执行完成，结果已保存为新便签')
+    return { stdout: output, stderr: result.stderr, createdByAgent: false, stickyId: created.id }
   } catch (error) {
-    console.error('保存AI token失败:', error)
-    return false
+    agentTasks.delete(taskId)
+    throw error
+  } finally {
+    try { rmSync(tempDir, { recursive: true, force: true }) } catch (e) { }
   }
 })
 
-ipcMain.handle('getAIToken', (event, provider: string) => {
-  try {
-    return aiSettings.value.tokens?.[provider] || ''
-  } catch (error) {
-    console.error('获取AI token失败:', error)
-    return ''
+ipcMain.handle('saveMarkdownFile', async (event, args: { content: string, defaultName?: string }) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  const rawName = String(args.defaultName || 'blog')
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 60) || 'blog'
+  const defaultName = rawName.toLowerCase().endsWith('.md') ? rawName : `${rawName}.md`
+  const options = {
+    title: '保存博客文件',
+    defaultPath: join(app.getPath('documents'), defaultName),
+    filters: [{ name: 'Markdown', extensions: ['md'] }],
   }
-})
-
-ipcMain.handle('getSelectedAIProvider', () => {
-  try {
-    return aiSettings.value.selectedProvider || 'openai'
-  } catch (error) {
-    console.error('获取选定的AI提供商失败:', error)
-    return 'openai'
-  }
+  const result = win ? await dialog.showSaveDialog(win, options) : await dialog.showSaveDialog(options)
+  if (result.canceled || !result.filePath) return { canceled: true }
+  writeFileSync(result.filePath, String(args.content || ''), 'utf8')
+  return { canceled: false, filePath: result.filePath }
 })
 
 ipcMain.on('createStickyWithContent', (event, args: { id: number, content: string }) => {

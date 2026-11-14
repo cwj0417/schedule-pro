@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full">
+  <div class="h-full relative">
     <div class="dragable h-10 w-full flex items-center" :style="{ backgroundColor: bgColor }" @dblclick="fullscreen">
       <div style="backgroundColor: var(--bg-1);"
         class="w-5 h-5 ml-5 hover:w-60 rounded-xl transition-all duration-500 overflow-hidden nodragable cursor-pointer">
@@ -76,18 +76,10 @@
           </div>
           <div v-if="showGenerateMenu" class="dropdown-panel generate-menu">
             <div class="generate-menu-section">
-              <button @click="generateOutline" class="menu-btn hover-fill">整理提纲</button>
-              <div class="menu-option-list">
-                <label class="menu-option hover-fill">
-                  <input type="checkbox" v-model="optimizeTitle" />
-                  <span>优化吸引人的标题</span>
-                </label>
-                <label class="menu-option hover-fill">
-                  <input type="checkbox" v-model="addDessert" />
-                  <span>增加文章甜点</span>
-                </label>
-              </div>
-              <button @click="generateBlog" class="menu-btn-primary">生成 Post</button>
+              <div class="menu-group-label">交给 Agent</div>
+              <button @click="openAgentPrompt" class="menu-btn hover-fill">自定义 Prompt…</button>
+              <button @click="handOffToAgent('blog')" class="menu-btn hover-fill">扩写成博客</button>
+              <button @click="handOffToAgent('file')" class="menu-btn hover-fill">创建成博客文件</button>
             </div>
           </div>
         </div>
@@ -96,6 +88,14 @@
           <FileSvg class="inline-block" style="color: var(--color-2)" />
         </div>
         <div class="w-px h-2.5 float-left ml-3" style="backgroundColor: var(--bg-2);margin-top: 5px" />
+        <div class="cursor-pointer ml-3" :title="wordWrap ? '关闭自动换行' : '开启自动换行'" @click="toggleWordWrap">
+          <svg class="inline-block transition-colors" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :style="{ color: wordWrap ? 'var(--theme-0)' : 'var(--color-2)' }">
+            <path d="M3 6h18" />
+            <path d="M3 12h15a3 3 0 1 1 0 6h-4" />
+            <path d="M16 16l-2 2 2 2" />
+            <path d="M3 18h7" />
+          </svg>
+        </div>
         <div class="cursor-pointer ml-3" @click="togglePin">
           <ArrowupSvg class="inline-block transition-colors" :fill="isPin ? 'var(--theme-0)' : 'var(--color-2)'" />
         </div>
@@ -123,22 +123,36 @@
       <span>创建于 {{ formatStickyDate(stickyMeta.createdAt) }}</span>
       <span>更新于 {{ formatStickyDateTime(stickyMeta.updatedAt) }}</span>
     </div>
+
+    <!-- Agent 执行进度 -->
+    <div v-if="agentProgress" class="agent-progress nodragable" :class="`is-${agentProgress.phase}`">
+      <div class="agent-progress-row">
+        <svg v-if="agentProgress.phase === 'running'" class="agent-progress-spinner" width="12" height="12"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 11-6.219-8.56" />
+        </svg>
+        <svg v-else-if="agentProgress.phase === 'done'" width="12" height="12" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 8v4M12 16h.01" />
+        </svg>
+        <span class="agent-progress-title">{{ agentProgress.title }}</span>
+        <span class="agent-progress-elapsed">{{ agentElapsedText }}</span>
+        <button v-if="agentProgress.phase === 'running'" class="agent-progress-cancel" @click="cancelAgent">取消</button>
+      </div>
+      <div v-if="agentDetailText" class="agent-progress-detail">{{ agentDetailText }}</div>
+      <div v-if="agentProgress.lines && agentProgress.lines.length" class="agent-progress-log">
+        <div v-for="(line, index) in agentProgress.lines" :key="index" class="agent-progress-message" :title="line">
+          {{ line }}
+        </div>
+      </div>
+      <div v-else class="agent-progress-message" :title="agentProgress.message">{{ agentProgress.message || '…' }}</div>
+    </div>
   </div>
 
-  <SelectModal
-    :visible="showProviderModal"
-    title="选择AI提供商"
-    :options="providerOptions"
-    @confirm="onProviderConfirm"
-    @cancel="onProviderCancel"
-  />
-  <SelectModal
-    :visible="showModelModal"
-    title="选择具体模型"
-    :options="modelOptions"
-    @confirm="onModelConfirm"
-    @cancel="onModelCancel"
-  />
   <!-- Toast -->
   <Toast ref="toastRef" />
   <AlertMessage ref="alertRef" />
@@ -157,6 +171,19 @@
       </div>
     </div>
   </div>
+
+  <!-- 交给 Agent：自定义 Prompt -->
+  <div v-if="agentPrompt.visible" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-title">交给 Agent</div>
+      <textarea v-model="agentPrompt.text" class="param-input agent-prompt-input" rows="4"
+        placeholder="例如：把这段扩写成博客" @keydown.esc="agentPrompt.visible = false"></textarea>
+      <div class="modal-actions">
+        <button @click="agentPrompt.visible = false" class="modal-btn modal-btn-cancel">取消</button>
+        <button @click="submitAgentPrompt" class="modal-btn modal-btn-primary">发送</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -168,9 +195,7 @@ import TrashSvg from "@/assets/svg/trash.svg";
 import ArrowupSvg from "@/assets/svg/arrowup.svg";
 import TransparentSvg from "@/assets/svg/transparent.svg";
 import FileSvg from "@/assets/svg/file.svg";
-import { useEditor } from '../composition/editor';
-import { generateBlogContent, getConfiguredProviders } from '../utils/aiService';
-import SelectModal from '../components/SelectModal.vue';
+import { useEditor, setWordWrap } from '../composition/editor';
 
 const getquery = () => {
   const matched = location.href.match(/\?id=([^&]+)&bg=(.+)/);
@@ -182,22 +207,13 @@ const [id, bg] = getquery();
 let bgColor = ref<string>("white");
 let isPin = ref<boolean>(false);
 let isTransparent = ref<boolean>(false);
+let wordWrap = ref<boolean>(true);
 let isGenerating = ref<boolean>(false);
-let optimizeTitle = ref<boolean>(false);
-let addDessert = ref<boolean>(false);
 let showGenerateMenu = ref<boolean>(false);
 let timerHandler: NodeJS.Timeout | null = null;
 
 let data = shallowRef<any>(null);
 let editorView: any = null;
-
-const showProviderModal = ref(false);
-const showModelModal = ref(false);
-const providerOptions = ref<{value: string, label: string}[]>([]);
-const modelOptions = ref<{value: string, label: string}[]>([]);
-let pendingProviderValue: string = '';
-let pendingContent: string = '';
-let isOutlineMode: boolean = false;
 
 const isFileMode = ref(false);
 const filePath = ref('');
@@ -231,6 +247,79 @@ const fileFilterInputRef = ref<HTMLInputElement | null>(null);
 const paramDialog = ref<{ visible: boolean; opName: string; params: string[]; values: string[]; currentIndex: number; command: string }>({
   visible: false, opName: '', params: [], values: [], currentIndex: 0, command: ''
 });
+
+// 交给 Agent 的自定义 Prompt 对话框
+const agentPrompt = ref({ visible: false, text: '' });
+
+// Agent 执行进度
+const agentProgress = ref<{
+  title: string;
+  message: string;
+  phase: 'running' | 'done' | 'error';
+  pid?: number;
+  bytes?: number;
+  lines?: string[];
+} | null>(null);
+const agentElapsed = ref(0);
+const agentIdle = ref(-1); // -1 表示还没有任何输出
+let agentLastOutputAt = 0;
+let agentTaskId = '';
+let agentTickTimer: NodeJS.Timeout | null = null;
+let agentHideTimer: NodeJS.Timeout | null = null;
+
+const agentElapsedText = computed(() => {
+  const total = Math.floor(agentElapsed.value / 1000);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+});
+
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+};
+
+// 运行中显示 PID、累计输出量、距离上次输出的时间, 用来确认 Agent 还活着
+const agentDetailText = computed(() => {
+  const progress = agentProgress.value;
+  if (!progress || progress.phase !== 'running') return '';
+  const parts: string[] = [];
+  if (progress.pid) parts.push(`PID ${progress.pid}`);
+  parts.push(`输出 ${formatBytes(progress.bytes || 0)}`);
+  if (agentIdle.value < 0) parts.push('等待输出…');
+  else if (agentIdle.value <= 1) parts.push('刚刚有输出');
+  else parts.push(`${agentIdle.value}s 前有输出`);
+  return parts.join(' · ');
+});
+
+const startAgentProgress = (title: string) => {
+  if (agentHideTimer) { clearTimeout(agentHideTimer); agentHideTimer = null; }
+  if (agentTickTimer) { clearInterval(agentTickTimer); agentTickTimer = null; }
+  agentProgress.value = { title, message: '正在准备…', phase: 'running', bytes: 0 };
+  agentElapsed.value = 0;
+  agentIdle.value = -1;
+  agentLastOutputAt = 0;
+  const startedAt = Date.now();
+  agentTickTimer = setInterval(() => {
+    agentElapsed.value = Date.now() - startedAt;
+    if (agentLastOutputAt) agentIdle.value = Math.max(0, Math.floor((Date.now() - agentLastOutputAt) / 1000));
+  }, 1000);
+};
+
+const finishAgentProgress = (phase: 'done' | 'error', title: string, message: string) => {
+  if (agentTickTimer) { clearInterval(agentTickTimer); agentTickTimer = null; }
+  if (agentHideTimer) clearTimeout(agentHideTimer);
+  agentProgress.value = { title, message, phase };
+  agentHideTimer = setTimeout(() => {
+    agentHideTimer = null;
+    if (!isGenerating.value) agentProgress.value = null;
+  }, phase === 'error' ? 8000 : 5000);
+};
+
+const cancelAgent = async () => {
+  if (!isGenerating.value || !agentTaskId) return;
+  if (agentProgress.value) agentProgress.value = { ...agentProgress.value, message: '正在取消…' };
+  try { await invoke('cancelAgentTask', agentTaskId); } catch (e) { }
+};
 
 const fileName = computed(() => {
   if (!filePath.value) return '';
@@ -364,14 +453,14 @@ const initEditor = () => {
       editorView = useEditor(() => fileContent.value, (v: string) => {
         fileContent.value = v;
         saveToFile();
-      }, () => document.getElementById('code-mirror')!);
+      }, () => document.getElementById('code-mirror')!, wordWrap.value);
     }).catch((err: any) => {
       console.error('读取文件失败:', err);
       fileContent.value = `读取文件失败: ${err.message}`;
       savedFileContent = null;
       editorView = useEditor(() => fileContent.value, (v: string) => {
         fileContent.value = v;
-      }, () => document.getElementById('code-mirror')!);
+      }, () => document.getElementById('code-mirror')!, wordWrap.value);
     });
   } else {
     const initialContent = data.value?.value?.content || '';
@@ -382,7 +471,7 @@ const initEditor = () => {
         key: id,
         val: v,
       });
-    }, () => dom);
+    }, () => dom, wordWrap.value);
   }
 };
 
@@ -499,7 +588,9 @@ const exitFileMode = () => {
   initEditor();
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // 先读取换行偏好, 保证编辑器初始化时即按偏好渲染
+  wordWrap.value = await invoke('getWordWrap');
   if (id) {
     bgColor.value = getBg(bg);
     data.value = useUserData(
@@ -535,10 +626,28 @@ onMounted(() => {
     if (type === "stickyMetaChange") {
       stickyMeta.value = { ...stickyMeta.value, ...value };
     }
+    if (type === "wordWrapChanged" && wordWrap.value !== value) {
+      // 其他便签窗口切换了换行偏好, 同步更新
+      wordWrap.value = value;
+      setWordWrap(editorView, wordWrap.value);
+    }
     if (type === "stickyContentChanged" && String(value?.id) === String(id)) {
       // MCP 等外部来源改写内容后, 刷新编辑器
       data.value.value.content = value.content;
       initEditor();
+    }
+    if (type === "agentProgress") {
+      // 只处理当前便签发起的任务
+      if (agentProgress.value && String(value?.taskId) === agentTaskId && value?.phase !== 'done') {
+        if (value?.lastOutputAt) agentLastOutputAt = Number(value.lastOutputAt);
+        agentProgress.value = {
+          ...agentProgress.value,
+          message: String(value?.message || ''),
+          pid: value?.pid ? Number(value.pid) : agentProgress.value.pid,
+          bytes: value?.bytes != null ? Number(value.bytes) : agentProgress.value.bytes,
+          lines: Array.isArray(value?.lines) ? value.lines.map((line: any) => String(line)) : agentProgress.value.lines
+        };
+      }
     }
   });
 
@@ -558,6 +667,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (agentTickTimer) clearInterval(agentTickTimer);
+  if (agentHideTimer) clearTimeout(agentHideTimer);
+
   document
     .getElementsByClassName("dragable")[0]
     .removeEventListener("mouseenter", clickThoughMouseEnter);
@@ -597,144 +709,130 @@ const togglePin = () => {
   send("setPin", !isPin.value);
   isPin.value = !isPin.value;
 };
+const toggleWordWrap = () => {
+  wordWrap.value = !wordWrap.value;
+  setWordWrap(editorView, wordWrap.value);
+  invoke("setWordWrap", wordWrap.value);
+};
 
-const generateBlog = async () => {
-  if (isGenerating.value) return;
-  showGenerateMenu.value = false;
-
-  let content = '';
+const collectStickyContent = () => {
   if (editorView) {
     const selection = editorView.state.selection.main;
     const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
-    content = selectedText.trim() || (isFileMode.value ? fileContent.value : data.value?.value?.content);
-  } else {
-    content = isFileMode.value ? fileContent.value : data.value?.value?.content;
+    const fullContent = isFileMode.value ? fileContent.value : (data.value?.value?.content || '');
+    return selectedText.trim() || fullContent;
   }
-
-  if (!content || content.trim() === '') {
-    alertRef.value?.show('请先在便签中输入内容或选中文本', 'warning');
-    return;
-  }
-
-  const providers = await getConfiguredProviders();
-  if (providers.length === 0) {
-    alertRef.value?.show('请先在设置中配置至少一个AI提供商的API Token', 'warning');
-    return;
-  }
-
-  pendingContent = content;
-  isOutlineMode = false;
-
-  if (providers.length === 1) {
-      pendingProviderValue = providers[0].value;
-      modelOptions.value = providers[0].models.map((m: any) => ({
-        value: m.id,
-        label: `${m.name} (${providers[0].label})`
-      }));
-    showModelModal.value = true;
-  } else {
-    providerOptions.value = providers.map(p => ({ value: p.value, label: p.label }));
-    showProviderModal.value = true;
-  }
+  return isFileMode.value ? fileContent.value : (data.value?.value?.content || '');
 };
 
-const generateOutline = async () => {
-  if (isGenerating.value) return;
-  showGenerateMenu.value = false;
-
-  let content = '';
-  if (editorView) {
-    const selection = editorView.state.selection.main;
-    const selectedText = editorView.state.doc.sliceString(selection.from, selection.to);
-    content = selectedText.trim() || (isFileMode.value ? fileContent.value : data.value?.value?.content);
+const buildAgentPrompt = (instruction: string, content: string, mcpUrl: string, mode: 'custom' | 'blog' | 'file') => {
+  const lines = [
+    '你是一个可以自主使用 skill 和 MCP 工具的 agent。',
+    '',
+    '【任务】',
+    instruction,
+    '',
+    '【便签内容】',
+    content,
+    '',
+    '【执行约定】',
+  ];
+  if (mode === 'file') {
+    lines.push('- 直接输出最终 Markdown 正文，不要写入文件，也不要输出额外说明；schedule-pro 会把你的输出保存为 .md 文件。');
   } else {
-    content = isFileMode.value ? fileContent.value : data.value?.value?.content;
-  }
-
-  if (!content || content.trim() === '') {
-    alertRef.value?.show('请先在便签中输入内容或选中文本', 'warning');
-    return;
-  }
-
-  const providers = await getConfiguredProviders();
-  if (providers.length === 0) {
-    alertRef.value?.show('请先在设置中配置至少一个AI提供商的API Token', 'warning');
-    return;
-  }
-
-  pendingContent = content;
-  isOutlineMode = true;
-
-  if (providers.length === 1) {
-      pendingProviderValue = providers[0].value;
-      modelOptions.value = providers[0].models.map((m: any) => ({
-        value: m.id,
-        label: `${m.name} (${providers[0].label})`
-      }));
-    showModelModal.value = true;
-  } else {
-    providerOptions.value = providers.map(p => ({ value: p.value, label: p.label }));
-    showProviderModal.value = true;
-  }
-};
-
-const onProviderConfirm = (value: string) => {
-  showProviderModal.value = false;
-  pendingProviderValue = value;
-
-  const providers = providerOptions.value;
-  const selectedProvider = providers.find(p => p.value === value);
-  if (!selectedProvider) return;
-
-  getConfiguredProviders().then(providerList => {
-    const fullProvider = providerList.find(p => p.value === value);
-    if (fullProvider && fullProvider.models.length > 1) {
-      modelOptions.value = fullProvider.models.map((m: any) => ({
-        value: m.id,
-        label: `${m.name} (${fullProvider.label})`
-      }));
-      showModelModal.value = true;
-    } else if (fullProvider) {
-      doGenerateBlog(fullProvider.value, fullProvider.models[0]?.id);
+    if (mcpUrl) {
+      lines.push(`- 如果需要把结果保存回 schedule-pro，请调用 schedule-pro MCP（${mcpUrl}）的 create_sticky 工具。`);
     }
-  });
+    lines.push('- 你的最终输出也会被自动保存为一条新便签；如果已经通过 MCP 创建了便签，则不会重复保存。');
+    lines.push('- 不要输出与任务无关的寒暄或解释。');
+  }
+  return lines.join('\n');
 };
 
-const onProviderCancel = () => {
-  showProviderModal.value = false;
+const deriveTitle = (text: string) => {
+  const line = text.split('\n').map(item => item.trim()).find(Boolean) || '博客';
+  return line.replace(/^#+\s*/, '').slice(0, 40);
 };
 
-const onModelConfirm = (value: string) => {
-  showModelModal.value = false;
-  doGenerateBlog(pendingProviderValue, value);
-};
+const runAgent = async (mode: 'custom' | 'blog' | 'file', instruction: string) => {
+  if (isGenerating.value) return;
+  showGenerateMenu.value = false;
 
-const onModelCancel = () => {
-  showModelModal.value = false;
-};
+  const content = collectStickyContent();
+  if (!content || content.trim() === '') {
+    alertRef.value?.show('请先在便签中输入内容或选中文本', 'warning');
+    return;
+  }
 
-const doGenerateBlog = async (providerValue: string, modelId: string) => {
-  if (!pendingContent || !providerValue || !modelId) return;
-
+  agentTaskId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  startAgentProgress(mode === 'file' ? '正在生成博客文件' : '正在交给 Agent');
   isGenerating.value = true;
-
   try {
-    const options = isOutlineMode
-      ? { isOutline: true }
-      : { optimizeTitle: optimizeTitle.value, addDessert: addDessert.value };
+    let mcpUrl = '';
+    try {
+      const status: any = await invoke('getMcpStatus');
+      if (status?.running) mcpUrl = String(status.url || '');
+    } catch (e) { }
 
-    const blogContent = await generateBlogContent(pendingContent, providerValue, modelId, options);
+    const prompt = buildAgentPrompt(instruction, content, mcpUrl, mode);
+    const result: any = await invoke('runAgentTask', { taskId: agentTaskId, prompt, mode });
 
-    const newStickyId = Date.now();
-    send('createStickyWithContent', {
-      id: newStickyId,
-      content: blogContent
-    });
+    if (result?.handedOff) {
+      finishAgentProgress('done', '已交给 Trae', '已复制 prompt 并打开 Trae，粘贴后发送即可');
+      return;
+    }
+
+    const output = String(result?.stdout || '').trim();
+
+    if (mode === 'file') {
+      if (!output) {
+        finishAgentProgress('error', 'Agent 没有返回内容', '未创建文件');
+        return;
+      }
+      const saved: any = await invoke('saveMarkdownFile', { content: output, defaultName: deriveTitle(output) });
+      if (saved?.canceled) {
+        finishAgentProgress('done', '已取消保存', 'Agent 已生成内容，但保存对话框被取消');
+      } else {
+        finishAgentProgress('done', '博客文件已保存', String(saved?.filePath || ''));
+      }
+      return;
+    }
+
+    if (result?.createdByAgent) {
+      finishAgentProgress('done', 'Agent 已完成', '已通过 MCP 写回便签');
+    } else if (result?.stickyId) {
+      finishAgentProgress('done', 'Agent 已完成', '结果已保存为新便签');
+    } else {
+      finishAgentProgress('error', 'Agent 已完成', '但没有返回内容');
+    }
   } catch (error: any) {
-    alertRef.value?.show(error.message || (isOutlineMode ? '整理提纲失败' : '生成博客失败'), 'error');
+    const message = String(error?.message || error || 'Agent 执行失败');
+    const canceled = /已取消|canceled|cancelled/i.test(message);
+    if (canceled) finishAgentProgress('done', '已取消', 'Agent 任务已停止');
+    else finishAgentProgress('error', 'Agent 执行失败', message);
   } finally {
     isGenerating.value = false;
   }
+};
+
+const openAgentPrompt = () => {
+  if (isGenerating.value) return;
+  showGenerateMenu.value = false;
+  agentPrompt.value = { visible: true, text: '' };
+};
+
+const submitAgentPrompt = async () => {
+  const text = agentPrompt.value.text.trim();
+  if (!text) return;
+  agentPrompt.value.visible = false;
+  await runAgent('custom', text);
+};
+
+const handOffToAgent = async (mode: 'blog' | 'file') => {
+  const instruction = mode === 'file'
+    ? '请把下面这份便签内容扩写成一篇完整、可发布的博客文章：保留核心观点，补齐结构、例子和过渡，使用 Markdown 格式，并直接输出正文。'
+    : '请把下面这份便签内容扩写成一篇完整、可发布的博客文章：保留核心观点，补齐结构、例子和过渡，使用 Markdown 格式。';
+  await runAgent(mode, instruction);
 };
 </script>
 
@@ -818,9 +916,15 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
 }
 
 .generate-menu-section {
-  border-bottom: 1px solid var(--border-0);
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-group-label {
+  padding: 0 0.75rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-2);
 }
 
 .menu-btn {
@@ -836,43 +940,102 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   --hover-fill: var(--bg-3);
 }
 
-.menu-option-list {
-  margin-top: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+/* ========== Agent 执行进度 ========== */
+.agent-progress {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  bottom: 1.5rem;
+  z-index: 40;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  background: var(--bg-1);
+  border: 1px solid var(--border-1);
+  box-shadow: 0 8px 20px -6px var(--shadow-0);
+  color: var(--color-1);
+
+  &.is-error {
+    border-color: var(--error-0);
+    color: var(--error-0);
+  }
+
+  &.is-done {
+    border-color: var(--theme-0);
+  }
 }
 
-.menu-option {
+.agent-progress-row {
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-  color: var(--color-1);
-  --hover-fill: var(--bg-3);
+  gap: 0.375rem;
+  font-size: 0.75rem;
+}
 
-  input[type="checkbox"] {
-    margin-right: 0.5rem;
+.agent-progress-spinner {
+  animation: agent-spin 1s linear infinite;
+}
+
+@keyframes agent-spin {
+  to { transform: rotate(360deg); }
+}
+
+.agent-progress-title {
+  font-weight: 600;
+}
+
+.agent-progress-elapsed {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+.agent-progress-cancel {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-1);
+  background: var(--bg-2);
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--bg-3);
   }
 }
 
-.menu-btn-primary {
-  width: 100%;
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  background: var(--theme-0);
-  color: var(--theme-contrast);
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
+.agent-progress-detail {
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  &:hover {
-    opacity: 0.9;
+.agent-progress-log {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  .agent-progress-message {
+    margin-top: 0;
+    opacity: 0.55;
   }
+
+  .agent-progress-message:last-child {
+    opacity: 0.85;
+  }
+}
+
+.agent-progress-message {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ========== 模态框 ========== */
@@ -912,6 +1075,13 @@ const doGenerateBlog = async (providerValue: string, modelId: string) => {
   margin-bottom: 0.75rem;
   background: var(--bg-0);
   color: var(--color-1);
+}
+
+.agent-prompt-input {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: 1.5;
+  font-family: inherit;
 }
 
 .modal-actions {
