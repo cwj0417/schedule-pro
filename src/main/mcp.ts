@@ -1,6 +1,9 @@
 import http from 'http'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
+import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server'
 import { z } from 'zod'
 
 // 主进程向 MCP 工具暴露的数据操作接口
@@ -66,6 +69,43 @@ const withCatch = (handler: (...args: any[]) => Promise<any> | any) =>
     }
   }
 
+// 卡片的 UI 资源, 工具通过 _meta.ui.resourceUri 指向它
+const CARD_UI_BASE = 'ui://schedule-pro'
+const SCHEDULE_UI_URI = `${CARD_UI_BASE}/schedule.html`
+const INSPIRATION_UI_URI = `${CARD_UI_BASE}/inspiration.html`
+const TIMERS_UI_URI = `${CARD_UI_BASE}/timers.html`
+const STICKIES_UI_URI = `${CARD_UI_BASE}/stickies.html`
+const SETTINGS_UI_URI = `${CARD_UI_BASE}/settings.html`
+
+const readCardUi = (file: string, label: string) => {
+  try {
+    return readFileSync(join(__dirname, '..', 'mcp-apps', file), 'utf-8')
+  } catch (error) {
+    console.error(`[mcp] 读取${label}卡片失败`, error)
+    return `<!DOCTYPE html><html lang="zh-CN"><body style="font-family:-apple-system,sans-serif;padding:16px;color:#d33b3b">${label}卡片资源缺失, 请重新安装应用。</body></html>`
+  }
+}
+
+// 注册一个卡片 UI 资源
+const registerCardResource = (server: McpServer, uri: string, file: string, label: string, description: string) => {
+  registerAppResource(server, `${label}卡片`, uri, {
+    title: label,
+    description,
+  }, async (registered) => ({
+    contents: [{
+      uri: registered.href,
+      mimeType: RESOURCE_MIME_TYPE,
+      text: readCardUi(file, label),
+    }],
+  }))
+}
+
+// MCP Apps 宿主用 structuredContent 渲染卡片, content 文本保留给不支持 UI 的宿主
+const structured = (value: Record<string, any>) => ({
+  ...text(value),
+  structuredContent: value,
+})
+
 // 写入类工具的触发说明随设置变化: 默认接受口语化"记一下", 严格模式下要求明确提及应用
 const writeTriggerHint = (strict: boolean) => strict
   ? ' 仅当用户明确提到 schedule-pro/sp, 或当前对话上下文已确认在讨论 schedule-pro 时才调用; 否则不要写入。'
@@ -122,15 +162,24 @@ const buildServer = (bridge: McpBridge) => {
     },
   )
 
-  server.registerTool('list_schedule', {
+  registerCardResource(server, SCHEDULE_UI_URI, 'schedule.html', '今日办', '以卡片形式展示某一天的今日办, 支持勾选完成与刷新')
+  registerCardResource(server, INSPIRATION_UI_URI, 'inspiration.html', '待办池', '以卡片形式展示待办池, 支持勾选完成、转今日办、新增与删除')
+  registerCardResource(server, TIMERS_UI_URI, 'timers.html', '倒计时', '以卡片形式展示进行中的倒计时, 支持实时进度、快速新建与取消')
+  registerCardResource(server, STICKIES_UI_URI, 'stickies.html', '便签', '以卡片形式展示便签列表, 支持查看、编辑、新建与删除')
+  registerCardResource(server, SETTINGS_UI_URI, 'settings.html', '应用设置', '以卡片形式展示应用设置: 主题、首页模块显隐、MCP 服务状态')
+
+  registerAppTool(server, 'list_schedule', {
     title: '查询今日办',
     description: '查询某一天的今日办列表。用户问"今天/明天/某天有什么安排""待办做完了吗"时使用; 返回该日期下每条待办的 id、内容和完成状态。默认查询今天。',
     inputSchema: {
       date: z.string().optional().describe('日期 YYYY-MM-DD, 默认今天; 用户说"明天""下周一"时先换算成具体日期'),
     },
+    _meta: {
+      ui: { resourceUri: SCHEDULE_UI_URI },
+    },
   }, withCatch(async ({ date }) => {
     const dayKey = dayKeyOf(date)
-    return text({ date: formatDate(dayKey), items: bridge.listSchedule(dayKey) })
+    return structured({ date: formatDate(dayKey), items: bridge.listSchedule(dayKey) })
   }))
 
   server.registerTool('add_schedule', {
@@ -168,16 +217,19 @@ const buildServer = (bridge: McpBridge) => {
     return bridge.deleteSchedule(id) ? text({ ok: true, id }) : fail('未找到该待办')
   }))
 
-  server.registerTool('list_inspiration', {
+  registerAppTool(server, 'list_inspiration', {
     title: '查询待办池',
     description: '查询待办池(没有排期的待办集合)。用户问"我记过哪些事没做""待办池里有什么"时使用; 修改或删除前也先用它获取 id。',
     inputSchema: {
       done: z.boolean().optional().describe('true 只看已完成, false 只看未完成, 不传返回全部'),
     },
+    _meta: {
+      ui: { resourceUri: INSPIRATION_UI_URI },
+    },
   }, withCatch(async ({ done }) => {
     const items = bridge.listInspiration()
       .filter((item: any) => done === undefined ? true : !!item.done === done)
-    return text(items)
+    return structured({ items })
   }))
 
   server.registerTool('add_inspiration', {
@@ -213,12 +265,15 @@ const buildServer = (bridge: McpBridge) => {
     return bridge.deleteInspiration(id) ? text({ ok: true, id }) : fail('未找到该待办')
   }))
 
-  server.registerTool('list_timers', {
+  registerAppTool(server, 'list_timers', {
     title: '查询倒计时',
     description: '查询当前正在运行的倒计时, 返回 id、剩余时长和标题。用户问"还有几分钟""倒计时还剩多久"时使用; 已经结束的倒计时不会出现在结果里。',
     inputSchema: {},
+    _meta: {
+      ui: { resourceUri: TIMERS_UI_URI },
+    },
   }, withCatch(async () => {
-    return text(bridge.listTimers())
+    return structured({ now: Date.now(), items: bridge.listTimers() })
   }))
 
   server.registerTool('start_countdown', {
@@ -242,12 +297,15 @@ const buildServer = (bridge: McpBridge) => {
     return bridge.removeTimer(id) ? text({ ok: true, id }) : fail('未找到该倒计时')
   }))
 
-  server.registerTool('list_stickies', {
+  registerAppTool(server, 'list_stickies', {
     title: '查询便签',
     description: '列出所有便签的 id、标题和创建/更新时间, 不含正文。用户问"我有哪些便签""找一下那篇笔记"时先调用它定位, 再用 read_sticky 按 id 读正文。',
     inputSchema: {},
+    _meta: {
+      ui: { resourceUri: STICKIES_UI_URI },
+    },
   }, withCatch(async () => {
-    return text(bridge.listStickies())
+    return structured({ items: bridge.listStickies() })
   }))
 
   server.registerTool('read_sticky', {
@@ -293,12 +351,15 @@ const buildServer = (bridge: McpBridge) => {
     return bridge.deleteSticky(id) ? text({ ok: true, id }) : fail('未找到该便签')
   }))
 
-  server.registerTool('get_settings', {
+  registerAppTool(server, 'get_settings', {
     title: '查询应用设置',
     description: '查询应用当前的设置: 主题、首页各模块显隐、搜索提示、MCP 服务状态与端口。用户问"我的主题是什么""首页为什么看不到便签/倒计时""MCP 端口是多少"时使用。只读, 不能修改设置。',
     inputSchema: {},
+    _meta: {
+      ui: { resourceUri: SETTINGS_UI_URI },
+    },
   }, withCatch(async () => {
-    return text(bridge.getSettings())
+    return structured(bridge.getSettings())
   }))
 
   return server
