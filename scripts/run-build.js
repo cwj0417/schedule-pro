@@ -4,6 +4,7 @@ const { join } = require('path')
 const { remove, writeFile } = require('fs-extra')
 const { rendererBuild } = require('./renderer')
 const { mainProdBuild } = require('./main')
+const { mcpAppsBuild } = require('./mcp-apps')
 
 const projRoot = join(__dirname, '..')
 
@@ -19,6 +20,9 @@ const runBuild = async () => {
 
     // vite(rollup)打包renderer进程
     await rendererBuild()
+
+    // vite打包MCP Apps卡片, 输出单文件HTML到dist/mcp-apps
+    await mcpAppsBuild()
 
     // esbuild打包main进程
     await mainProdBuild()

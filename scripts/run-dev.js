@@ -3,6 +3,7 @@ const { rendererDevServer } = require('./renderer')
 const { spawn, execSync } = require('child_process')
 const { join } = require('path')
 const { mainDevServer } = require('./main')
+const { mcpAppsBuild } = require('./mcp-apps')
 const { remove } = require('fs-extra')
 
 let electronProcess = null
@@ -32,6 +33,8 @@ const runDev = async () => {
     await remove(join(projRoot, 'dist', 'main'))
 
     const { port } = await rendererDevServer()
+
+    await mcpAppsBuild()
 
     await mainDevServer(port, reloadElectron)
 
